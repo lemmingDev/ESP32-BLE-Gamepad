@@ -1,0 +1,48 @@
+#######################################
+# Syntax Coloring Map For ESP32 BLE Gamepad
+#######################################
+# Class
+#######################################
+
+BleGamepad	KEYWORD1
+
+#######################################
+# Methods and Functions
+#######################################
+
+begin	KEYWORD2
+end	KEYWORD2
+setAxes	KEYWORD2
+press	KEYWORD2
+release	KEYWORD2
+isPressed	KEYWORD2
+isConnected	KEYWORD2
+
+#######################################
+# Constants
+#######################################
+
+BUTTON_1	LITERAL1
+BUTTON_2	LITERAL1
+BUTTON_3	LITERAL1
+BUTTON_4	LITERAL1
+BUTTON_5	LITERAL1
+BUTTON_6	LITERAL1
+BUTTON_7	LITERAL1
+BUTTON_8	LITERAL1
+BUTTON_9	LITERAL1
+BUTTON_10	LITERAL1
+BUTTON_11	LITERAL1
+BUTTON_12	LITERAL1
+BUTTON_13	LITERAL1
+BUTTON_14	LITERAL1
+
+DPAD_CENTERED 	0
+DPAD_UP 		1
+DPAD_UP_RIGHT 	2
+DPAD_RIGHT 		3
+DPAD_DOWN_RIGHT 4
+DPAD_DOWN 		5
+DPAD_DOWN_LEFT 	6
+DPAD_LEFT 		7
+DPAD_UP_LEFT 	8
