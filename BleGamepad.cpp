@@ -26,7 +26,7 @@ static const uint8_t _hidReportDescriptor[] = {
   USAGE(1),            0x01, //   USAGE (Pointer)
   COLLECTION(1),       0x00, //   COLLECTION (Physical)
   REPORT_ID(1),        0x01, //     REPORT_ID (1)
-  // ------------------------------------------------- Buttons (Left, Right, Middle, Back, Forward)
+  // ------------------------------------------------- Buttons (1 to 14)
   USAGE_PAGE(1),       0x09, //     USAGE_PAGE (Button)
   USAGE_MINIMUM(1),    0x01, //     USAGE_MINIMUM (Button 1)
   USAGE_MAXIMUM(1),    0x0e, //     USAGE_MAXIMUM (Button 14)
@@ -39,7 +39,7 @@ static const uint8_t _hidReportDescriptor[] = {
   REPORT_SIZE(1),      0x01, //     REPORT_SIZE (1)
   REPORT_COUNT(1),     0x02, //     REPORT_COUNT (2)
   HIDINPUT(1),         0x03, //     INPUT (Constant, Variable, Absolute) ;2 bit padding
-  // ------------------------------------------------- X/Y position, Z, rZ
+  // ------------------------------------------------- X/Y position, Z/rZ position
   USAGE_PAGE(1),       0x01, //     USAGE_PAGE (Generic Desktop)
   USAGE(1),            0x30, //     USAGE (X)
   USAGE(1),            0x31, //     USAGE (Y)
@@ -90,7 +90,7 @@ void BleGamepad::end(void)
 {
 }
 
-void BleGamepad::setAxes(signed char x, signed char y, signed char z, signed char rZ, signed char rX, signed char rY, signed char hat)
+void BleGamepad::setAxes(signed char x, signed char y, signed char z, signed char rZ, char rX, char rY, signed char hat)
 {
   if (this->isConnected())
   {
@@ -101,9 +101,11 @@ void BleGamepad::setAxes(signed char x, signed char y, signed char z, signed cha
     m[3] = y;
     m[4] = z;
     m[5] = rZ;
-	m[6] = rX;
-	m[7] = rY;
+	m[6] = (signed char)(rX - 128);
+	m[7] = (signed char)(rY - 128);
 	m[8] = hat;
+	if(m[6]==-128){m[6] = -127;}
+	if(m[7]==-128){m[7] = -127;}
     this->inputGamepad->setValue(m, sizeof(m));
     this->inputGamepad->notify();
   }
