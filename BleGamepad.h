@@ -45,7 +45,7 @@ public:
   BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
   void begin(void);
   void end(void);
-  void setAxes(signed char x, signed char y, signed char z = 0, signed char rZ = 0, signed char rX = 0, signed char rY = 0, signed char hat = 0);
+  void setAxes(signed char x, signed char y, signed char z = 0, signed char rZ = 0, char rX = 0, char rY = 0, signed char hat = 0);
   void press(uint16_t b = BUTTON_1);   // press BUTTON_1 by default
   void release(uint16_t b = BUTTON_1); // release BUTTON_1 by default
   bool isPressed(uint16_t b = BUTTON_1); // check BUTTON_1 by default
