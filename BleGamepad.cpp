@@ -59,21 +59,23 @@ static const uint8_t _hidReportDescriptor[] = {
   REPORT_SIZE(1),      0x08, //     REPORT_SIZE (8)
   REPORT_COUNT(1),     0x02, //     REPORT_COUNT (2)
   HIDINPUT(1),         0x02, //     INPUT (Data, Variable, Absolute) ;2 bytes rX, rY
-  
-  USAGE_PAGE(1), 	   0x01, //     USAGE_PAGE (Generic Desktop)
-  USAGE(1), 		   0x39, //     USAGE (Hat switch)
-  USAGE(1), 		   0x39, //     USAGE (Hat switch)
-  LOGICAL_MINIMUM(1),  0x01, //		LOGICAL_MINIMUM (1)
+
+  USAGE_PAGE(1),       0x01, //     USAGE_PAGE (Generic Desktop)
+  USAGE(1),            0x39, //     USAGE (Hat switch)
+  USAGE(1),            0x39, //     USAGE (Hat switch)
+  LOGICAL_MINIMUM(1),  0x01, //     LOGICAL_MINIMUM (1)
   LOGICAL_MAXIMUM(1),  0x08, //     LOGICAL_MAXIMUM (8)
-  REPORT_SIZE(1), 	   0x04, //		REPORT_SIZE (4)
-  REPORT_COUNT(1), 	   0x02, //		REPORT_COUNT (2)
-  HIDINPUT(1), 		   0x02, //		INPUT (Data, Variable, Absolute) ;1 byte Hat1, Hat2
-  
-  END_COLLECTION(0),         //   END_COLLECTION
-  END_COLLECTION(0)          // END_COLLECTION
+  REPORT_SIZE(1),      0x04, //     REPORT_SIZE (4)
+  REPORT_COUNT(1),     0x02, //     REPORT_COUNT (2)
+  HIDINPUT(1),         0x02, //     INPUT (Data, Variable, Absolute) ;1 byte Hat1, Hat2
+
+  END_COLLECTION(0),         //     END_COLLECTION
+  END_COLLECTION(0)          //     END_COLLECTION
 };
 
-BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(0)
+BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) :
+  _buttons(0),
+  hid(0)
 {
   this->deviceName = deviceName;
   this->deviceManufacturer = deviceManufacturer;
@@ -96,16 +98,16 @@ void BleGamepad::setAxes(signed char x, signed char y, signed char z, signed cha
   {
     uint8_t m[9];
     m[0] = _buttons;
-	m[1] = (_buttons >> 8);
+    m[1] = (_buttons >> 8);
     m[2] = x;
     m[3] = y;
     m[4] = z;
     m[5] = rZ;
-	m[6] = (signed char)(rX - 128);
-	m[7] = (signed char)(rY - 128);
-	m[8] = hat;
-	if(m[6]==-128){m[6] = -127;}
-	if(m[7]==-128){m[7] = -127;}
+    m[6] = (signed char)(rX - 128);
+    m[7] = (signed char)(rY - 128);
+    m[8] = hat;
+    if (m[6] == -128) { m[6] = -127; }
+    if (m[7] == -128) { m[7] = -127; }
     this->inputGamepad->setValue(m, sizeof(m));
     this->inputGamepad->notify();
   }
@@ -143,6 +145,8 @@ bool BleGamepad::isConnected(void) {
 
 void BleGamepad::setBatteryLevel(uint8_t level) {
   this->batteryLevel = level;
+  if (hid != 0)
+    this->hid->setBatteryLevel(this->batteryLevel);
 }
 
 void BleGamepad::taskServer(void* pvParameter) {
