@@ -171,6 +171,8 @@ void BleGamepad::taskServer(void* pvParameter) {
   BleGamepadInstance->hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
   BleGamepadInstance->hid->startServices();
 
+  bleKeyboardInstance->onStarted(pServer);
+
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->setAppearance(HID_GAMEPAD);
   pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
