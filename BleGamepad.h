@@ -3,9 +3,12 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
+#include "nimconfig.h"
+#if defined(CONFIG_BT_NIMBLE_ROLE_PERIPHERAL)
+
 #include "BleConnectionStatus.h"
-#include "BLEHIDDevice.h"
-#include "BLECharacteristic.h"
+#include "NimBLEHIDDevice.h"
+#include "NimBLECharacteristic.h"
 
 #define BUTTON_1 	1
 #define BUTTON_2 	2
@@ -36,13 +39,13 @@ class BleGamepad {
 private:
   uint16_t _buttons;
   BleConnectionStatus* connectionStatus;
-  BLEHIDDevice* hid;
-  BLECharacteristic* inputGamepad;
+  NimBLEHIDDevice* hid;
+  NimBLECharacteristic* inputGamepad;
   void buttons(uint16_t b);
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
 public:
-  BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
+  BleGamepad(std::string deviceName = "ESP32-Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
   void begin(void);
   void end(void);
   void setAxes(signed char x, signed char y, signed char z = 0, signed char rZ = 0, char rX = 0, char rY = 0, signed char hat = 0);
@@ -55,8 +58,9 @@ public:
   std::string deviceManufacturer;
   std::string deviceName;
 protected:
-  virtual void onStarted(BLEServer *pServer) { };
+  virtual void onStarted(NimBLEServer *pServer) { };
 };
 
+#endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
 #endif // CONFIG_BT_ENABLED
 #endif // ESP32_BLE_GAMEPAD_H
