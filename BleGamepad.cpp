@@ -25,7 +25,7 @@ static const uint8_t _hidReportDescriptor[] = {
   COLLECTION(1),       0x01, // COLLECTION (Application)
   USAGE(1),            0x01, //   USAGE (Pointer)
   COLLECTION(1),       0x00, //   COLLECTION (Physical)
-  REPORT_ID(1),        0x01, //     REPORT_ID (1)
+
   // ------------------------------------------------- Buttons (1 to 14)
   USAGE_PAGE(1),       0x09, //     USAGE_PAGE (Button)
   USAGE_MINIMUM(1),    0x01, //     USAGE_MINIMUM (Button 1)
@@ -156,7 +156,7 @@ void BleGamepad::taskServer(void* pvParameter) {
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
   BleGamepadInstance->hid = new BLEHIDDevice(pServer);
-  BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(1); // <-- input REPORTID from report map
+  BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(0); // <-- input REPORTID from report map
   BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
   BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
