@@ -12,10 +12,10 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Windows
- - [ ] Compatible with Android (Untested)
+ - [x] Compatible with Android
  - [ ] Compatible with Linux (Untested)
  - [ ] Compatible with MacOS X (Untested)
- - [ ] Compatible with iOS (Untested)
+ - [ ] Compatible with iOS (No - not even for accessibility switch)
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
