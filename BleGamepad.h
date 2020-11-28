@@ -52,7 +52,7 @@
 
 class BleGamepad {
 private:
-  uint16_t _buttons;
+  uint32_t _buttons;
   BleConnectionStatus* connectionStatus;
   BLEHIDDevice* hid;
   BLECharacteristic* inputGamepad;
