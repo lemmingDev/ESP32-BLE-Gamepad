@@ -169,7 +169,7 @@ void BleGamepad::taskServer(void* pvParameter) {
 
   BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
 
-  BleGamepadInstance->hid->pnp(0x01,0x02e5,0xabcd,0x0110);
+  BleGamepadInstance->hid->pnp(0x01,0x02e5,0xabcc,0x0110);
   BleGamepadInstance->hid->hidInfo(0x00,0x01);
 
   BLESecurity *pSecurity = new BLESecurity();
