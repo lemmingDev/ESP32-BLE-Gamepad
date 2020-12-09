@@ -13,8 +13,8 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Windows
  - [x] Compatible with Android
- - [ ] Compatible with Linux (Untested)
- - [ ] Compatible with MacOS X (Untested)
+ - [x] Compatible with Linux
+ - [x] Compatible with MacOS X
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
 
 ## Installation
