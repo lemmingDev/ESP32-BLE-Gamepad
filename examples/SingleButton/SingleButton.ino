@@ -2,19 +2,22 @@
  * A simple sketch that maps a single pin on the ESP32 to a single button on the controller
  */
 
-#include <BleGamepad.h> 
+#include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 BleGamepad bleGamepad;
 
 int previousButton1State = HIGH;
 
-void setup() {
+void setup() 
+{
   pinMode(2, INPUT_PULLUP);
   bleGamepad.begin();
 }
 
-void loop() {
-  if(bleGamepad.isConnected()) {
+void loop() 
+{
+  if(bleGamepad.isConnected()) 
+  {
 
     int currentButton1State = digitalRead(2);
 

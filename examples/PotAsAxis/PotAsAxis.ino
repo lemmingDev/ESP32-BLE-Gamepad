@@ -45,8 +45,8 @@ void loop()
     // Calculate the average
     potValue = potValue / numberOfPotSamples;
 
-    // Map analog reading from 0 ~ 4095 to 127 ~ -127 for use as an axis reading
-    int adjustedValue = map(potValue, 0, 4095, 127, -127);
+    // Map analog reading from 0 ~ 4095 to 32737 ~ -32737 for use as an axis reading
+    int adjustedValue = map(potValue, 0, 4095, 32737, -32737);
 
     // Print readings to serial port 
     Serial.print("Sent: ");

@@ -5,17 +5,17 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
 
 ## Features
 
- - [x] Button press (14 buttons)
- - [x] Button release (14 buttons)
+ - [x] Button press (32 buttons)
+ - [x] Button release (32 buttons)
  - [x] Axes movement (6 axes (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger)))
  - [x] Point of view hat (d-pad)
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Windows
- - [ ] Compatible with Android (Untested)
- - [ ] Compatible with Linux (Untested)
- - [ ] Compatible with MacOS X (Untested)
- - [ ] Compatible with iOS (Untested)
+ - [x] Compatible with Android
+ - [x] Compatible with Linux
+ - [x] Compatible with MacOS X
+ - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
@@ -30,13 +30,13 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  * This example turns the ESP32 into a Bluetooth LE gamepad that presses buttons and moves axis
  * 
  * Possible buttons are:
- * BUTTON_1 through to BUTTON_14* 
+ * BUTTON_1 through to BUTTON_32 
  * 
  * Possible DPAD/HAT switch position values are: 
  * DPAD_CENTERED, DPAD_UP, DPAD_UP_RIGHT, DPAD_RIGHT, DPAD_DOWN_RIGHT, 
  * DPAD_DOWN, DPAD_DOWN_LEFT, DPAD_LEFT, DPAD_UP_LEFT
  * 
- * bleGamepad.setAxes takes the following signed char parameters: 
+ * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, char for the Left/Right Triggers, and hat switch position as above: 
  * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Hat switch position);
  */
  
@@ -52,15 +52,15 @@ void setup() {
 
 void loop() {
   if(bleGamepad.isConnected()) {
-    Serial.println("Press buttons 1 and 14. Move all axes to max. Set DPAD to down right.");
-    bleGamepad.press(BUTTON_14);
+    Serial.println("Press buttons 1 and 32. Move all axes to max. Set DPAD to down right.");
     bleGamepad.press(BUTTON_1);
-    bleGamepad.setAxes(127, 127, 127, 127, 127, 127, DPAD_DOWN_RIGHT);
+    bleGamepad.press(BUTTON_32);
+    bleGamepad.setAxes(32767, 32767, 32767, 32767, 255, 255, DPAD_DOWN_RIGHT);
     delay(500);
 
-    Serial.println("Release button 14. Move all axes to min. Set DPAD to centred.");
-    bleGamepad.release(BUTTON_14);
-    bleGamepad.setAxes(-127, -127, -127, -127, -127, -127, DPAD_CENTERED);
+    Serial.println("Release button 1. Move all axes to min. Set DPAD to centred.");
+    bleGamepad.release(BUTTON_1);
+    bleGamepad.setAxes(-32767, -32767, -32767, -32767, 0, 0, DPAD_CENTERED);
     delay(500);
   }
 }
@@ -69,7 +69,7 @@ void loop() {
 There is also Bluetooth specific information that you can use (optional):
 
 Instead of `BleGamepad bleGamepad;` you can do `BleGamepad bleGamepad("Bluetooth Device Name", "Bluetooth Device Manufacturer", 100);`.
-The third parameter is the initial battery level of your device. To adjust the battery level later on you can simply call e.g.  `bleMouse.setBatteryLevel(50)` (set battery level to 50%).
+The third parameter is the initial battery level of your device. To adjust the battery level later on you can simply call e.g.  `bleGamepad.setBatteryLevel(50)` (set battery level to 50%).
 By default the battery level will be set to 100%, the device name will be `ESP32 BLE Gamepad` and the manufacturer will be `Espressif`.
 
 
