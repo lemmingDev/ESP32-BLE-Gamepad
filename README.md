@@ -12,7 +12,7 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Compatible with Windows
- - [x] Compatible with Android
+ - [x] Compatible with Android (Android OS maps default buttons / axes slightly differently than Windows)
  - [x] Compatible with Linux
  - [x] Compatible with MacOS X
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
@@ -38,33 +38,68 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  * 
  * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, char for the Left/Right Triggers, and hat switch position as above: 
  * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Hat switch position);
+ *
+ * bleGamepad.setLeftThumb takes 2 int16_t parameters for x and y axes
+ * 
+ * bleGamepad.setRightThumb takes 2 int16_t parameters for z and rZ axes
+ * 
+ * bleGamepad.setLeftTrigger takes 1 char parameter for rX axis
+ * 
+ * bleGamepad.setRightTrigger takes 1 char parameter for rY axis
+ * 
+ * bleGamepad.setHat takes a hat position as above (or 0 = centered and 1~8 are the 8 possible directions)
+ * 
+ * The example shows that you can set axes/had independantly, or together.
+ * 
+ * It also shows that you can disable the aotoReport feature (enabled by default), and manually call the sendReport() function when wanted 
+ * 
  */
  
 #include <BleGamepad.h> 
 
 BleGamepad bleGamepad;
 
-void setup() {
+void setup() 
+{
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   bleGamepad.begin();
 }
 
-void loop() {
-  if(bleGamepad.isConnected()) {
-    Serial.println("Press buttons 1 and 32. Move all axes to max. Set DPAD to down right.");
+void loop() 
+{
+  if(bleGamepad.isConnected()) 
+  {
+    bleGamepad.setAutoReport(false);
+    
+    Serial.println("Press buttons 1 and 32. Set DPAD to down right.");
+
+    //Press buttons 1 and 32
     bleGamepad.press(BUTTON_1);
     bleGamepad.press(BUTTON_32);
-    bleGamepad.setAxes(32767, 32767, 32767, 32767, 255, 255, DPAD_DOWN_RIGHT);
+
+    //Move all axes to max. 
+    bleGamepad.setLeftThumb(32767, 32767);
+    bleGamepad.setRightThumb(32767, 32767);
+    bleGamepad.setLeftTrigger(255);
+    bleGamepad.setRightTrigger(255);
+
+    //Set DPAD to down right
+    bleGamepad.setHat(DPAD_DOWN_RIGHT);
+    
+    //Send the gamepad report
+    bleGamepad.sendReport();
     delay(500);
 
     Serial.println("Release button 1. Move all axes to min. Set DPAD to centred.");
     bleGamepad.release(BUTTON_1);
     bleGamepad.setAxes(-32767, -32767, -32767, -32767, 0, 0, DPAD_CENTERED);
+    bleGamepad.sendReport();
     delay(500);
   }
 }
 ```
+By default, reports are sent on every button press/release or axis/hat movement, however this can be disabled, and then you manually call sendReport on the gamepad instance as shown in the example above.
 
 There is also Bluetooth specific information that you can use (optional):
 
