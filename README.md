@@ -51,7 +51,7 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
  * 
  * The example shows that you can set axes/hat independantly, or together.
  * 
- * It also shows that you can disable the aotoReport feature (enabled by default), and manually call the sendReport() function when wanted 
+ * It also shows that you can disable the autoReport feature (enabled by default), and manually call the sendReport() function when wanted 
  * 
  */
  
