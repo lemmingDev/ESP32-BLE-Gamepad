@@ -36,14 +36,13 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   bleGamepad.begin();
+  bleGamepad.setAutoReport(false);   //This is true by default. You can also set this in the line above --> bleGamepad.begin(false);
 }
 
 void loop() 
 {
   if(bleGamepad.isConnected()) 
   {
-    bleGamepad.setAutoReport(false);
-    
     Serial.println("Press buttons 1 and 32. Set DPAD to down right.");
 
     //Press buttons 1 and 32
