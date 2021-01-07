@@ -21,7 +21,7 @@
  * 
  * bleGamepad.setHat takes a hat position as above (or 0 = centered and 1~8 are the 8 possible directions)
  * 
- * The example shows that you can set axes/had independantly, or together.
+ * The example shows that you can set axes/hat independantly, or together.
  * 
  * It also shows that you can disable the aotoReport feature (enabled by default), and manually call the sendReport() function when wanted 
  * 
