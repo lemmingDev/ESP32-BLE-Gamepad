@@ -53,6 +53,15 @@
 class BleGamepad {
 private:
   uint32_t _buttons;
+  int16_t _x;
+  int16_t _y;
+  int16_t _z;
+  int16_t _rZ;
+  int16_t _rX;
+  int16_t _rY;
+  int16_t _hat;
+  bool _autoReport;
+  
   BleConnectionStatus* connectionStatus;
   BLEHIDDevice* hid;
   BLECharacteristic* inputGamepad;
@@ -61,11 +70,18 @@ private:
   static void taskServer(void* pvParameter);
 public:
   BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
-  void begin(void);
+  void begin(bool autoReport = true);
   void end(void);
   void setAxes(int16_t x, int16_t y, int16_t z = 0, int16_t rZ = 0, char rX = 0, char rY = 0, signed char hat = 0);
   void press(uint32_t b = BUTTON_1);   // press BUTTON_1 by default
   void release(uint32_t b = BUTTON_1); // release BUTTON_1 by default
+  void setLeftThumb(int16_t x = 0, int16_t y = 0);
+  void setRightThumb(int16_t z = 0, int16_t rZ = 0);
+  void setLeftTrigger(char rX = 0);
+  void setRightTrigger(char rY = 0);
+  void setHat(signed char hat = 0);
+  void setAutoReport(bool autoReport = true);
+  void sendReport();
   bool isPressed(uint32_t b = BUTTON_1); // check BUTTON_1 by default
   bool isConnected(void);
   void setBatteryLevel(uint8_t level);
