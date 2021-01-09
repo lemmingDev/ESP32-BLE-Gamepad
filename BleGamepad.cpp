@@ -13,10 +13,10 @@
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
   #include "esp32-hal-log.h"
-  #define LOG_TAG ""
+  #define LOG_TAG "BLEGamepad"
 #else
   #include "esp_log.h"
-  static const char* LOG_TAG = "BLEDevice";
+  static const char* LOG_TAG = "BLEGamepad";
 #endif
 
 static const uint8_t _hidReportDescriptor[] = {
@@ -196,6 +196,36 @@ void BleGamepad::setHat(signed char hat)
 	_hat = hat;
 	
 	if(_autoReport){ sendReport(); }
+}
+
+void BleGamepad::setX(int16_t x)
+{
+	_x = x;
+}
+
+void BleGamepad::setY(int16_t y)
+{
+	_y = y;
+}
+
+void BleGamepad::setZ(int16_t z)
+{
+	_z = z;
+}
+
+void BleGamepad::setRZ(int16_t rZ)
+{
+	_rZ = rZ;
+}
+
+void BleGamepad::setRX(int16_t rX)
+{
+	_rX = rX;
+}
+
+void BleGamepad::setRY(int16_t rY)
+{
+	_rY = rY;
 }
 
 void BleGamepad::setAutoReport(bool autoReport)
