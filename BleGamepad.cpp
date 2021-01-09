@@ -1,8 +1,7 @@
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include "BLE2902.h"
-#include "BLEHIDDevice.h"
+#include <NimBLEDevice.h>
+#include <NimBLEUtils.h>
+#include <NimBLEServer.h>
+#include "NimBLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
 #include <driver/adc.h>
@@ -13,10 +12,10 @@
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
   #include "esp32-hal-log.h"
-  #define LOG_TAG "BLEGamepad"
+  #define LOG_TAG ""
 #else
   #include "esp_log.h"
-  static const char* LOG_TAG = "BLEGamepad";
+  static const char* LOG_TAG = "BLEDevice";
 #endif
 
 static const uint8_t _hidReportDescriptor[] = {
@@ -72,14 +71,6 @@ static const uint8_t _hidReportDescriptor[] = {
 
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) :
   _buttons(0),
-  _x(0),
-  _y(0),
-  _z(0),
-  _rZ(0),
-  _rX(0),
-  _rY(0),
-  _hat(0),
-  _autoReport(false),
   hid(0)
 {
   this->deviceName = deviceName;
@@ -88,9 +79,8 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   this->connectionStatus = new BleConnectionStatus();
 }
 
-void BleGamepad::begin(bool autoReport)
+void BleGamepad::begin(void)
 {
-  _autoReport = autoReport;
   xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
 }
 
@@ -100,55 +90,42 @@ void BleGamepad::end(void)
 
 void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, char rX, char rY, signed char hat)
 {
+  if (this->isConnected())
+  {
 	if(x == -32768) { x = -32767; }
 	if(y == -32768) { y = -32767; }
 	if(z == -32768) { z = -32767; }
 	if(rZ == -32768) { rZ = -32767; }
-
-	_x = x;
-	_y = y;
-	_z = z;
-	_rZ = rZ;
-	_rX = rX;
-	_rY = rY;
-	_hat = hat;
 	
-	if(_autoReport){ sendReport(); }
+    uint8_t m[15];
+    m[0] = _buttons;
+    m[1] = (_buttons >> 8);
+	m[2] = (_buttons >> 16);
+	m[3] = (_buttons >> 24);
+    m[4] = x;
+	m[5] = (x >> 8);
+    m[6] = y;
+	m[7] = (y >> 8);
+    m[8] = z;
+	m[9] = (z >> 8);
+    m[10] = rZ;
+	m[11] = (rZ >> 8);
+    m[12] = (signed char)(rX - 128);
+    m[13] = (signed char)(rY - 128);
+    m[14] = hat;
+	if (m[12] == -128) { m[12] = -127; }
+    if (m[13] == -128) { m[13] = -127; }
+    this->inputGamepad->setValue(m, sizeof(m));
+    this->inputGamepad->notify();
+  }
 }
 
-void BleGamepad::sendReport(void)
-{
-	if (this->isConnected())
-	{
-		uint8_t m[15];
-		m[0] = _buttons;
-		m[1] = (_buttons >> 8);
-		m[2] = (_buttons >> 16);
-		m[3] = (_buttons >> 24);
-		m[4] = _x;
-		m[5] = (_x >> 8);
-		m[6] = _y;
-		m[7] = (_y >> 8);
-		m[8] = _z;
-		m[9] = (_z >> 8);
-		m[10] = _rZ;
-		m[11] = (_rZ >> 8);
-		m[12] = (signed char)(_rX - 128);
-		m[13] = (signed char)(_rY - 128);
-		m[14] = _hat;
-		if (m[12] == -128) { m[12] = -127; }
-		if (m[13] == -128) { m[13] = -127; }
-		this->inputGamepad->setValue(m, sizeof(m));
-		this->inputGamepad->notify();
-	}
-}
 void BleGamepad::buttons(uint32_t b)
 {
   if (b != _buttons)
   {
     _buttons = b;
-	
-	if(_autoReport){ sendReport(); }
+    setAxes(0, 0, 0, 0, 0, 0, 0);
   }
 }
 
@@ -162,77 +139,6 @@ void BleGamepad::release(uint32_t b)
   buttons(_buttons & ~b);
 }
 
-void BleGamepad::setLeftThumb(int16_t x, int16_t y)
-{
-	_x = x;
-	_y = y;
-	
-	if(_autoReport){ sendReport(); }
-}
-void BleGamepad::setRightThumb(int16_t z, int16_t rZ)
-{
-	_z = z;
-	_rZ = rZ;
-	
-	if(_autoReport){ sendReport(); }
-}
-
-void BleGamepad::setLeftTrigger(char rX)
-{
-	_rX = rX;
-	
-	if(_autoReport){ sendReport(); }
-}
-
-void BleGamepad::setRightTrigger(char rY)
-{
-	_rY = rY;
-	
-	if(_autoReport){ sendReport(); }
-}
-
-void BleGamepad::setHat(signed char hat)
-{
-	_hat = hat;
-	
-	if(_autoReport){ sendReport(); }
-}
-
-void BleGamepad::setX(int16_t x)
-{
-	_x = x;
-}
-
-void BleGamepad::setY(int16_t y)
-{
-	_y = y;
-}
-
-void BleGamepad::setZ(int16_t z)
-{
-	_z = z;
-}
-
-void BleGamepad::setRZ(int16_t rZ)
-{
-	_rZ = rZ;
-}
-
-void BleGamepad::setRX(int16_t rX)
-{
-	_rX = rX;
-}
-
-void BleGamepad::setRY(int16_t rY)
-{
-	_rY = rY;
-}
-
-void BleGamepad::setAutoReport(bool autoReport)
-{
-	_autoReport = autoReport;
-}
-
 bool BleGamepad::isPressed(uint32_t b)
 {
   if ((b & _buttons) > 0)
@@ -240,35 +146,32 @@ bool BleGamepad::isPressed(uint32_t b)
   return false;
 }
 
-bool BleGamepad::isConnected(void) 
-{
+bool BleGamepad::isConnected(void) {
   return this->connectionStatus->connected;
 }
 
-void BleGamepad::setBatteryLevel(uint8_t level) 
-{
+void BleGamepad::setBatteryLevel(uint8_t level) {
   this->batteryLevel = level;
   if (hid != 0)
     this->hid->setBatteryLevel(this->batteryLevel);
 }
 
-void BleGamepad::taskServer(void* pvParameter) 
-{
+void BleGamepad::taskServer(void* pvParameter) {
   BleGamepad* BleGamepadInstance = (BleGamepad *) pvParameter; //static_cast<BleGamepad *>(pvParameter);
-  BLEDevice::init(BleGamepadInstance->deviceName);
-  BLEServer *pServer = BLEDevice::createServer();
+  NimBLEDevice::init(BleGamepadInstance->deviceName);
+  NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
-  BleGamepadInstance->hid = new BLEHIDDevice(pServer);
+  BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
   BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(0); // <-- input REPORTID from report map
   BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
   BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
 
-  BleGamepadInstance->hid->pnp(0x01,0x02e5,0xabcd,0x0110);
+  BleGamepadInstance->hid->pnp(0x01,0x02e5,0xabcc,0x0110);
   BleGamepadInstance->hid->hidInfo(0x00,0x01);
 
-  BLESecurity *pSecurity = new BLESecurity();
+  NimBLESecurity *pSecurity = new NimBLESecurity();
 
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
@@ -277,7 +180,7 @@ void BleGamepad::taskServer(void* pvParameter)
 
   BleGamepadInstance->onStarted(pServer);
 
-  BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->setAppearance(HID_GAMEPAD);
   pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
   pAdvertising->start();
