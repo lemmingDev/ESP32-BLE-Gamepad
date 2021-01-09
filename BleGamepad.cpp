@@ -1,8 +1,7 @@
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include "BLE2902.h"
-#include "BLEHIDDevice.h"
+#include <NimBLEDevice.h>
+#include <NimBLEUtils.h>
+#include <NimBLEServer.h>
+#include "NimBLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
 #include <driver/adc.h>
@@ -255,11 +254,11 @@ void BleGamepad::setBatteryLevel(uint8_t level)
 void BleGamepad::taskServer(void* pvParameter) 
 {
   BleGamepad* BleGamepadInstance = (BleGamepad *) pvParameter; //static_cast<BleGamepad *>(pvParameter);
-  BLEDevice::init(BleGamepadInstance->deviceName);
-  BLEServer *pServer = BLEDevice::createServer();
+  NimBLEDevice::init(BleGamepadInstance->deviceName);
+  NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
-  BleGamepadInstance->hid = new BLEHIDDevice(pServer);
+  BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
   BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(0); // <-- input REPORTID from report map
   BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
@@ -268,7 +267,7 @@ void BleGamepad::taskServer(void* pvParameter)
   BleGamepadInstance->hid->pnp(0x01,0x02e5,0xabcd,0x0110);
   BleGamepadInstance->hid->hidInfo(0x00,0x01);
 
-  BLESecurity *pSecurity = new BLESecurity();
+  NimBLESecurity *pSecurity = new NimBLESecurity();
 
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
@@ -277,7 +276,7 @@ void BleGamepad::taskServer(void* pvParameter)
 
   BleGamepadInstance->onStarted(pServer);
 
-  BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
   pAdvertising->setAppearance(HID_GAMEPAD);
   pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
   pAdvertising->start();
