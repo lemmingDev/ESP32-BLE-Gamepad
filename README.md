@@ -86,3 +86,7 @@ Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse libr
 
 ## Notes
 Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
+
+You might also be interested in:
+- [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
+- [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
