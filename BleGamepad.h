@@ -121,7 +121,7 @@ private:
   NimBLEHIDDevice* hid;
   NimBLECharacteristic* inputGamepad;
   
-  void buttons(uint32_t b);
+  void buttons(uint64_t b);
 
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
