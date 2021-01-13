@@ -86,7 +86,7 @@ Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse libr
 
 Credits to [wakwak-koba](https://github.com/wakwak-koba) for the NimBLE [code](https://github.com/wakwak-koba/ESP32-NimBLE-Gamepad) that he provided.
 
-=======
+## Notes
 This library allows you to make the ESP32 act as a Bluetooth Mouse and control what it does.  
 Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
