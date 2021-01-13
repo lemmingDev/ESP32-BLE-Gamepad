@@ -1,7 +1,6 @@
-# ESP32-BLE-Gamepad
-Bluetooth LE Gamepad library for the ESP32
+# ESP32-NimBLE-Gamepad
 
-This library allows you to make the ESP32 act as a Bluetooth Gamepad and control what it does. E.g. move axes and press buttons
+Changed the original [ESP32-BLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad) to support NimBLE.
 
 ## Features
 
@@ -83,3 +82,10 @@ By default the battery level will be set to 100%, the device name will be `ESP32
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
 
 Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse library is based on [this piece of code](https://github.com/nkolban/esp32-snippets/issues/230#issuecomment-473135679) that he provided.
+
+=======
+This library allows you to make the ESP32 act as a Bluetooth Mouse and control what it does.  
+
+You might also be interested in:
+- [ESP32-NimBLE-Mouse](https://github.com/wakwak-koba/ESP32-NimBLE-Mouse)
+- [ESP32-NimBLE-Keyboard](https://github.com/wakwak-koba/ESP32-NimBLE-Keyboard)
