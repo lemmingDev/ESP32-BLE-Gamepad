@@ -1,4 +1,4 @@
-# ESP32-NimBLE-Gamepad
+# ESP32-BLE-Gamepad
 
 Changed the original [ESP32-BLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad) to support NimBLE.
 
@@ -11,6 +11,7 @@ Changed the original [ESP32-BLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
+ - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
  - [x] Compatible with Linux
@@ -83,9 +84,15 @@ Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32
 
 Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse library is based on [this piece of code](https://github.com/nkolban/esp32-snippets/issues/230#issuecomment-473135679) that he provided.
 
+Credits to [wakwak-koba](https://github.com/wakwak-koba) for the NimBLE [code](https://github.com/wakwak-koba/ESP32-NimBLE-Gamepad) that he provided.
+
 =======
 This library allows you to make the ESP32 act as a Bluetooth Mouse and control what it does.  
+Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
 You might also be interested in:
+- [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
+- [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
+or the NimBLE versions at
 - [ESP32-NimBLE-Mouse](https://github.com/wakwak-koba/ESP32-NimBLE-Mouse)
 - [ESP32-NimBLE-Keyboard](https://github.com/wakwak-koba/ESP32-NimBLE-Keyboard)
