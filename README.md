@@ -90,6 +90,8 @@ Credits to [wakwak-koba](https://github.com/wakwak-koba) for the NimBLE [code](h
 This library allows you to make the ESP32 act as a Bluetooth Mouse and control what it does.  
 Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
+Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
+
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
