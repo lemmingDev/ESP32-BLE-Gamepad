@@ -71,7 +71,7 @@ void loop()
       }
     }
        
-    bleGamepad.setAxes(adjustedValue, 0, 0, 0, 0, 0, DPAD_CENTERED);
+    bleGamepad.setX(adjustedValue);
     delay(delayBetweenHIDReports);
   }
 }
