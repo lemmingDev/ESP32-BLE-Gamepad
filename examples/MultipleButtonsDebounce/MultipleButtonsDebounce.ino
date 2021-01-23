@@ -5,7 +5,7 @@
  *
  * Uses the Bounce2 library to debounce all buttons
  * 
- * Uses the rise/fell states of the Bounce instance to track button states
+ * Uses the rose/fell states of the Bounce instance to track button states
  *
  * Before using, adjust the numOfButtons, buttonPins and physicalButtons to suit your senario
  *
