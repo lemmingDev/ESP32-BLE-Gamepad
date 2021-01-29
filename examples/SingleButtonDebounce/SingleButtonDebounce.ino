@@ -1,6 +1,7 @@
 #include <Bounce2.h>      // https://github.com/thomasfredericks/Bounce2
 #include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
+#define BOUNCE_WITH_PROMPT_DETECTION    // Make cutton state changes available immediately
 #define BUTTON_PIN 2
 #define LED_PIN 13
 
