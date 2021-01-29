@@ -5,8 +5,8 @@ Please be aware that the official name for this library in the library manager h
 	ESP32 BLE Gamepad  -->  ESP32-BLE-Gamepad
 
 This is to make it consistent with those who were also downloading it from GitHub and had 2 versions with different names and was leading to confusion.
-The library with the old name has been de-listed from the manager and only the new one remains.
-Please remove/delete the old version either through the library manager or by deleting the ESP32 BLE Gamepad folder within your libraries folder.
+The library manager was automatically renaming the folder ESP32_BLE_Gamepad upon installation bue to the spaces in the name. The library with the old name has been de-listed from the manager and only the new one remains.
+Please remove/delete the old version by deleting the ESP32_BLE_Gamepad folder within your libraries folder.
 
 Apologies for the early adopters, but it will save a lot of confusion moving forward.
 
