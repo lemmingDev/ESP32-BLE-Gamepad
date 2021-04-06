@@ -13,6 +13,8 @@ Apologies for the early adopters, but it will save a lot of confusion moving for
 ## NimBLE
 Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
 Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
+Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, ases, sliders, simulation controls etc).
+See the examples for guidance.
 
 # ESP32-BLE-Gamepad
 
@@ -24,6 +26,7 @@ Please use the library manager to install it, or get it from here: https://githu
  - [x] 2 Sliders (16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
+ - [x] Configurable HID descriptor
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Uses efficient NimBLE bluetooth library
