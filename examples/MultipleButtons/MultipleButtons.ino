@@ -15,7 +15,7 @@ BleGamepad bleGamepad;
 
 byte previousButtonStates[numOfButtons];
 byte currentButtonStates[numOfButtons];
-byte buttonPins[numOfButtons] = { 4, 16, 17, 18, 19, 23, 25, 26, 27, 32 };
+byte buttonPins[numOfButtons] = { 0, 35, 17, 18, 19, 23, 25, 26, 27, 32 };
 byte physicalButtons[numOfButtons] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
 void setup()
@@ -27,8 +27,8 @@ void setup()
     currentButtonStates[currentPinIndex] =  HIGH;
   }
 
-  bleGamepad.begin(false);
-  Serial.begin(115200);
+  bleGamepad.begin(numOfButtons);
+  bleGamepad.setAutoReport(false);
 }
 
 void loop()
@@ -43,17 +43,11 @@ void loop()
       {
         if(currentButtonStates[currentIndex] == LOW)
         {
-          bleGamepad.press(pow(2, physicalButtons[currentIndex] - 1));
-          Serial.print("Button ");
-          Serial.print(physicalButtons[currentIndex]);
-          Serial.println(" pushed.");
+          bleGamepad.press(currentIndex + 1);
         }
         else
         {
-          bleGamepad.release(pow(2, physicalButtons[currentIndex] - 1));
-          Serial.print("Button ");
-          Serial.print(physicalButtons[currentIndex]);
-          Serial.println(" released.");
+          bleGamepad.release(currentIndex + 1);
         }
       } 
     }

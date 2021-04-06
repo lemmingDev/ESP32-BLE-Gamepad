@@ -22,7 +22,7 @@
 Bounce debouncers[numOfButtons];
 BleGamepad bleGamepad;
 
-byte buttonPins[numOfButtons] = { 4, 16, 17, 18, 19, 23, 25, 26, 27, 32 };
+byte buttonPins[numOfButtons] = { 0, 35, 17, 18, 19, 23, 25, 26, 27, 32 };
 byte physicalButtons[numOfButtons] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
 void setup()
@@ -36,7 +36,8 @@ void setup()
     debouncers[currentPinIndex].interval(5);        
   }
 
-  bleGamepad.begin(false);
+  bleGamepad.begin(numOfButtons);
+  bleGamepad.setAutoReport(false);
   Serial.begin(115200);
 }
 
@@ -52,7 +53,7 @@ void loop()
 
       if (debouncers[currentIndex].fell())
       {
-        bleGamepad.press(pow(2, physicalButtons[currentIndex] - 1));
+        bleGamepad.press(currentIndex + 1);
         sendReport = true;
         Serial.print("Button ");
         Serial.print(physicalButtons[currentIndex]);
@@ -60,7 +61,7 @@ void loop()
       }
       else if (debouncers[currentIndex].rose())
       {
-        bleGamepad.release(pow(2, physicalButtons[currentIndex] - 1));
+        bleGamepad.release(currentIndex + 1);
         sendReport = true;
         Serial.print("Button ");
         Serial.print(physicalButtons[currentIndex]);

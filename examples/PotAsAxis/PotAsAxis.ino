@@ -24,22 +24,15 @@ void loop()
 {
   if(bleGamepad.isConnected()) 
   {
-    
     int potValues[numberOfPotSamples];  // Array to store pot readings
+    int potValue = 0;   // Variable to store calculated pot reading average
 
     // Populate readings
     for(int i = 0 ; i < numberOfPotSamples ; i++)
     {
       potValues[i] = analogRead(potPin);
-      delay(delayBetweenSamples);
-    }
-
-    int potValue = 0;   // Variable to store calculated pot reading average
-
-    // Iteraate through the readings to sum the values
-    for(int i = 0 ; i < numberOfPotSamples ; i++)
-    {
       potValue += potValues[i];
+      delay(delayBetweenSamples);
     }
 
     // Calculate the average
@@ -48,7 +41,12 @@ void loop()
     // Map analog reading from 0 ~ 4095 to 32737 ~ -32737 for use as an axis reading
     int adjustedValue = map(potValue, 0, 4095, 32737, -32737);
 
-    // Print readings to serial port 
+    // Update X axis and auto-send report
+    bleGamepad.setX(adjustedValue);
+    delay(delayBetweenHIDReports);
+   
+    // The code below (apart from the 2 closing braces) is for pot value degugging, and can be removed
+    // Print readings to serial port
     Serial.print("Sent: ");
     Serial.print(adjustedValue);
     Serial.print("\tRaw Avg: ");
@@ -69,9 +67,6 @@ void loop()
       {
         Serial.print(", ");  
       }
-    }
-       
-    bleGamepad.setX(adjustedValue);
-    delay(delayBetweenHIDReports);
+    }    
   }
 }
