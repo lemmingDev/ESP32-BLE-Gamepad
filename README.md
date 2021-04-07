@@ -17,6 +17,9 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
 
 Due to popular demand, it supports a large array of buttons and axes. You only need to wire up the amount you'd like to use in your project. If you need more GPIO on your ESP32, you should search "Arduino GPIO expander". The i2c bus (uses just 2 GPIO pins) can be used to add multiple GPIO expanders to add all the GPIO you would ever need. 
 
+## License
+Published under the MIT license. Please see license.txt
+
 ## Features
 
  - [x] Button press (64 buttons)
