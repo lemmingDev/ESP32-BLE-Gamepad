@@ -19,6 +19,7 @@ Due to popular demand, it supports a large array of buttons and axes. You only n
 
 ## License
 Published under the MIT license. Please see license.txt
+It would be great however if any improvements are fed back into this version.
 
 ## Features
 
