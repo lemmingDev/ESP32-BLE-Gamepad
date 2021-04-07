@@ -18,6 +18,9 @@ See the examples for guidance.
 
 # ESP32-BLE-Gamepad
 
+## License
+Published under the MIT license. Please see license.txt
+
 ## Features
 
  - [x] Button press (128 buttons)
