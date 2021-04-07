@@ -19,7 +19,9 @@ See the examples for guidance.
 # ESP32-BLE-Gamepad
 
 ## License
-Published under the MIT license. Please see license.txt
+Published under the MIT license. Please see license.txt.
+
+It would be great however if any improvements are fed back into this version.
 
 ## Features
 
