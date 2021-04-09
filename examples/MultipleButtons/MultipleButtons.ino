@@ -43,11 +43,11 @@ void loop()
       {
         if(currentButtonStates[currentIndex] == LOW)
         {
-          bleGamepad.press(currentIndex + 1);
+          bleGamepad.press(physicalButtons[currentIndex]);
         }
         else
         {
-          bleGamepad.release(currentIndex + 1);
+          bleGamepad.release(physicalButtons[currentIndex]);
         }
       } 
     }
