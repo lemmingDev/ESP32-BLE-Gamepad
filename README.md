@@ -1,4 +1,4 @@
-# NAME CHANGE IN LIBRARAY MANAGER - PLEASE READ
+## NAME CHANGE IN LIBRARAY MANAGER - PLEASE READ
 Hi all DIY gaming enthusiasts.
 Please be aware that the official name for this library in the library manager has changed from
 	
@@ -10,38 +10,38 @@ Please remove/delete the old version by deleting the ESP32_BLE_Gamepad folder wi
 
 Apologies for the early adopters, but it will save a lot of confusion moving forward.
 
+## Configurable HID ##
+Since version 3, this library supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, ases, sliders, simulation controls etc).
+See the examples for guidance.
+
 # ESP32-BLE-Gamepad
-Bluetooth LE Gamepad library for the ESP32
-
-This library allows you to make the ESP32 act as a Bluetooth Gamepad and control what it does. E.g. move axes and press buttons
-
-Due to popular demand, it supports a large array of buttons and axes. You only need to wire up the amount you'd like to use in your project. If you need more GPIO on your ESP32, you should search "Arduino GPIO expander". The i2c bus (uses just 2 GPIO pins) can be used to add multiple GPIO expanders to add all the GPIO you would ever need. 
 
 ## License
-Published under the MIT license. Please see license.txt.
-
-It would be great however if any improvements are fed back into this version.
+Published under the MIT license. Please see license.txt
 
 ## Features
 
- - [x] Button press (64 buttons)
- - [x] Button release (64 buttons)
+ - [x] Button press (128 buttons)
+ - [x] Button release (128 buttons)
  - [x] Axes movement (6 axes (16 bit) (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger))
  - [x] 2 Sliders (16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
+ - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
+ - [x] Configurable HID descriptor
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
+ - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
- - [x] Compatible with Linux
- - [x] Compatible with MacOS X
+ - [x] Compatible with Linux (limited testing)
+ - [x] Compatible with MacOS X (limited testing)
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
 - [Download the latest release of this library from the release page.](https://github.com/lemmingDev/ESP32-BLE-Gamepad/releases)
 - In the Arduino IDE go to "Sketch" -> "Include Library" -> "Add .ZIP Library..." and select the file you just downloaded.
-- You can now go to "File" -> "Examples" -> "ESP32 BLE Gamepad" and select the example to get started.
+- You can now go to "File" -> "Examples" -> "ESP32 BLE Gamepad" and select an example to get started.
 
 ## Example
 
@@ -50,14 +50,19 @@ It would be great however if any improvements are fed back into this version.
  * This example turns the ESP32 into a Bluetooth LE gamepad that presses buttons and moves axis
  * 
  * Possible buttons are:
- * BUTTON_1 through to BUTTON_64 
+ * BUTTON_1 through to BUTTON_16 
+ * (16 buttons supported by default. Library can be configured to support up to 128)
  * 
  * Possible DPAD/HAT switch position values are: 
  * DPAD_CENTERED, DPAD_UP, DPAD_UP_RIGHT, DPAD_RIGHT, DPAD_DOWN_RIGHT, DPAD_DOWN, DPAD_DOWN_LEFT, DPAD_LEFT, DPAD_UP_LEFT
  * (or HAT_CENTERED, HAT_UP etc)
  *
- * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, uint16_t for the Left/Right Triggers plus slider1 and slider2, and hat switch position as above: 
- * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Hat switch positions (hat1, hat2, hat3, hat4));
+ * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, Left/Right Triggers plus slider1 and slider2, and hat switch position as above: 
+ * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Hat switch position 
+ ^ (1 hat switch (dpad) supported by default. Library can be configured to support up to 4)
+ *
+ * Library can also be configured to support up to 5 simulation controls (can be set with setSimulationControls)
+ * (rudder, throttle, accelerator, brake, steering), but they are not enabled by default.
  */
  
 #include <BleGamepad.h> 
@@ -69,27 +74,31 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   bleGamepad.begin();
+  // The default bleGamepad.begin() above is the same as bleGamepad.begin(16, 1, true, true, true, true, true, true, true, true, false, false, false, false, false);
+  // which enables a gamepad with 16 buttons, 1 hat switch, enabled x, y, z, rZ, rX, rY, slider 1, slider 2 and disabled rudder, throttle, accelerator, brake, steering
+  // Auto reporting is enabled by default. 
+  // Use bleGamepad.setAutoReport(false); to disable auto reporting, and then use bleGamepad.sendReport(); as needed
 }
 
 void loop() 
 {
   if(bleGamepad.isConnected()) 
   {
-    Serial.println("Press buttons 5 and 32. Move all axes to max. Set DPAD (hat 1) to down right.");
+    Serial.println("Press buttons 5 and 16. Move all enabled axes to max. Set DPAD (hat 1) to down right.");
     bleGamepad.press(BUTTON_5);
-    bleGamepad.press(BUTTON_32);
-    bleGamepad.setAxes(32767, 32767, 32767, 32767, 65535, 65535, 65535, 65535, DPAD_DOWN_RIGHT); //(can also optionally set hat2/3/4 after DPAD/hat1 as seen below)
-    // All axes, sliders, hats can also be set independently. See the IndividualAxes.ino example
-	delay(500);
+    bleGamepad.press(BUTTON_16);
+    bleGamepad.setAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767, DPAD_DOWN_RIGHT);
+    // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
+    delay(500);
 
     Serial.println("Release button 5. Move all axes to min. Set DPAD (hat 1) to centred.");
     bleGamepad.release(BUTTON_5);
-    bleGamepad.setAxes(-32767, -32767, -32767, -32767, 0, 0, 0, 0, DPAD_CENTERED, HAT_CENTERED, HAT_CENTERED, HAT_CENTERED);
+    bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767, DPAD_CENTERED);
     delay(500);
   }
 }
 ```
-By default, reports are sent on every button press/release or axis/slider/hat movement, however this can be disabled, and then you manually call sendReport on the gamepad instance as shown in the IndividualAxes.ino example.
+By default, reports are sent on every button press/release or axis/slider/hat/simulation movement, however this can be disabled, and then you manually call sendReport on the gamepad instance as shown in the IndividualAxes.ino example.
 
 There is also Bluetooth specific information that you can use (optional):
 
@@ -104,8 +113,16 @@ Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32
 Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse library is based on [this piece of code](https://github.com/nkolban/esp32-snippets/issues/230#issuecomment-473135679) that he provided.
 
 ## Notes
+This library allows you to make the ESP32 act as a Bluetooth Gamepad and control what it does.  
+
 Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
 
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
+
+or the NimBLE versions at
+
+- [ESP32-NimBLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad/tree/NimBLE)
+- [ESP32-NimBLE-Mouse](https://github.com/wakwak-koba/ESP32-NimBLE-Mouse)
+- [ESP32-NimBLE-Keyboard](https://github.com/wakwak-koba/ESP32-NimBLE-Keyboard)
