@@ -1,4 +1,4 @@
-## NAME CHANGE IN LIBRARAY MANAGER - PLEASE READ
+## NAME CHANGE IN LIBRARY MANAGER - PLEASE READ
 Hi all DIY gaming enthusiasts.
 Please be aware that the official name for this library in the library manager has changed from
 	
