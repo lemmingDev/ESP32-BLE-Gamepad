@@ -2,7 +2,7 @@
 #include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 #define BOUNCE_WITH_PROMPT_DETECTION    // Make button state changes available immediately
-#define BUTTON_PIN 2
+#define BUTTON_PIN 35
 #define LED_PIN 13
 
 Bounce debouncer = Bounce(); // Instantiate a Bounce object
@@ -28,7 +28,7 @@ void loop()
     
     int value = debouncer.read();    // Get the updated value
   
-    // Press gamepad button and turn on or off the LED as determined by the state
+    // Press/release gamepad button and turn on or off the LED as determined by the state
     if (value == LOW) 
     {
       digitalWrite(LED_PIN, HIGH);
