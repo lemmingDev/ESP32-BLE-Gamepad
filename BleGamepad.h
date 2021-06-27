@@ -3,9 +3,12 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
+#include "nimconfig.h"
+#if defined(CONFIG_BT_NIMBLE_ROLE_PERIPHERAL)
+
 #include "BleConnectionStatus.h"
-#include "BLEHIDDevice.h"
-#include "BLECharacteristic.h"
+#include "NimBLEHIDDevice.h"
+#include "NimBLECharacteristic.h"
 
 #define CONTROLLER_TYPE_JOYSTICK	0x04
 #define CONTROLLER_TYPE_GAMEPAD		0x05
@@ -216,8 +219,8 @@ private:
   
   BleConnectionStatus* connectionStatus;
 
-  BLEHIDDevice* hid;
-  BLECharacteristic* inputGamepad;
+  NimBLEHIDDevice* hid;
+  NimBLECharacteristic* inputGamepad;
 
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
@@ -267,8 +270,9 @@ public:
   std::string deviceManufacturer;
   std::string deviceName;
 protected:
-  virtual void onStarted(BLEServer *pServer) { };
+  virtual void onStarted(NimBLEServer *pServer) { };
 };
 
+#endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
 #endif // CONFIG_BT_ENABLED
 #endif // ESP32_BLE_GAMEPAD_H

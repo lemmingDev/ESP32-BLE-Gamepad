@@ -53,7 +53,7 @@ void loop()
 
       if (debouncers[currentIndex].fell())
       {
-        bleGamepad.press(physicalButtons[currentIndex]);
+        bleGamepad.press(currentIndex + 1);
         sendReport = true;
         Serial.print("Button ");
         Serial.print(physicalButtons[currentIndex]);
@@ -61,7 +61,7 @@ void loop()
       }
       else if (debouncers[currentIndex].rose())
       {
-        bleGamepad.release(physicalButtons[currentIndex]);
+        bleGamepad.release(currentIndex + 1);
         sendReport = true;
         Serial.print("Button ");
         Serial.print(physicalButtons[currentIndex]);

@@ -1,4 +1,4 @@
-## NAME CHANGE IN LIBRARY MANAGER - PLEASE READ
+## NAME CHANGE IN LIBRARAY MANAGER - PLEASE READ
 Hi all DIY gaming enthusiasts.
 Please be aware that the official name for this library in the library manager has changed from
 	
@@ -10,14 +10,18 @@ Please remove/delete the old version by deleting the ESP32_BLE_Gamepad folder wi
 
 Apologies for the early adopters, but it will save a lot of confusion moving forward.
 
-## Configurable HID ##
-Since version 3, this library supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, ases, sliders, simulation controls etc).
+## NimBLE
+Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
+Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
+Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, ases, sliders, simulation controls etc).
 See the examples for guidance.
 
 # ESP32-BLE-Gamepad
 
 ## License
-Published under the MIT license. Please see license.txt
+Published under the MIT license. Please see license.txt.
+
+It would be great however if any improvements are fed back into this version.
 
 ## Features
 
@@ -112,8 +116,11 @@ Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32
 
 Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse library is based on [this piece of code](https://github.com/nkolban/esp32-snippets/issues/230#issuecomment-473135679) that he provided.
 
+Credits to [wakwak-koba](https://github.com/wakwak-koba) for the NimBLE [code](https://github.com/wakwak-koba/ESP32-NimBLE-Gamepad) that he provided.
+
 ## Notes
 This library allows you to make the ESP32 act as a Bluetooth Gamepad and control what it does.  
+Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
 Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
 
@@ -123,6 +130,5 @@ You might also be interested in:
 
 or the NimBLE versions at
 
-- [ESP32-NimBLE-Gamepad](https://github.com/lemmingDev/ESP32-BLE-Gamepad/tree/NimBLE)
 - [ESP32-NimBLE-Mouse](https://github.com/wakwak-koba/ESP32-NimBLE-Mouse)
 - [ESP32-NimBLE-Keyboard](https://github.com/wakwak-koba/ESP32-NimBLE-Keyboard)
