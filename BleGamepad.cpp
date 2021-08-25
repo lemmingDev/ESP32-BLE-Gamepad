@@ -539,8 +539,8 @@ void BleGamepad::sendReport(void)
 void BleGamepad::press(uint8_t b)
 {
 
-  char index = (b-1) / 8;
-  char bit = (b-1) % 8;
+  uint8_t index = (b-1) / 8;
+  uint8_t bit = (b-1) % 8;
   uint8_t bitmask = (1 << bit);
 
   uint8_t result = _buttons[index] | bitmask;
@@ -555,8 +555,8 @@ void BleGamepad::press(uint8_t b)
 
 void BleGamepad::release(uint8_t b)
 {
-  char index = (b-1) / 8;
-  char bit = (b-1) % 8;
+  uint8_t index = (b-1) / 8;
+  uint8_t bit = (b-1) % 8;
   uint8_t bitmask = (1 << bit);
 
   uint64_t result = _buttons[index] & ~bitmask;
@@ -788,8 +788,8 @@ void BleGamepad::setAutoReport(bool autoReport)
 
 bool BleGamepad::isPressed(uint8_t b)
 {
-  char index = (b-1) / 8;
-  char bit = (b-1) % 8;
+  uint8_t index = (b-1) / 8;
+  uint8_t bit = (b-1) % 8;
   uint8_t bitmask = (1 << bit);
 
   if ((bitmask & _buttons[index]) > 0)
