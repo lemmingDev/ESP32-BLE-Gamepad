@@ -47,8 +47,13 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _autoReport(true),
   _buttonCount(0),
   _hatSwitchCount(0),
-  _includeStart(true),
-  _includeSelect(true),
+  _includeStart(false),
+  _includeSelect(false),
+  _includeHome(false),
+  _includeVolumeInc(false),
+  _includeVolumeDec(false),
+  _includeVolumeMute(false),
+  _includeMenu(false),
   _includeXAxis(true),
   _includeYAxis(true),
   _includeZAxis(true),
@@ -79,13 +84,14 @@ void BleGamepad::setControllerType(uint8_t controllerType){
 	_controllerType = controllerType;
 }
   
-void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeHome, bool includeVolumeInc, bool includeVolumeDec, bool includeVolumeMute, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
+void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeMenu, bool includeHome, bool includeVolumeInc, bool includeVolumeDec, bool includeVolumeMute, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
 {
 	_buttonCount = buttonCount;
 	_hatSwitchCount = hatSwitchCount;
 	
 	_includeStart = includeStart;
 	_includeSelect = includeSelect;
+	_includeMenu = includeMenu;
 	_includeHome = includeHome;
 	_includeVolumeInc = includeVolumeInc;
 	_includeVolumeDec = includeVolumeDec;
@@ -108,6 +114,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 	if (_includeStart) { _specialButtonCount++; }
 	if (_includeSelect) { _specialButtonCount++; }
+	if (_includeMenu) { _specialButtonCount++; }
 	if (_includeHome) { _specialButtonCount++; }
 	if (_includeVolumeInc) { _specialButtonCount++; }
 	if (_includeVolumeDec) { _specialButtonCount++; }
@@ -236,7 +243,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
-		if (_includeStart || _includeSelect){
+		if (_includeStart || _includeSelect || _includeMenu){
 
 			// USAGE_PAGE (Generic Desktop)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -244,7 +251,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 			// REPORT_COUNT
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeStart + (int)_includeSelect;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeStart + (int)_includeSelect + (int)_includeMenu;
 
 			if (_includeStart){
 				// USAGE (Start)
@@ -252,52 +259,66 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3D;
 			}
 
-			if (_includeStart){
+			if (_includeSelect){
 				// USAGE (Select)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3E;
+			}
+
+			if (_includeMenu){
+				// USAGE (App Menu)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x86;
 			}
 			
 			// INPUT (Data,Var,Abs)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 		}
-		
-		// USAGE_PAGE (Consumer Page)
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0C;
 
-		// REPORT_COUNT
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = _specialButtonCount - (int)_includeStart - (int)_includeSelect;
+		if (_includeHome || _includeVolumeInc || _includeVolumeDec || _includeVolumeMute){
 
-		if (_includeHome){
-			// USAGE (Home)
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x223;
+			// USAGE_PAGE (Consumer Page)
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0C;
+
+			// REPORT_COUNT
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = _specialButtonCount - (int)_includeStart - (int)_includeSelect;
+
+			if (_includeHome)
+			{
+				// USAGE (Home)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x223;
+			}
+
+			if (_includeVolumeInc)
+			{
+				// USAGE (Volume Increment)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE9;
+			}
+
+			if (_includeVolumeDec)
+			{
+				// USAGE (Volume Decrement)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xEA;
+			}
+
+			if (_includeVolumeMute)
+			{
+				// USAGE (Mute)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE2;
+			}
+
+			// INPUT (Data,Var,Abs)
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
 		}
-
-		if (_includeVolumeInc){
-			// USAGE (Volume Increment)
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE9;
-		}
-
-		if (_includeVolumeDec){
-			// USAGE (Volume Decrement)
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0xEA;
-		}
-
-		if (_includeVolumeMute){
-			// USAGE (Mute)
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE2;
-		}
-
-		// INPUT (Data,Var,Abs)
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 
 		if (specialButtonPaddingBits > 0) {
 			
