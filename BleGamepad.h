@@ -210,7 +210,7 @@ private:
   int16_t _hat4;
   bool _autoReport;
   uint16_t _buttonCount;
-  uint8_t _specialButtonCount
+  uint8_t _specialButtonCount;
   uint8_t _hatSwitchCount;
   bool _includeStart;
   bool _includeSelect;
