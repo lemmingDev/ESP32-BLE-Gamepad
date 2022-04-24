@@ -685,24 +685,34 @@ void BleGamepad::release(uint8_t b)
 
 }
 
-void BleGamepad::pressStart()
+void BleGamepad::pressSpecialButton(uint8_t b)
 {
-  this->press(_buttonCount - (int)_includeSelect);
+  uint8_t bit = b % 8;
+  uint8_t bitmask = (1 << bit);
+
+  uint64_t result = _specialButtons | bitmask;
+  
+  if (result != _specialButtons) 
+  {
+	_specialButtons = result;
+  }
+  
+  if(_autoReport){ sendReport(); }
 }
 
-void BleGamepad::pressSelect()
+void BleGamepad::releaseSpecialButton(uint8_t b)
 {
-  this->press(_buttonCount);
-}
+  uint8_t bit = b % 8;
+  uint8_t bitmask = (1 << bit);
 
-void BleGamepad::releaseStart()
-{
-  this->release(_buttonCount - (int)_includeSelect);
-}
-
-void BleGamepad::releaseSelect()
-{
-  this->release(_buttonCount);
+  uint64_t result = _specialButtons & ~bitmask;
+  
+  if (result != _specialButtons) 
+  {
+	_specialButtons = result;
+  }
+  
+  if(_autoReport){ sendReport(); }
 }
 
 void BleGamepad::setLeftThumb(int16_t x, int16_t y)
