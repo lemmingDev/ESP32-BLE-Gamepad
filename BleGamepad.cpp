@@ -47,6 +47,8 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _autoReport(true),
   _buttonCount(0),
   _hatSwitchCount(0),
+  _includeStart(true),
+  _includeSelect(true),
   _includeXAxis(true),
   _includeYAxis(true),
   _includeZAxis(true),
@@ -71,6 +73,8 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
 
 void BleGamepad::resetButtons() {
   memset(&_buttons,0,sizeof(_buttons));
+  _start = false;
+  _select = false;
 }
 
 void BleGamepad::setControllerType(uint8_t controllerType){
@@ -78,11 +82,14 @@ void BleGamepad::setControllerType(uint8_t controllerType){
 }
   
   
-void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
+void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
 {
 	_buttonCount = buttonCount;
 	_hatSwitchCount = hatSwitchCount;
 	
+	_includeStart = includeStart;
+	_includeSelect = includeSelect;
+
 	_includeXAxis = includeXAxis;
 	_includeYAxis = includeYAxis;
 	_includeZAxis = includeZAxis;
@@ -97,7 +104,10 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	_includeAccelerator = includeAccelerator;
 	_includeBrake = includeBrake;
 	_includeSteering = includeSteering;
-	
+
+	if (_includeStart) { _buttonCount++; }
+	if (_includeStart) { _buttonCount++; }
+
 	uint8_t axisCount = 0;
 	if (_includeXAxis){ axisCount++; }
 	if (_includeYAxis){ axisCount++; }
@@ -127,21 +137,21 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	reportSize = numOfButtonBytes + numOfAxisBytes + numOfSimulationBytes + _hatSwitchCount;
 	
 	
-    // USAGE_PAGE (Generic Desktop)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+	// USAGE_PAGE (Generic Desktop)
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
-    // USAGE (Joystick - 0x04; Gamepad - 0x05; Multi-axis Controller - 0x08)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = _controllerType;
+	// USAGE (Joystick - 0x04; Gamepad - 0x05; Multi-axis Controller - 0x08)
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = _controllerType;
 
-    // COLLECTION (Application)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+	// COLLECTION (Application)
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
-    // REPORT_ID (Default: 3)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = _hidReportId;
+	// REPORT_ID (Default: 3)
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = _hidReportId;
 	
 	if (_buttonCount > 0) {
 
@@ -155,7 +165,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 		// USAGE_MAXIMUM (Up to 128 buttons possible)            
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x29;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = _buttonCount;
+		tempHidReportDescriptor[hidReportDescriptorSize++] = _buttonCount - (int)_includeStart - (int)_includeSelect;
 
 		// LOGICAL_MINIMUM (0)
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15;
@@ -171,7 +181,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 		// REPORT_COUNT (# of buttons)
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-		tempHidReportDescriptor[hidReportDescriptorSize++] = _buttonCount;
+		tempHidReportDescriptor[hidReportDescriptorSize++] = _buttonCount - (int)_includeStart - (int)_includeSelect;
 
 		// UNIT_EXPONENT (0)
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x55;
@@ -184,6 +194,28 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 		// INPUT (Data,Var,Abs)
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+		if (_includeStart || _includeSelect){
+
+			// USAGE_PAGE (Generic Desktop)
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+			// REPORT_COUNT
+			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeStart + (int)_includeSelect;
+
+			if (_includeStart){
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3D;
+			}
+
+			if (_includeSelect){
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3E;
+			}
+
+		}
 
 		if (buttonPaddingBits > 0) {
 			
@@ -413,7 +445,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	}
 	
 	// END_COLLECTION (Application)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
 	
   xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
 }
@@ -524,7 +556,7 @@ void BleGamepad::sendReport(void)
 			hats[1] = _hat2;
 			hats[2] = _hat3;
 			hats[3] = _hat4;
-	        	
+				
 			for(int currentHatIndex = _hatSwitchCount -1 ; currentHatIndex >= 0 ; currentHatIndex--)
 			{
 				m[currentReportIndex++] = hats[currentHatIndex];
@@ -538,7 +570,6 @@ void BleGamepad::sendReport(void)
 
 void BleGamepad::press(uint8_t b)
 {
-
   uint8_t index = (b-1) / 8;
   uint8_t bit = (b-1) % 8;
   uint8_t bitmask = (1 << bit);
@@ -547,7 +578,7 @@ void BleGamepad::press(uint8_t b)
   
   if (result != _buttons[index]) 
   {
-    _buttons[index] = result;
+	_buttons[index] = result;
   }
   
   if(_autoReport){ sendReport(); }
@@ -563,11 +594,31 @@ void BleGamepad::release(uint8_t b)
   
   if (result != _buttons[index]) 
   {
-    _buttons[index] = result;
+	_buttons[index] = result;
   }
   
   if(_autoReport){ sendReport(); }
 
+}
+
+void BleGamepad::pressStart()
+{
+  this->press(_buttonCount - (int)_includeSelect);
+}
+
+void BleGamepad::pressSelect()
+{
+  this->press(_buttonCount);
+}
+
+void BleGamepad::releaseStart()
+{
+  this->release(_buttonCount - (int)_includeSelect);
+}
+
+void BleGamepad::releaseSelect()
+{
+  this->release(_buttonCount);
 }
 
 void BleGamepad::setLeftThumb(int16_t x, int16_t y)
@@ -793,7 +844,7 @@ bool BleGamepad::isPressed(uint8_t b)
   uint8_t bitmask = (1 << bit);
 
   if ((bitmask & _buttons[index]) > 0)
-    return true;
+	return true;
   return false;
 }
 
@@ -806,7 +857,7 @@ void BleGamepad::setBatteryLevel(uint8_t level)
 {
   this->batteryLevel = level;
   if (hid != 0)
-    this->hid->setBatteryLevel(this->batteryLevel);
+	this->hid->setBatteryLevel(this->batteryLevel);
 }
 
 void BleGamepad::taskServer(void* pvParameter) 

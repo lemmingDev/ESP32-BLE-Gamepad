@@ -182,7 +182,7 @@
 class BleGamepad {
 private:
   uint8_t  _controllerType;
-  uint8_t _buttons[16];	//8 bytes x 16 --> 128 bytes 
+  uint8_t _buttons[16];	//8 bits x 16 --> 128 bits (includes start and select)
   int16_t _x;
   int16_t _y;
   int16_t _z;
@@ -201,8 +201,10 @@ private:
   int16_t _hat3;
   int16_t _hat4;
   bool _autoReport;
-  uint16_t _buttonCount;
+  uint16_t _buttonCount; // (includes  start and select)
   uint8_t _hatSwitchCount;
+  bool _includeStart;
+  bool _includeSelect;
   bool _includeXAxis;
   bool _includeYAxis;
   bool _includeZAxis;
@@ -233,6 +235,10 @@ public:
   void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0, signed char hat1 = 0, signed char hat2 = 0, signed char hat3 = 0, signed char hat4 = 0);
   void press(uint8_t b = BUTTON_1);   // press BUTTON_1 by default
   void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
+  void pressStart();
+  void pressSelect();
+  void releaseStart();
+  void releaseSelect();
   void setLeftThumb(int16_t x = 0, int16_t y = 0);
   void setRightThumb(int16_t z = 0, int16_t rZ = 0);
   void setLeftTrigger(int16_t rX = 0);
