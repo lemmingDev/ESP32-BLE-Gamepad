@@ -229,7 +229,7 @@ private:
 
 public:
   BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
-  void begin(uint16_t buttonCount = 16, uint8_t hatSwitchCount = 1, bool includeXAxis = true, bool includeYAxis = true, bool includeZAxis = true, bool includeRzAxis = true, bool includeRxAxis = true, bool includeRyAxis = true, bool includeSlider1 = true, bool includeSlider2 = true, bool includeRudder = false, bool includeThrottle = false, bool includeAccelerator = false, bool includeBrake = false, bool includeSteering = false);
+  void begin(uint16_t buttonCount = 16, uint8_t hatSwitchCount = 1, bool includeStart = false, bool includeSelect = false, bool includeXAxis = true, bool includeYAxis = true, bool includeZAxis = true, bool includeRzAxis = true, bool includeRxAxis = true, bool includeRyAxis = true, bool includeSlider1 = true, bool includeSlider2 = true, bool includeRudder = false, bool includeThrottle = false, bool includeAccelerator = false, bool includeBrake = false, bool includeSteering = false);
   void end(void);
   void setControllerType(uint8_t controllerType = CONTROLLER_TYPE_GAMEPAD);
   void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0, signed char hat1 = 0, signed char hat2 = 0, signed char hat3 = 0, signed char hat4 = 0);
