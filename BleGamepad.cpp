@@ -78,7 +78,7 @@ void BleGamepad::setControllerType(uint8_t controllerType){
 	_controllerType = controllerType;
 }
   
-void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeMenu, bool includeHome, bool includeVolumeInc, bool includeVolumeDec, bool includeVolumeMute, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
+void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeMenu, bool includeHome, bool includeBack, bool includeVolumeInc, bool includeVolumeDec, bool includeVolumeMute, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
 {
 	_buttonCount = buttonCount;
 	_hatSwitchCount = hatSwitchCount;
@@ -87,9 +87,10 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	_includeSpecialButton[1] = includeSelect;
 	_includeSpecialButton[2] = includeMenu;
 	_includeSpecialButton[3] = includeHome;
-	_includeSpecialButton[4] = includeVolumeInc;
-	_includeSpecialButton[5] = includeVolumeDec;
-	_includeSpecialButton[6] = includeVolumeMute;
+	_includeSpecialButton[4] = includeBack;
+	_includeSpecialButton[5] = includeVolumeInc;
+	_includeSpecialButton[6] = includeVolumeDec;
+	_includeSpecialButton[7] = includeVolumeMute;
 
 	_includeXAxis = includeXAxis;
 	_includeYAxis = includeYAxis;
@@ -267,7 +268,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 		}
 
-		if (_includeSpecialButton[3] || _includeSpecialButton[4] || _includeSpecialButton[5] || _includeSpecialButton[6]){
+		if (_includeSpecialButton[3] || _includeSpecialButton[4] || _includeSpecialButton[5] || _includeSpecialButton[6] || _includeSpecialButton[7]){
 
 			// USAGE_PAGE (Consumer Page)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -275,7 +276,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 			// REPORT_COUNT
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeSpecialButton[3] + (int)_includeSpecialButton[4] + (int)_includeSpecialButton[5] + (int)_includeSpecialButton[6];
+			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeSpecialButton[3] + (int)_includeSpecialButton[4] + (int)_includeSpecialButton[5] + (int)_includeSpecialButton[6] + (int)_includeSpecialButton[7];
 
 			if (_includeSpecialButton[3])
 			{
@@ -286,19 +287,26 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 			if (_includeSpecialButton[4])
 			{
+				// USAGE (Back)
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x224;
+			}
+
+			if (_includeSpecialButton[5])
+			{
 				// USAGE (Volume Increment)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE9;
 			}
 
-			if (_includeSpecialButton[5])
+			if (_includeSpecialButton[6])
 			{
 				// USAGE (Volume Decrement)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xEA;
 			}
 
-			if (_includeSpecialButton[6])
+			if (_includeSpecialButton[7])
 			{
 				// USAGE (Mute)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
