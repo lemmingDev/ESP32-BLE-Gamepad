@@ -1,0 +1,4 @@
+#ifndef ESP32_BLE_GAMEPAD_CONFIG_H
+#define ESP32_BLE_GAMEPAD_CONFIG_H
+
+#endif
