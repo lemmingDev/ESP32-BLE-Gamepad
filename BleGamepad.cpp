@@ -47,13 +47,6 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _autoReport(true),
   _buttonCount(0),
   _hatSwitchCount(0),
-  _includeStart(false),
-  _includeSelect(false),
-  _includeHome(false),
-  _includeVolumeInc(false),
-  _includeVolumeDec(false),
-  _includeVolumeMute(false),
-  _includeMenu(false),
   _includeXAxis(true),
   _includeYAxis(true),
   _includeZAxis(true),
@@ -78,6 +71,7 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
 
 void BleGamepad::resetButtons() {
   memset(&_buttons,0,sizeof(_buttons));
+  memset(&_includeSpecialButton,0,sizeof(_includeSpecialButton));
 }
 
 void BleGamepad::setControllerType(uint8_t controllerType){
@@ -89,13 +83,13 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	_buttonCount = buttonCount;
 	_hatSwitchCount = hatSwitchCount;
 	
-	_includeStart = includeStart;
-	_includeSelect = includeSelect;
-	_includeMenu = includeMenu;
-	_includeHome = includeHome;
-	_includeVolumeInc = includeVolumeInc;
-	_includeVolumeDec = includeVolumeDec;
-	_includeVolumeMute = includeVolumeMute;
+	_includeSpecialButton[0] = includeStart;
+	_includeSpecialButton[1] = includeSelect;
+	_includeSpecialButton[2] = includeMenu;
+	_includeSpecialButton[3] = includeHome;
+	_includeSpecialButton[4] = includeVolumeInc;
+	_includeSpecialButton[5] = includeVolumeDec;
+	_includeSpecialButton[6] = includeVolumeMute;
 
 	_includeXAxis = includeXAxis;
 	_includeYAxis = includeYAxis;
@@ -112,13 +106,10 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 	_includeBrake = includeBrake;
 	_includeSteering = includeSteering;
 
-	if (_includeStart) { _specialButtonCount++; }
-	if (_includeSelect) { _specialButtonCount++; }
-	if (_includeMenu) { _specialButtonCount++; }
-	if (_includeHome) { _specialButtonCount++; }
-	if (_includeVolumeInc) { _specialButtonCount++; }
-	if (_includeVolumeDec) { _specialButtonCount++; }
-	if (_includeVolumeMute) { _specialButtonCount++; }
+	for (int i = 0; i < 7; i++)
+	{
+		if (_includeSpecialButton[i]) { _specialButtonCount++; }
+	}
 
 	uint8_t axisCount = 0;
 	if (_includeXAxis){ axisCount++; }
@@ -243,7 +234,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
 		tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
-		if (_includeStart || _includeSelect || _includeMenu){
+		if (_includeSpecialButton[0] || _includeSpecialButton[1] || _includeSpecialButton[2]){
 
 			// USAGE_PAGE (Generic Desktop)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -251,21 +242,21 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 			// REPORT_COUNT
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeStart + (int)_includeSelect + (int)_includeMenu;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeSpecialButton[0] + (int)_includeSpecialButton[1] + (int)_includeSpecialButton[2];
 
-			if (_includeStart){
+			if (_includeSpecialButton[0]){
 				// USAGE (Start)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3D;
 			}
 
-			if (_includeSelect){
+			if (_includeSpecialButton[1]){
 				// USAGE (Select)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x3E;
 			}
 
-			if (_includeMenu){
+			if (_includeSpecialButton[2]){
 				// USAGE (App Menu)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x86;
@@ -276,7 +267,7 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 		}
 
-		if (_includeHome || _includeVolumeInc || _includeVolumeDec || _includeVolumeMute){
+		if (_includeSpecialButton[3] || _includeSpecialButton[4] || _includeSpecialButton[5] || _includeSpecialButton[6]){
 
 			// USAGE_PAGE (Consumer Page)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -284,30 +275,30 @@ void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includ
 
 			// REPORT_COUNT
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = _specialButtonCount - (int)_includeStart - (int)_includeSelect;
+			tempHidReportDescriptor[hidReportDescriptorSize++] = (int)_includeSpecialButton[3] + (int)_includeSpecialButton[4] + (int)_includeSpecialButton[5] + (int)_includeSpecialButton[6];
 
-			if (_includeHome)
+			if (_includeSpecialButton[3])
 			{
 				// USAGE (Home)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x223;
 			}
 
-			if (_includeVolumeInc)
+			if (_includeSpecialButton[4])
 			{
 				// USAGE (Volume Increment)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xE9;
 			}
 
-			if (_includeVolumeDec)
+			if (_includeSpecialButton[5])
 			{
 				// USAGE (Volume Decrement)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0xEA;
 			}
 
-			if (_includeVolumeMute)
+			if (_includeSpecialButton[6])
 			{
 				// USAGE (Mute)
 				tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
@@ -706,9 +697,21 @@ void BleGamepad::release(uint8_t b)
 
 }
 
+uint8_t BleGamepad::specialButtonBitPosition(uint8_t b)
+{
+	uint8_t bit = 0;
+	for (int i = 0; i < b; i++)
+	{
+		if(_includeSpecialButton[i])
+			bit++;
+	}
+	return bit;
+}
+
 void BleGamepad::pressSpecialButton(uint8_t b)
 {
-  uint8_t bit = b % 8;
+  uint8_t button = specialButtonBitPosition(b);
+  uint8_t bit = button % 8;
   uint8_t bitmask = (1 << bit);
 
   uint64_t result = _specialButtons | bitmask;
@@ -723,7 +726,8 @@ void BleGamepad::pressSpecialButton(uint8_t b)
 
 void BleGamepad::releaseSpecialButton(uint8_t b)
 {
-  uint8_t bit = b % 8;
+  uint8_t button = specialButtonBitPosition(b);
+  uint8_t bit = button % 8;
   uint8_t bitmask = (1 << bit);
 
   uint64_t result = _specialButtons & ~bitmask;

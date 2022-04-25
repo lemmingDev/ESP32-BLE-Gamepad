@@ -179,13 +179,13 @@
 #define HAT_LEFT 		7
 #define HAT_UP_LEFT 	8
 
-#define START_BUTTON 0
-#define SELECT_BUTTON 1
-#define MENU_BUTTON 2
-#define HOME_BUTTON 3
-#define VOLUME_INC_BUTTON 4
-#define VOLUME_DEC_BUTTON 5
-#define VOLUME_MUTE_BUTTON 6
+#define START_BUTTON   0
+#define SELECT_BUTTON   1
+#define MENU_BUTTON   2
+#define HOME_BUTTON   3
+#define VOLUME_INC_BUTTON   4
+#define VOLUME_DEC_BUTTON   5
+#define VOLUME_MUTE_BUTTON   6 
 
 class BleGamepad {
 private:
@@ -213,13 +213,7 @@ private:
   uint16_t _buttonCount;
   uint8_t _specialButtonCount;
   uint8_t _hatSwitchCount;
-  bool _includeStart;
-  bool _includeSelect;
-  bool _includeMenu;
-  bool _includeHome;
-  bool _includeVolumeInc;
-  bool _includeVolumeDec;
-  bool _includeVolumeMute;
+  bool _includeSpecialButton[7]; // whether the each special button is included (id's above in the macros)
   bool _includeXAxis;
   bool _includeYAxis;
   bool _includeZAxis;
@@ -241,6 +235,7 @@ private:
 
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
+  uint8_t specialButtonToBitPosition(uint8_t specialButton)
 
 public:
   BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
