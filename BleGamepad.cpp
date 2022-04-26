@@ -27,6 +27,7 @@ uint8_t numOfButtonBytes = 0;
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) :
   _controllerType(CONTROLLER_TYPE_GAMEPAD),
   _buttons(),
+  _specialButtons(0),
   _x(0),
   _y(0),
   _z(0),
@@ -47,6 +48,7 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _autoReport(true),
   _buttonCount(0),
   _hatSwitchCount(0),
+  _includeSpecialButtons(),
   _includeXAxis(true),
   _includeYAxis(true),
   _includeZAxis(true),
