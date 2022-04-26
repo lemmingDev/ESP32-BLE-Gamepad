@@ -1192,11 +1192,6 @@ void BleGamepad::setSteering(int16_t steering)
 	}
 }
 
-void BleGamepad::setAutoReport(bool autoReport)
-{
-	configuration->getAutoReport() = autoReport;
-}
-
 bool BleGamepad::isPressed(uint8_t b)
 {
 	uint8_t index = (b - 1) / 8;

@@ -260,7 +260,6 @@ public:
 	void setBrake(int16_t brake = 0);
 	void setSteering(int16_t steering = 0);
 	void setSimulationControls(int16_t rudder = 0, int16_t throttle = 0, int16_t accelerator = 0, int16_t brake = 0, int16_t steering = 0);
-	void setAutoReport(bool autoReport = true);
 	void sendReport();
 	bool isPressed(uint8_t b = BUTTON_1); // check BUTTON_1 by default
 	bool isConnected(void);
