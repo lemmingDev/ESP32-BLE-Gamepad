@@ -9,6 +9,7 @@
 
 #include "BleConnectionStatus.h"
 #include "BleGamepad.h"
+#include "BleGamepadConfiguration.h"
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
@@ -43,22 +44,6 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
 																									   _hat2(0),
 																									   _hat3(0),
 																									   _hat4(0),
-																									   _autoReport(true),
-																									   _buttonCount(0),
-																									   _hatSwitchCount(0),
-																									   _includeXAxis(true),
-																									   _includeYAxis(true),
-																									   _includeZAxis(true),
-																									   _includeRxAxis(true),
-																									   _includeRyAxis(true),
-																									   _includeRzAxis(true),
-																									   _includeSlider1(true),
-																									   _includeSlider2(true),
-																									   _includeRudder(false),
-																									   _includeThrottle(false),
-																									   _includeAccelerator(false),
-																									   _includeBrake(false),
-																									   _includeSteering(false),
 																									   hid(0)
 {
 	this->resetButtons();
@@ -79,98 +64,9 @@ void BleGamepad::setControllerType(uint8_t controllerType)
 	_controllerType = controllerType;
 }
 
-void BleGamepad::begin(uint16_t buttonCount, uint8_t hatSwitchCount, bool includeStart, bool includeSelect, bool includeMenu, bool includeHome, bool includeBack, bool includeVolumeInc, bool includeVolumeDec, bool includeVolumeMute, bool includeXAxis, bool includeYAxis, bool includeZAxis, bool includeRzAxis, bool includeRxAxis, bool includeRyAxis, bool includeSlider1, bool includeSlider2, bool includeRudder, bool includeThrottle, bool includeAccelerator, bool includeBrake, bool includeSteering)
+void BleGamepad::begin(BleGamepadConfig config)
 {
-	_buttonCount = buttonCount;
-	_hatSwitchCount = hatSwitchCount;
-
-	_includeSpecialButton[0] = includeStart;
-	_includeSpecialButton[1] = includeSelect;
-	_includeSpecialButton[2] = includeMenu;
-	_includeSpecialButton[3] = includeHome;
-	_includeSpecialButton[4] = includeBack;
-	_includeSpecialButton[5] = includeVolumeInc;
-	_includeSpecialButton[6] = includeVolumeDec;
-	_includeSpecialButton[7] = includeVolumeMute;
-
-	_includeXAxis = includeXAxis;
-	_includeYAxis = includeYAxis;
-	_includeZAxis = includeZAxis;
-	_includeRzAxis = includeRzAxis;
-	_includeRxAxis = includeRxAxis;
-	_includeRyAxis = includeRyAxis;
-	_includeSlider1 = includeSlider1;
-	_includeSlider2 = includeSlider2;
-
-	_includeRudder = includeRudder;
-	_includeThrottle = includeThrottle;
-	_includeAccelerator = includeAccelerator;
-	_includeBrake = includeBrake;
-	_includeSteering = includeSteering;
-
-	for (int i = 0; i < 7; i++)
-	{
-		if (_includeSpecialButton[i])
-		{
-			_specialButtonCount++;
-		}
-	}
-
-	uint8_t axisCount = 0;
-	if (_includeXAxis)
-	{
-		axisCount++;
-	}
-	if (_includeYAxis)
-	{
-		axisCount++;
-	}
-	if (_includeZAxis)
-	{
-		axisCount++;
-	}
-	if (_includeRzAxis)
-	{
-		axisCount++;
-	}
-	if (_includeRxAxis)
-	{
-		axisCount++;
-	}
-	if (_includeRyAxis)
-	{
-		axisCount++;
-	}
-	if (_includeSlider1)
-	{
-		axisCount++;
-	}
-	if (_includeSlider2)
-	{
-		axisCount++;
-	}
-
-	uint8_t simulationCount = 0;
-	if (_includeRudder)
-	{
-		simulationCount++;
-	}
-	if (_includeThrottle)
-	{
-		simulationCount++;
-	}
-	if (_includeAccelerator)
-	{
-		simulationCount++;
-	}
-	if (_includeBrake)
-	{
-		simulationCount++;
-	}
-	if (_includeSteering)
-	{
-		simulationCount++;
-	}
+	memcpy(configuration, &config, sizeof(config)); // so the user can't change actual values midway through operation
 
 	uint8_t buttonPaddingBits = 8 - (_buttonCount % 8);
 	if (buttonPaddingBits == 8)
