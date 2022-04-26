@@ -17,6 +17,8 @@ private:
     bool _whichSimulationControls[5];
 
 public:
+    BleGamepadConfiguration();
+
     bool getAutoReport();
     uint16_t getButtonCount();
     uint8_t getSpecialButtonCount();

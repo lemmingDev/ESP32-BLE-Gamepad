@@ -9,6 +9,7 @@
 #include "BleConnectionStatus.h"
 #include "NimBLEHIDDevice.h"
 #include "NimBLECharacteristic.h"
+#include "BleGamepadConfiguration.h"
 
 #define CONTROLLER_TYPE_JOYSTICK 0x04
 #define CONTROLLER_TYPE_GAMEPAD 0x05
@@ -210,24 +211,8 @@ private:
 	int16_t _hat2;
 	int16_t _hat3;
 	int16_t _hat4;
-	bool _autoReport;
-	uint16_t _buttonCount;
-	uint8_t _specialButtonCount;
-	uint8_t _hatSwitchCount;
-	bool _includeSpecialButton[8]; // whether the each special button is included (id's above in the macros)
-	bool _includeXAxis;
-	bool _includeYAxis;
-	bool _includeZAxis;
-	bool _includeRxAxis;
-	bool _includeRyAxis;
-	bool _includeRzAxis;
-	bool _includeSlider1;
-	bool _includeSlider2;
-	bool _includeRudder;
-	bool _includeThrottle;
-	bool _includeAccelerator;
-	bool _includeBrake;
-	bool _includeSteering;
+
+	BleGamepadConfiguration *configuration;
 
 	BleConnectionStatus *connectionStatus;
 
@@ -240,7 +225,7 @@ private:
 
 public: 
 	BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
-	void begin(uint16_t buttonCount = 16, uint8_t hatSwitchCount = 1, bool includeStart = false, bool includeSelect = false, bool includeMenu = false, bool includeHome = false, bool includeBack = false, bool includeVolumeInc = false, bool includeVolumeDec = false, bool includeVolumeMute = false, bool includeXAxis = true, bool includeYAxis = true, bool includeZAxis = true, bool includeRzAxis = true, bool includeRxAxis = true, bool includeRyAxis = true, bool includeSlider1 = true, bool includeSlider2 = true, bool includeRudder = false, bool includeThrottle = false, bool includeAccelerator = false, bool includeBrake = false, bool includeSteering = false);
+	void begin(BleGamepadConfiguration config = BleGamepadConfiguration());
 	void end(void);
 	void setControllerType(uint8_t controllerType = CONTROLLER_TYPE_GAMEPAD);
 	void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0, signed char hat1 = 0, signed char hat2 = 0, signed char hat3 = 0, signed char hat4 = 0);
