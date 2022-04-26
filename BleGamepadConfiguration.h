@@ -12,6 +12,8 @@ private:
 	uint16_t _buttonCount;
 	uint8_t _specialButtonCount;
 	uint8_t _hatSwitchCount;
+    uint8_t _axisCount;
+    uint8_t _simulationCount;
 	bool _whichSpecialButtons[8];
     bool _whichAxes[8];
     bool _whichSimulationControls[5];
@@ -21,8 +23,12 @@ public:
 
     bool getAutoReport();
     uint16_t getButtonCount();
-    uint8_t getSpecialButtonCount();
+    uint8_t getTotalSpecialButtonCount();
+    uint8_t getDesktopSpecialButtonCount();
+    uint8_t getConsumerSpecialButtonCount();
     uint8_t getHatSwitchCount();
+    uint8_t getAxisCount();
+    uint8_t getSimulationCount();
     bool getIncludeStart();
     bool getIncludeSelect();
     bool getIncludeMenu();
