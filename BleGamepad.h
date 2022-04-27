@@ -179,6 +179,21 @@
 #define HAT_LEFT 7
 #define HAT_UP_LEFT 8
 
+#define X_AXIS 0
+#define Y_AXIS 1
+#define Z_AXIS 2
+#define RX_AXIS 3
+#define RY_AXIS 4
+#define RZ_AXIS 5
+#define SLIDER1 6
+#define SLIDER2 7
+
+#define RUDDER 0
+#define THROTTLE 1
+#define ACCELERATOR 2
+#define BRAKE 3
+#define STEERING 4
+
 #define START_BUTTON 0
 #define SELECT_BUTTON 1
 #define MENU_BUTTON 2
@@ -233,6 +248,22 @@ public:
 	void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
 	void pressSpecialButton(uint8_t b);
 	void releaseSpecialButton(uint8_t b);
+	void pressStart();
+	void releaseStart();
+	void pressSelect();
+	void releaseSelect();
+	void pressMenu();
+	void releaseMenu();
+	void pressHome();
+	void releaseHome();
+	void pressBack();
+	void releaseBack();
+	void pressVolumeInc();
+	void releaseVolumeInc();
+	void pressVoleumeDec();
+	void releaseVolumeDec();
+	void pressVolumeMute();
+	void releaseVolumeMute();
 	void setLeftThumb(int16_t x = 0, int16_t y = 0);
 	void setRightThumb(int16_t z = 0, int16_t rZ = 0);
 	void setLeftTrigger(int16_t rX = 0);

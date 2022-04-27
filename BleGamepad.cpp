@@ -65,7 +65,7 @@ void BleGamepad::setControllerType(uint8_t controllerType)
 
 void BleGamepad::begin(BleGamepadConfiguration config)
 {
-	memcpy(configuration, &config, sizeof(config)); // so the user can't change actual values midway through operation
+	memcpy(configuration, &config, sizeof(config)); // so the user can't change actual values midway through operation, without calling the begin function again
 
 	uint8_t buttonPaddingBits = 8 - (configuration->getButtonCount() % 8);
 	if (buttonPaddingBits == 8)
@@ -222,7 +222,7 @@ void BleGamepad::begin(BleGamepadConfiguration config)
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 		}
 
-		if (configuration->getConsumerSpecialButtonCount())
+		if (configuration->getConsumerSpecialButtonCount() > 0)
 		{
 
 			// USAGE_PAGE (Consumer Page)
@@ -795,10 +795,12 @@ void BleGamepad::release(uint8_t b)
 
 uint8_t BleGamepad::specialButtonBitPosition(uint8_t b)
 {
+	if(b >= POSSIBLESPECIALBUTTONS)
+		throw std::invalid_argument("Index out of range");
 	uint8_t bit = 0;
 	for (int i = 0; i < b; i++)
 	{
-		if (configuration->getwhichSpecialButtons()[i])
+		if (configuration->getWhichSpecialButtons()[i])
 			bit++;
 	}
 	return bit;
@@ -840,6 +842,86 @@ void BleGamepad::releaseSpecialButton(uint8_t b)
 	{
 		sendReport();
 	}
+}
+
+void BleGamepad::pressStart()
+{
+	pressSpecialButton(0);
+}
+
+void BleGamepad::releaseStart()
+{
+	releaseSpecialButton(0);
+}
+
+void BleGamepad::pressSelect()
+{
+	pressSpecialButton(1);
+}
+
+void BleGamepad::releaseSelect()
+{
+	releaseSpecialButton(1);
+}
+
+void BleGamepad::pressMenu()
+{
+	pressSpecialButton(2);
+}
+
+void BleGamepad::releaseMenu()
+{
+	releaseSpecialButton(2);
+}
+
+void BleGamepad::pressHome()
+{
+	pressSpecialButton(3);
+}
+
+void BleGamepad::releaseHome()
+{
+	releaseSpecialButton(3);
+}
+
+void BleGamepad::pressBack()
+{
+	pressSpecialButton(4);
+}
+
+void BleGamepad::releaseBack()
+{
+	releaseSpecialButton(4);
+}
+
+void BleGamepad::pressVolumeInc()
+{
+	pressSpecialButton(5);
+}
+
+void BleGamepad::releaseVolumeInc()
+{
+	releaseSpecialButton(5);
+}
+
+void BleGamepad::pressVoleumeDec()
+{
+	pressSpecialButton(6);
+}
+
+void BleGamepad::releaseVolumeDec()
+{
+	releaseSpecialButton(6);
+}
+
+void BleGamepad::pressVolumeMute()
+{
+	pressSpecialButton(7);
+}
+
+void BleGamepad::releaseVolumeMute()
+{
+	releaseSpecialButton(7);
 }
 
 void BleGamepad::setLeftThumb(int16_t x, int16_t y)

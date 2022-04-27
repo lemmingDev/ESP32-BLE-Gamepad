@@ -1,9 +1,11 @@
 #ifndef ESP32_BLE_GAMEPAD_CONFIG_H
 #define ESP32_BLE_GAMEPAD_CONFIG_H
 
-#define POSSIBLESPECIALBUTTONS = 8
-#define POSSIBLEAXES = 8
-#define POSSIBLESIMULATIONCONTROLS = 5
+#define POSSIBLESPECIALBUTTONS 8
+#define POSSIBLEAXES 8
+#define POSSIBLESIMULATIONCONTROLS 5
+
+#include "BleGamepad.h"
 
 class BleGamepadConfiguration
 {
@@ -11,13 +13,10 @@ private:
     bool _autoReport;
     uint8_t _hidReportId;
 	uint16_t _buttonCount;
-	uint8_t _specialButtonCount;
 	uint8_t _hatSwitchCount;
-    uint8_t _axisCount;
-    uint8_t _simulationCount;
-	bool _whichSpecialButtons[8];
-    bool _whichAxes[8];
-    bool _whichSimulationControls[5];
+	bool _whichSpecialButtons[POSSIBLESPECIALBUTTONS];
+    bool _whichAxes[POSSIBLEAXES];
+    bool _whichSimulationControls[POSSIBLESIMULATIONCONTROLS];
 
 public:
     BleGamepadConfiguration();
@@ -39,7 +38,7 @@ public:
     bool getIncludeVolumeInc();
     bool getIncludeVolumeDec();
     bool getIncludeVolumeMute();
-    const bool* getwhichSpecialButtons() const;
+    const bool* getWhichSpecialButtons() const;
     bool getIncludeXAxis();
     bool getIncludeYAxis();
     bool getIncludeZAxis();
