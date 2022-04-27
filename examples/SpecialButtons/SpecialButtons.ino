@@ -41,4 +41,9 @@ void loop()
     delay(100);
     bleGamepad.releaseBack();
     delay(100);
+
+    Serial.println("Pressing home");
+    bleGamepad.pressHome();
+    delay(100);
+    bleGamepad.releaseHome();
 }
