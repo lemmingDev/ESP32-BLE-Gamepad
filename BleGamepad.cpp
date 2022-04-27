@@ -21,7 +21,6 @@ static const char *LOG_TAG = "BLEGamepad";
 
 uint8_t tempHidReportDescriptor[150];
 int hidReportDescriptorSize = 0;
-uint8_t _hidReportId = 3;
 uint8_t reportSize = 0;
 uint8_t numOfButtonBytes = 0;
 
@@ -109,7 +108,7 @@ void BleGamepad::begin(BleGamepadConfiguration config)
 
 	// REPORT_ID (Default: 3)
 	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
-	tempHidReportDescriptor[hidReportDescriptorSize++] = _hidReportId;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = configuration->getHidReportId();
 
 	if (configuration->getButtonCount() > 0)
 	{
@@ -1223,7 +1222,7 @@ void BleGamepad::taskServer(void *pvParameter)
 	pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
 	BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
-	BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(_hidReportId); // <-- input REPORTID from report map
+	BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(BleGamepadInstance->configuration->getHidReportId()); // <-- input REPORTID from report map
 	BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
 	BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);

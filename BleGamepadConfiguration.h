@@ -9,6 +9,7 @@ class BleGamepadConfiguration
 {
 private:
     bool _autoReport;
+    uint8_t _hidReportId;
 	uint16_t _buttonCount;
 	uint8_t _specialButtonCount;
 	uint8_t _hatSwitchCount;
@@ -22,6 +23,7 @@ public:
     BleGamepadConfiguration();
 
     bool getAutoReport();
+    uint8_t getHidReportId();
     uint16_t getButtonCount();
     uint8_t getTotalSpecialButtonCount();
     uint8_t getDesktopSpecialButtonCount();
@@ -55,6 +57,7 @@ public:
     const bool* getWhichSimulationControls() const;
 
     void setAutoReport(bool value);
+    void setHidReportId(uint8_t value);
     void setButtonCount(uint16_t value);
     void setHatSwitchCount(uint8_t value);
     void setIncludeStart(bool value);
