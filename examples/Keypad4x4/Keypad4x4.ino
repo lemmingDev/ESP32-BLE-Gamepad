@@ -27,40 +27,40 @@ Keypad customKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, ROWS, COLS);
 
 void setup()
 {
-  BleGamepadConfiguration bleGamepadConfig;
-  bleGamepadConfig.setAutoReport(false); // Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
-  bleGamepad.begin();                    // Begin library with default buttons/hats/axes
+    BleGamepadConfiguration bleGamepadConfig;
+    bleGamepadConfig.setAutoReport(false); // Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
+    bleGamepad.begin();                    // Begin library with default buttons/hats/axes
 }
 
 void loop()
 {
-  KeypadUpdate();
-  delay(10);
+    KeypadUpdate();
+    delay(10);
 }
 
 void KeypadUpdate()
 {
-  customKeypad.getKeys();
+    customKeypad.getKeys();
 
-  for (int i = 0; i < LIST_MAX; i++) // Scan the whole key list.      //LIST_MAX is provided by the Keypad library and gives the number of buttons of the Keypad instance
-  {
-    if (customKeypad.key[i].stateChanged) // Only find keys that have changed state.
+    for (int i = 0; i < LIST_MAX; i++) // Scan the whole key list.      //LIST_MAX is provided by the Keypad library and gives the number of buttons of the Keypad instance
     {
-      uint8_t keystate = customKeypad.key[i].kstate;
+        if (customKeypad.key[i].stateChanged) // Only find keys that have changed state.
+        {
+            uint8_t keystate = customKeypad.key[i].kstate;
 
-      if (bleGamepad.isConnected())
-      {
-        if (keystate == PRESSED)
-        {
-          bleGamepad.press(customKeypad.key[i].kchar);
-        } // Press or release button based on the current state
-        if (keystate == RELEASED)
-        {
-          bleGamepad.release(customKeypad.key[i].kchar);
+            if (bleGamepad.isConnected())
+            {
+                if (keystate == PRESSED)
+                {
+                    bleGamepad.press(customKeypad.key[i].kchar);
+                } // Press or release button based on the current state
+                if (keystate == RELEASED)
+                {
+                    bleGamepad.release(customKeypad.key[i].kchar);
+                }
+
+                bleGamepad.sendReport(); // Send the HID report after values for all button states are updated, and at least one button state had changed
+            }
         }
-
-        bleGamepad.sendReport(); // Send the HID report after values for all button states are updated, and at least one button state had changed
-      }
     }
-  }
 }

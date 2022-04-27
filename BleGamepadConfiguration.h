@@ -13,9 +13,9 @@ private:
     uint8_t _controllerType;
     bool _autoReport;
     uint8_t _hidReportId;
-	uint16_t _buttonCount;
-	uint8_t _hatSwitchCount;
-	bool _whichSpecialButtons[POSSIBLESPECIALBUTTONS];
+    uint16_t _buttonCount;
+    uint8_t _hatSwitchCount;
+    bool _whichSpecialButtons[POSSIBLESPECIALBUTTONS];
     bool _whichAxes[POSSIBLEAXES];
     bool _whichSimulationControls[POSSIBLESIMULATIONCONTROLS];
 
@@ -40,7 +40,7 @@ public:
     bool getIncludeVolumeInc();
     bool getIncludeVolumeDec();
     bool getIncludeVolumeMute();
-    const bool* getWhichSpecialButtons() const;
+    const bool *getWhichSpecialButtons() const;
     bool getIncludeXAxis();
     bool getIncludeYAxis();
     bool getIncludeZAxis();
@@ -49,13 +49,13 @@ public:
     bool getIncludeRzAxis();
     bool getIncludeSlider1();
     bool getIncludeSlider2();
-    const bool* getWhichAxes() const;
+    const bool *getWhichAxes() const;
     bool getIncludeRudder();
     bool getIncludeThrottle();
     bool getIncludeAccelerator();
     bool getIncludeBrake();
     bool getIncludeSteering();
-    const bool* getWhichSimulationControls() const;
+    const bool *getWhichSimulationControls() const;
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);

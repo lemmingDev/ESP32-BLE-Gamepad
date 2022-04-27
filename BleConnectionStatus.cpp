@@ -1,14 +1,15 @@
 #include "BleConnectionStatus.h"
 
-BleConnectionStatus::BleConnectionStatus(void) {
+BleConnectionStatus::BleConnectionStatus(void)
+{
 }
 
-void BleConnectionStatus::onConnect(NimBLEServer* pServer)
+void BleConnectionStatus::onConnect(NimBLEServer *pServer)
 {
-  this->connected = true;
+    this->connected = true;
 }
 
-void BleConnectionStatus::onDisconnect(NimBLEServer* pServer)
+void BleConnectionStatus::onDisconnect(NimBLEServer *pServer)
 {
-  this->connected = false;
+    this->connected = false;
 }

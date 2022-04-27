@@ -26,115 +26,115 @@ byte hatPins[numOfHats * 4] = {0, 23, 18, 35}; // in order UP, LEFT, DOWN, RIGHT
 
 void setup()
 {
-  // Setup Buttons
-  for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
-  {
-    pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
-    previousButtonStates[currentPinIndex] = HIGH;
-    currentButtonStates[currentPinIndex] = HIGH;
-  }
+    // Setup Buttons
+    for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
+    {
+        pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
+        previousButtonStates[currentPinIndex] = HIGH;
+        currentButtonStates[currentPinIndex] = HIGH;
+    }
 
-  // Setup Hat Switches
-  for (byte currentPinIndex = 0; currentPinIndex < numOfHats * 4; currentPinIndex++)
-  {
-    pinMode(hatPins[currentPinIndex], INPUT_PULLUP);
-    previousHatStates[currentPinIndex] = HIGH;
-    currentHatStates[currentPinIndex] = HIGH;
-  }
+    // Setup Hat Switches
+    for (byte currentPinIndex = 0; currentPinIndex < numOfHats * 4; currentPinIndex++)
+    {
+        pinMode(hatPins[currentPinIndex], INPUT_PULLUP);
+        previousHatStates[currentPinIndex] = HIGH;
+        currentHatStates[currentPinIndex] = HIGH;
+    }
 
-  BleGamepadConfiguration bleGamepadConfig;
-  bleGamepadConfig.setAutoReport(false);
-  bleGamepadConfig.setButtonCount(numOfButtons);
-  bleGamepadConfig.setHatSwitchCount(numOfHats);
-  bleGamepad.begin(bleGamepadConfig);
+    BleGamepadConfiguration bleGamepadConfig;
+    bleGamepadConfig.setAutoReport(false);
+    bleGamepadConfig.setButtonCount(numOfButtons);
+    bleGamepadConfig.setHatSwitchCount(numOfHats);
+    bleGamepad.begin(bleGamepadConfig);
 }
 
 void loop()
 {
-  if (bleGamepad.isConnected())
-  {
-    // Deal with buttons
-    for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+    if (bleGamepad.isConnected())
     {
-      currentButtonStates[currentIndex] = digitalRead(buttonPins[currentIndex]);
-
-      if (currentButtonStates[currentIndex] != previousButtonStates[currentIndex])
-      {
-        if (currentButtonStates[currentIndex] == LOW)
+        // Deal with buttons
+        for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
         {
-          bleGamepad.press(physicalButtons[currentIndex]);
-        }
-        else
-        {
-          bleGamepad.release(physicalButtons[currentIndex]);
-        }
-      }
-    }
+            currentButtonStates[currentIndex] = digitalRead(buttonPins[currentIndex]);
 
-    // Update hat switch pin states
-    for (byte currentHatPinsIndex = 0; currentHatPinsIndex < numOfHats * 4; currentHatPinsIndex++)
-    {
-      currentHatStates[currentHatPinsIndex] = digitalRead(hatPins[currentHatPinsIndex]);
-    }
-
-    // Update hats
-    signed char hatValues[4] = {0, 0, 0, 0};
-
-    for (byte currentHatIndex = 0; currentHatIndex < numOfHats; currentHatIndex++)
-    {
-      signed char hatValueToSend = 0;
-
-      for (byte currentHatPin = 0; currentHatPin < 4; currentHatPin++)
-      {
-        // Check for direction
-        if (currentHatStates[currentHatPin + currentHatIndex * 4] == LOW)
-        {
-          hatValueToSend = currentHatPin * 2 + 1;
-
-          // Account for last diagonal
-          if (currentHatPin == 0)
-          {
-            if (currentHatStates[currentHatIndex * 4 + 3] == LOW)
+            if (currentButtonStates[currentIndex] != previousButtonStates[currentIndex])
             {
-              hatValueToSend = 8;
-              break;
+                if (currentButtonStates[currentIndex] == LOW)
+                {
+                    bleGamepad.press(physicalButtons[currentIndex]);
+                }
+                else
+                {
+                    bleGamepad.release(physicalButtons[currentIndex]);
+                }
             }
-          }
-
-          // Account for first 3 diagonals
-          if (currentHatPin < 3)
-          {
-            if (currentHatStates[currentHatPin + currentHatIndex * 4 + 1] == LOW)
-            {
-              hatValueToSend += 1;
-              break;
-            }
-          }
         }
-      }
 
-      hatValues[currentHatIndex] = hatValueToSend;
+        // Update hat switch pin states
+        for (byte currentHatPinsIndex = 0; currentHatPinsIndex < numOfHats * 4; currentHatPinsIndex++)
+        {
+            currentHatStates[currentHatPinsIndex] = digitalRead(hatPins[currentHatPinsIndex]);
+        }
+
+        // Update hats
+        signed char hatValues[4] = {0, 0, 0, 0};
+
+        for (byte currentHatIndex = 0; currentHatIndex < numOfHats; currentHatIndex++)
+        {
+            signed char hatValueToSend = 0;
+
+            for (byte currentHatPin = 0; currentHatPin < 4; currentHatPin++)
+            {
+                // Check for direction
+                if (currentHatStates[currentHatPin + currentHatIndex * 4] == LOW)
+                {
+                    hatValueToSend = currentHatPin * 2 + 1;
+
+                    // Account for last diagonal
+                    if (currentHatPin == 0)
+                    {
+                        if (currentHatStates[currentHatIndex * 4 + 3] == LOW)
+                        {
+                            hatValueToSend = 8;
+                            break;
+                        }
+                    }
+
+                    // Account for first 3 diagonals
+                    if (currentHatPin < 3)
+                    {
+                        if (currentHatStates[currentHatPin + currentHatIndex * 4 + 1] == LOW)
+                        {
+                            hatValueToSend += 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            hatValues[currentHatIndex] = hatValueToSend;
+        }
+
+        // Set hat values
+        bleGamepad.setHats(hatValues[0], hatValues[1], hatValues[2], hatValues[3]);
+
+        // Update previous states to current states and send report
+        if (currentButtonStates != previousButtonStates || currentHatStates != previousHatStates)
+        {
+            for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+            {
+                previousButtonStates[currentIndex] = currentButtonStates[currentIndex];
+            }
+
+            for (byte currentIndex = 0; currentIndex < numOfHats * 4; currentIndex++)
+            {
+                previousHatStates[currentIndex] = currentHatStates[currentIndex];
+            }
+
+            bleGamepad.sendReport();
+        }
+
+        delay(20);
     }
-
-    // Set hat values
-    bleGamepad.setHats(hatValues[0], hatValues[1], hatValues[2], hatValues[3]);
-
-    // Update previous states to current states and send report
-    if (currentButtonStates != previousButtonStates || currentHatStates != previousHatStates)
-    {
-      for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
-      {
-        previousButtonStates[currentIndex] = currentButtonStates[currentIndex];
-      }
-
-      for (byte currentIndex = 0; currentIndex < numOfHats * 4; currentIndex++)
-      {
-        previousHatStates[currentIndex] = currentHatStates[currentIndex];
-      }
-
-      bleGamepad.sendReport();
-    }
-
-    delay(20);
-  }
 }

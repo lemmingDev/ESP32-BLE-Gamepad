@@ -8,7 +8,8 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _whichSpecialButtons({true, true, false, false, false, false, false, false}),
                                                      _whichAxes({true, true, true, true, true, true, true, true}),
                                                      _whichSimulationControls({false, false, false, false, false})
-{}
+{
+}
 
 uint8_t BleGamepadConfiguration::getTotalSpecialButtonCount()
 {

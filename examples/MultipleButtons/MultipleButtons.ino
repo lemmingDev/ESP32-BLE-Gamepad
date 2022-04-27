@@ -21,50 +21,50 @@ byte physicalButtons[numOfButtons] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 void setup()
 {
-  for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
-  {
-    pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
-    previousButtonStates[currentPinIndex] = HIGH;
-    currentButtonStates[currentPinIndex] = HIGH;
-  }
+    for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
+    {
+        pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
+        previousButtonStates[currentPinIndex] = HIGH;
+        currentButtonStates[currentPinIndex] = HIGH;
+    }
 
-  BleGamepadConfiguration bleGamepadConfig;
-  bleGamepadConfig.setAutoReport(false);
-  bleGamepadConfig.setButtonCount(numOfButtons);
-  bleGamepad.begin(bleGamepadConfig);
+    BleGamepadConfiguration bleGamepadConfig;
+    bleGamepadConfig.setAutoReport(false);
+    bleGamepadConfig.setButtonCount(numOfButtons);
+    bleGamepad.begin(bleGamepadConfig);
 }
 
 void loop()
 {
-  if (bleGamepad.isConnected())
-  {
-    for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+    if (bleGamepad.isConnected())
     {
-      currentButtonStates[currentIndex] = digitalRead(buttonPins[currentIndex]);
-
-      if (currentButtonStates[currentIndex] != previousButtonStates[currentIndex])
-      {
-        if (currentButtonStates[currentIndex] == LOW)
+        for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
         {
-          bleGamepad.press(physicalButtons[currentIndex]);
+            currentButtonStates[currentIndex] = digitalRead(buttonPins[currentIndex]);
+
+            if (currentButtonStates[currentIndex] != previousButtonStates[currentIndex])
+            {
+                if (currentButtonStates[currentIndex] == LOW)
+                {
+                    bleGamepad.press(physicalButtons[currentIndex]);
+                }
+                else
+                {
+                    bleGamepad.release(physicalButtons[currentIndex]);
+                }
+            }
         }
-        else
+
+        if (currentButtonStates != previousButtonStates)
         {
-          bleGamepad.release(physicalButtons[currentIndex]);
+            for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+            {
+                previousButtonStates[currentIndex] = currentButtonStates[currentIndex];
+            }
+
+            bleGamepad.sendReport();
         }
-      }
+
+        delay(20);
     }
-
-    if (currentButtonStates != previousButtonStates)
-    {
-      for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
-      {
-        previousButtonStates[currentIndex] = currentButtonStates[currentIndex];
-      }
-
-      bleGamepad.sendReport();
-    }
-
-    delay(20);
-  }
 }

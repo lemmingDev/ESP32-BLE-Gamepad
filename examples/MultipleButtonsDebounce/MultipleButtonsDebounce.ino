@@ -27,55 +27,55 @@ byte physicalButtons[numOfButtons] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 void setup()
 {
-  for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
-  {
-    pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
+    for (byte currentPinIndex = 0; currentPinIndex < numOfButtons; currentPinIndex++)
+    {
+        pinMode(buttonPins[currentPinIndex], INPUT_PULLUP);
 
-    debouncers[currentPinIndex] = Bounce();
-    debouncers[currentPinIndex].attach(buttonPins[currentPinIndex]); // After setting up the button, setup the Bounce instance :
-    debouncers[currentPinIndex].interval(5);
-  }
+        debouncers[currentPinIndex] = Bounce();
+        debouncers[currentPinIndex].attach(buttonPins[currentPinIndex]); // After setting up the button, setup the Bounce instance :
+        debouncers[currentPinIndex].interval(5);
+    }
 
-  BleGamepadConfiguration bleGamepadConfig;
-  bleGamepadConfig.setButtonCount(numOfButtons);
-  bleGamepadConfig.setAutoReport(false);
-  bleGamepad.begin(bleGamepadConfig);
-  Serial.begin(115200);
+    BleGamepadConfiguration bleGamepadConfig;
+    bleGamepadConfig.setButtonCount(numOfButtons);
+    bleGamepadConfig.setAutoReport(false);
+    bleGamepad.begin(bleGamepadConfig);
+    Serial.begin(115200);
 }
 
 void loop()
 {
-  if (bleGamepad.isConnected())
-  {
-    bool sendReport = false;
-
-    for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+    if (bleGamepad.isConnected())
     {
-      debouncers[currentIndex].update();
+        bool sendReport = false;
 
-      if (debouncers[currentIndex].fell())
-      {
-        bleGamepad.press(physicalButtons[currentIndex]);
-        sendReport = true;
-        Serial.print("Button ");
-        Serial.print(physicalButtons[currentIndex]);
-        Serial.println(" pushed.");
-      }
-      else if (debouncers[currentIndex].rose())
-      {
-        bleGamepad.release(physicalButtons[currentIndex]);
-        sendReport = true;
-        Serial.print("Button ");
-        Serial.print(physicalButtons[currentIndex]);
-        Serial.println(" released.");
-      }
+        for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
+        {
+            debouncers[currentIndex].update();
+
+            if (debouncers[currentIndex].fell())
+            {
+                bleGamepad.press(physicalButtons[currentIndex]);
+                sendReport = true;
+                Serial.print("Button ");
+                Serial.print(physicalButtons[currentIndex]);
+                Serial.println(" pushed.");
+            }
+            else if (debouncers[currentIndex].rose())
+            {
+                bleGamepad.release(physicalButtons[currentIndex]);
+                sendReport = true;
+                Serial.print("Button ");
+                Serial.print(physicalButtons[currentIndex]);
+                Serial.println(" released.");
+            }
+        }
+
+        if (sendReport)
+        {
+            bleGamepad.sendReport();
+        }
+
+        // delay(20);	// (Un)comment to remove/add delay between loops
     }
-
-    if (sendReport)
-    {
-      bleGamepad.sendReport();
-    }
-
-    // delay(20);	// (Un)comment to remove/add delay between loops
-  }
 }

@@ -12,11 +12,11 @@
 class BleConnectionStatus : public NimBLEServerCallbacks
 {
 public:
-  BleConnectionStatus(void);
-  bool connected = false;
-  void onConnect(NimBLEServer* pServer);
-  void onDisconnect(NimBLEServer* pServer);
-  NimBLECharacteristic* inputGamepad;
+    BleConnectionStatus(void);
+    bool connected = false;
+    void onConnect(NimBLEServer *pServer);
+    void onDisconnect(NimBLEServer *pServer);
+    NimBLECharacteristic *inputGamepad;
 };
 
 #endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
