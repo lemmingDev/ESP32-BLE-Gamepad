@@ -6,33 +6,33 @@
  */
 
 #include <Arduino.h>
-#include <Keypad.h>       // https://github.com/Chris--A/Keypad
-#include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
+#include <Keypad.h>     // https://github.com/Chris--A/Keypad
+#include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
-BleGamepad bleGamepad("ESP32 Keypad", "lemmingDev", 100);	//Shows how you can customise the device name, manufacturer name and initial battery level
-BleGamepadConfiguration bleGamepadConfig;
+BleGamepad bleGamepad("ESP32 Keypad", "lemmingDev", 100); // Shows how you can customise the device name, manufacturer name and initial battery level
 
 #define ROWS 4
 #define COLS 4
-uint8_t rowPins[ROWS] = {2, 13, 14, 25};    //ESP32 pins used for rows      --> adjust to suit --> Pinout on board: R1, R2, R3, R4
-uint8_t colPins[COLS] = {4, 23, 21, 22};    //ESP32 pins used for columns   --> adjust to suit --> Pinout on board: Q1, Q2, Q3, Q4
-uint8_t keymap[ROWS][COLS] = 
-{
-  {1, 2, 3, 4},      //Buttons  1,  2,  3,  4      --> Used for calulating the bitmask for sending to the library 
-  {5, 6, 7, 8},      //Buttons  5,  6,  7,  8      --> Adjust to suit which buttons you want the library to send
-  {9, 10,11,12},     //Buttons  9, 10, 11, 12      --> 
-  {13,14,15,16}      //Buttons 13, 14, 15, 16      --> Eg. The value 12 in the array refers to button 12
+uint8_t rowPins[ROWS] = {2, 13, 14, 25}; // ESP32 pins used for rows      --> adjust to suit --> Pinout on board: R1, R2, R3, R4
+uint8_t colPins[COLS] = {4, 23, 21, 22}; // ESP32 pins used for columns   --> adjust to suit --> Pinout on board: Q1, Q2, Q3, Q4
+uint8_t keymap[ROWS][COLS] =
+    {
+        {1, 2, 3, 4},    // Buttons  1,  2,  3,  4      --> Used for calulating the bitmask for sending to the library
+        {5, 6, 7, 8},    // Buttons  5,  6,  7,  8      --> Adjust to suit which buttons you want the library to send
+        {9, 10, 11, 12}, // Buttons  9, 10, 11, 12      -->
+        {13, 14, 15, 16} // Buttons 13, 14, 15, 16      --> Eg. The value 12 in the array refers to button 12
 };
 
-Keypad customKeypad = Keypad( makeKeymap(keymap), rowPins, colPins, ROWS, COLS);
+Keypad customKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, ROWS, COLS);
 
-void setup() 
+void setup()
 {
-  bleGamepadConfig.setAutoReport(false);	//Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
-  bleGamepad.begin();				//Begin library with default buttons/hats/axes
+  BleGamepadConfiguration bleGamepadConfig;
+  bleGamepadConfig.setAutoReport(false); // Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
+  bleGamepad.begin();                    // Begin library with default buttons/hats/axes
 }
 
-void loop() 
+void loop()
 {
   KeypadUpdate();
   delay(10);
@@ -41,20 +41,26 @@ void loop()
 void KeypadUpdate()
 {
   customKeypad.getKeys();
-  
-  for (int i=0; i<LIST_MAX; i++)   // Scan the whole key list.      //LIST_MAX is provided by the Keypad library and gives the number of buttons of the Keypad instance
-  {
-      if ( customKeypad.key[i].stateChanged )   //Only find keys that have changed state.
-      {
-        uint8_t keystate = customKeypad.key[i].kstate;
 
-        if(bleGamepad.isConnected()) 
+  for (int i = 0; i < LIST_MAX; i++) // Scan the whole key list.      //LIST_MAX is provided by the Keypad library and gives the number of buttons of the Keypad instance
+  {
+    if (customKeypad.key[i].stateChanged) // Only find keys that have changed state.
+    {
+      uint8_t keystate = customKeypad.key[i].kstate;
+
+      if (bleGamepad.isConnected())
+      {
+        if (keystate == PRESSED)
         {
-          if (keystate==PRESSED) {  bleGamepad.press(customKeypad.key[i].kchar); }    //Press or release button based on the current state
-          if (keystate==RELEASED) { bleGamepad.release(customKeypad.key[i].kchar); }
-        
-          bleGamepad.sendReport();    //Send the HID report after values for all button states are updated, and at least one button state had changed
+          bleGamepad.press(customKeypad.key[i].kchar);
+        } // Press or release button based on the current state
+        if (keystate == RELEASED)
+        {
+          bleGamepad.release(customKeypad.key[i].kchar);
         }
+
+        bleGamepad.sendReport(); // Send the HID report after values for all button states are updated, and at least one button state had changed
       }
+    }
   }
 }

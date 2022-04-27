@@ -95,7 +95,7 @@ bool BleGamepadConfiguration::getIncludeBrake() { return _whichSimulationControl
 bool BleGamepadConfiguration::getIncludeSteering() { return _whichSimulationControls[STEERING]; }
 const bool *BleGamepadConfiguration::getWhichSimulationControls() const { return _whichSimulationControls; }
 
-void BleGamepadConfiguration::setwhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute)
+void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute)
 {
     _whichSpecialButtons[START_BUTTON] = start;
     _whichSpecialButtons[SELECT_BUTTON] = select;

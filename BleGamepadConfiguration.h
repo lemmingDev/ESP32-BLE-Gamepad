@@ -70,7 +70,7 @@ public:
     void setIncludeVolumeInc(bool value);
     void setIncludeVolumeDec(bool value);
     void setIncludeVolumeMute(bool value);
-    void setwhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute);
+    void setWhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute);
     void setIncludeXAxis(bool value);
     void setIncludeYAxis(bool value);
     void setIncludeZAxis(bool value);

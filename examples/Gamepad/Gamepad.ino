@@ -1,13 +1,13 @@
 /*
  * This example turns the ESP32 into a Bluetooth LE gamepad that presses buttons and moves axis
- * 
+ *
  * At the moment we are using the default settings, but they can be canged using a BleGamepadConfig instance as parameter for the begin function.
- * 
+ *
  * Possible buttons are:
  * BUTTON_1 through to BUTTON_16
  * (16 buttons by default. Library can be configured to use up to 128)
- * 
- * Possible DPAD/HAT switch position values are: 
+ *
+ * Possible DPAD/HAT switch position values are:
  * DPAD_CENTERED, DPAD_UP, DPAD_UP_RIGHT, DPAD_RIGHT, DPAD_DOWN_RIGHT, DPAD_DOWN, DPAD_DOWN_LEFT, DPAD_LEFT, DPAD_UP_LEFT
  * (or HAT_CENTERED, HAT_UP etc)
  *
@@ -16,31 +16,28 @@
  *
  * Library can also be configured to support up to 5 simulation controls
  * (rudder, throttle, accelerator, brake, steering), but they are not enabled by default.
- * 
+ *
  * Library can also be configured to support different function buttons
  * (start, select, menu, home, back, volume increase, volume decrease, volume mute)
  * start and select are enabled by default
  */
- 
+
 #include <Arduino.h>
-#include <BleGamepad.h> 
+#include <BleGamepad.h>
 
 BleGamepad bleGamepad;
 
-void setup() 
+void setup()
 {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   bleGamepad.begin();
-  // The default bleGamepad.begin() above is the same as bleGamepad.begin(16, 1, true, true, true, true, true, true, true, true, false, false, false, false, false);
-  // which enables a gamepad with 16 buttons, 1 hat switch, enabled x, y, z, rZ, rX, rY, slider 1, slider 2 and disabled rudder, throttle, accelerator, brake, steering
-  // Auto reporting is enabled by default. 
-  // Use bleGamepad.setAutoReport(false); to disable auto reporting, and then use bleGamepad.sendReport(); as needed
+  // The defaul bleGamepad.begin() above enables 16 buttons, all axes, one hat, start and select and no simulation controls
 }
 
-void loop() 
+void loop()
 {
-  if(bleGamepad.isConnected()) 
+  if (bleGamepad.isConnected())
   {
     Serial.println("Press buttons 5, 16 and start. Move all enabled axes to max. Set DPAD (hat 1) to down right.");
     bleGamepad.press(BUTTON_5);
