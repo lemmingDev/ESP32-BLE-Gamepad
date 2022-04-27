@@ -23,6 +23,7 @@ public:
     BleGamepadConfiguration();
 
     bool getAutoReport();
+    uint8_t getControllerType();
     uint8_t getHidReportId();
     uint16_t getButtonCount();
     uint8_t getTotalSpecialButtonCount();

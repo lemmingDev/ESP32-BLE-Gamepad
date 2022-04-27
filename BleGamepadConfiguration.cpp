@@ -65,10 +65,11 @@ uint8_t BleGamepadConfiguration::getSimulationCount()
     return count;
 }
 
-bool BleGamepadConfiguration::getAutoReport() { return _autoReport; }
+uint8_t BleGamepadConfiguration::getControllerType() { return _controllerType; }
 uint8_t BleGamepadConfiguration::getHidReportId() { return _hidReportId; }
 uint16_t BleGamepadConfiguration::getButtonCount() { return _buttonCount; }
 uint8_t BleGamepadConfiguration::getHatSwitchCount() { return _hatSwitchCount; }
+bool BleGamepadConfiguration::getAutoReport() { return _autoReport; }
 bool BleGamepadConfiguration::getIncludeStart() { return _whichSpecialButtons[START_BUTTON]; }
 bool BleGamepadConfiguration::getIncludeSelect() { return _whichSpecialButtons[SELECT_BUTTON]; }
 bool BleGamepadConfiguration::getIncludeMenu() { return _whichSpecialButtons[MENU_BUTTON]; }
@@ -126,10 +127,10 @@ void BleGamepadConfiguration::setWhichSimulationControls(bool rudder, bool throt
 }
 
 void BleGamepadConfiguration::setControllerType(uint8_t value) { _controllerType = value; }
-void BleGamepadConfiguration::setAutoReport(bool value) { _autoReport = value; }
 void BleGamepadConfiguration::setHidReportId(uint8_t value) { _hidReportId = value; }
 void BleGamepadConfiguration::setButtonCount(uint16_t value) { _buttonCount = value; }
 void BleGamepadConfiguration::setHatSwitchCount(uint8_t value) { _hatSwitchCount = value; }
+void BleGamepadConfiguration::setAutoReport(bool value) { _autoReport = value; }
 void BleGamepadConfiguration::setIncludeStart(bool value) { _whichSpecialButtons[START_BUTTON] = value; }
 void BleGamepadConfiguration::setIncludeSelect(bool value) { _whichSpecialButtons[SELECT_BUTTON] = value; }
 void BleGamepadConfiguration::setIncludeMenu(bool value) { _whichSpecialButtons[MENU_BUTTON] = value; }

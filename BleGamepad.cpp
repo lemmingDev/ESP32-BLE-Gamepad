@@ -24,8 +24,7 @@ int hidReportDescriptorSize = 0;
 uint8_t reportSize = 0;
 uint8_t numOfButtonBytes = 0;
 
-BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _controllerType(CONTROLLER_TYPE_GAMEPAD),
-																									   _buttons(),
+BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(),
 																									   _specialButtons(0),
 																									   _x(0),
 																									   _y(0),
@@ -56,11 +55,6 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
 void BleGamepad::resetButtons()
 {
 	memset(&_buttons, 0, sizeof(_buttons));
-}
-
-void BleGamepad::setControllerType(uint8_t controllerType)
-{
-	_controllerType = controllerType;
 }
 
 void BleGamepad::begin(BleGamepadConfiguration config)
@@ -100,7 +94,7 @@ void BleGamepad::begin(BleGamepadConfiguration config)
 
 	// USAGE (Joystick - 0x04; Gamepad - 0x05; Multi-axis Controller - 0x08)
 	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-	tempHidReportDescriptor[hidReportDescriptorSize++] = _controllerType;
+	tempHidReportDescriptor[hidReportDescriptorSize++] = configuration->getControllerType();
 
 	// COLLECTION (Application)
 	tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
