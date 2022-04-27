@@ -48,7 +48,7 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _autoReport(true),
   _buttonCount(0),
   _hatSwitchCount(0),
-  _includeSpecialButtons(),
+  _includeSpecialButton(),
   _includeXAxis(true),
   _includeYAxis(true),
   _includeZAxis(true),

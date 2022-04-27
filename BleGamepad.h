@@ -236,7 +236,7 @@ private:
 
   void rawAction(uint8_t msg[], char msgSize);
   static void taskServer(void* pvParameter);
-  uint8_t specialButtonToBitPosition(uint8_t specialButton)
+  uint8_t specialButtonBitPosition(uint8_t specialButton);
 
 public:
   BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
@@ -246,8 +246,8 @@ public:
   void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0, signed char hat1 = 0, signed char hat2 = 0, signed char hat3 = 0, signed char hat4 = 0);
   void press(uint8_t b = BUTTON_1);   // press BUTTON_1 by default
   void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
-  void pressSpecialButton();
-  void releaseSpecialButton();
+  void pressSpecialButton(uint8_t b);
+  void releaseSpecialButton(uint8_t b);
   void setLeftThumb(int16_t x = 0, int16_t y = 0);
   void setRightThumb(int16_t z = 0, int16_t rZ = 0);
   void setLeftTrigger(int16_t rX = 0);
