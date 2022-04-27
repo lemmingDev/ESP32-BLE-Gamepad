@@ -1,9 +1,9 @@
 #ifndef ESP32_BLE_GAMEPAD_CONFIG_H
 #define ESP32_BLE_GAMEPAD_CONFIG_H
 
-#define POSSIBLESPECIALBUTTONS = 8;
-#define POSSIBLEAXES = 8;
-#define POSSIBLESIMULATIONCONTROLS = 5;
+#define POSSIBLESPECIALBUTTONS = 8
+#define POSSIBLEAXES = 8
+#define POSSIBLESIMULATIONCONTROLS = 5
 
 class BleGamepadConfiguration
 {
@@ -81,6 +81,6 @@ public:
     void setIncludeBrake(bool value);
     void setIncludeSteering(bool value);
     void setWhichSimulationControls(bool rudder, bool throttle, bool accelerator, bool brake, bool steering);
-}
+};
 
 #endif

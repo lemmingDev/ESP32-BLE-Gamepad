@@ -64,7 +64,7 @@ void BleGamepad::setControllerType(uint8_t controllerType)
 	_controllerType = controllerType;
 }
 
-void BleGamepad::begin(BleGamepadConfig config)
+void BleGamepad::begin(BleGamepadConfiguration config)
 {
 	memcpy(configuration, &config, sizeof(config)); // so the user can't change actual values midway through operation
 
@@ -196,7 +196,7 @@ void BleGamepad::begin(BleGamepadConfig config)
 
 			// REPORT_COUNT
 			tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-			tempHidReportDescriptor[hidReportDescriptorSize++] = getDesktopSpecialButtonCount();
+			tempHidReportDescriptor[hidReportDescriptorSize++] = configuration->getDesktopSpecialButtonCount();
 			if (configuration->getIncludeStart())
 			{
 				// USAGE (Start)
@@ -799,7 +799,7 @@ uint8_t BleGamepad::specialButtonBitPosition(uint8_t b)
 	uint8_t bit = 0;
 	for (int i = 0; i < b; i++)
 	{
-		if (configuration->getInclude()[i])
+		if (configuration->getwhichSpecialButtons()[i])
 			bit++;
 	}
 	return bit;
