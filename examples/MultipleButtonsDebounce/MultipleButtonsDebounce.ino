@@ -13,6 +13,7 @@
 
 #define BOUNCE_WITH_PROMPT_DETECTION    // Make button state changes available immediately
 
+#include <Arduino.h>
 #include <Bounce2.h>      // https://github.com/thomasfredericks/Bounce2
 #include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
@@ -21,6 +22,7 @@
 
 Bounce debouncers[numOfButtons];
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 byte buttonPins[numOfButtons] = { 0, 35, 17, 18, 19, 23, 25, 26, 27, 32 };
 byte physicalButtons[numOfButtons] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -35,9 +37,10 @@ void setup()
     debouncers[currentPinIndex].attach(buttonPins[currentPinIndex]);      // After setting up the button, setup the Bounce instance :
     debouncers[currentPinIndex].interval(5);        
   }
-
-  bleGamepad.begin(numOfButtons);
-  bleGamepad.setAutoReport(false);
+  
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepad.begin(bleGamepadConfig);
   Serial.begin(115200);
 }
 

@@ -521,7 +521,7 @@ void BleGamepad::end(void)
 {
 }
 
-void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2, signed char hat1, signed char hat2, signed char hat3, signed char hat4)
+void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2)
 {
 	if (x == -32768)
 	{
@@ -564,10 +564,6 @@ void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX
 	_rY = rY;
 	_slider1 = slider1;
 	_slider2 = slider2;
-	_hat1 = hat1;
-	_hat2 = hat2;
-	_hat3 = hat3;
-	_hat4 = hat4;
 
 	if (configuration->getAutoReport())
 	{

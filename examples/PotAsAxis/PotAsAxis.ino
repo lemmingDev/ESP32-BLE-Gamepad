@@ -4,6 +4,7 @@
  * Potentiometers can be noisy, so the sketch can take multiple samples to average out the readings
  */
 
+#include <Arduino.h>
 #include <BleGamepad.h> 
 
 BleGamepad bleGamepad;

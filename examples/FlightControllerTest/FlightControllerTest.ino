@@ -2,6 +2,7 @@
  * Flight controller test
 */
 
+#include <Arduino.h>
 #include <BleGamepad.h> 
 
 #define numOfButtons        32
@@ -21,16 +22,22 @@
 #define enableSteering      false
 
 BleGamepad bleGamepad("BLE Flight Controller", "lemmingDev", 100);
+BleGamepadConfiguration bleGamepadConfig;
 
 void setup() 
 {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
   
-  //Setup controller with 10 buttons, accelerator, brake and steering
-  bleGamepad.setAutoReport(false);
-  bleGamepad.setControllerType(CONTROLLER_TYPE_MULTI_AXIS);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
-  bleGamepad.begin(numOfButtons,numOfHatSwitches,enableX,enableY,enableZ,enableRZ,enableRX,enableRY,enableSlider1,enableSlider2,enableRudder,enableThrottle,enableAccelerator,enableBrake,enableSteering);
+  //Setup controller with 32 buttons, accelerator, brake and steering
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_MULTI_AXIS);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2); // Can also be done per-axis individually. All are true by default
+  bleGamepadConfig.setWhichSimulationControls(enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering); // Can also be done per-control individually. All are false by default
+  bleGamepadConfig.setHatSwitchCount(numOfHatSwitches); // 1 by default
+
+  bleGamepad.begin(bleGamepadConfig);
   
   //Set throttle to min
   bleGamepad.setThrottle(-32767);

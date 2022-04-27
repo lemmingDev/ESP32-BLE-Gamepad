@@ -5,10 +5,12 @@
  * Only certain combinations work for multiple presses over 2 buttons
  */
 
+#include <Arduino.h>
 #include <Keypad.h>       // https://github.com/Chris--A/Keypad
 #include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 BleGamepad bleGamepad("ESP32 Keypad", "lemmingDev", 100);	//Shows how you can customise the device name, manufacturer name and initial battery level
+BleGamepadConfiguration bleGamepadConfig;
 
 #define ROWS 4
 #define COLS 4
@@ -23,6 +25,18 @@ uint8_t keymap[ROWS][COLS] =
 };
 
 Keypad customKeypad = Keypad( makeKeymap(keymap), rowPins, colPins, ROWS, COLS);
+
+void setup() 
+{
+  bleGamepadConfig.setAutoReport(false);	//Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
+  bleGamepad.begin();				//Begin library with default buttons/hats/axes
+}
+
+void loop() 
+{
+  KeypadUpdate();
+  delay(10);
+}
 
 void KeypadUpdate()
 {
@@ -43,16 +57,4 @@ void KeypadUpdate()
         }
       }
   }
-}
-
-void setup() 
-{
-  bleGamepad.begin();				//Begin library with default buttons/hats/axes
-  bleGamepad.setAutoReport(false);	//Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
-}
-
-void loop() 
-{
-  KeypadUpdate();
-  delay(10);
 }

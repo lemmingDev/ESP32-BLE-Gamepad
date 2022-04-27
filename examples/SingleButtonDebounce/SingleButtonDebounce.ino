@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Bounce2.h>      // https://github.com/thomasfredericks/Bounce2
 #include <BleGamepad.h>   // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 

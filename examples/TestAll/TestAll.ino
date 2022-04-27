@@ -2,20 +2,24 @@
  * Test all gamepad buttons, axes and dpad 
 */
 
+#include <Arduino.h>
 #include <BleGamepad.h> 
 
 #define numOfButtons 128
 #define numOfHatSwitches 4
 
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 void setup() 
 {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
-  bleGamepad.setAutoReport(false);
-  bleGamepad.setControllerType(CONTROLLER_TYPE_GAMEPAD);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
-  bleGamepad.begin(numOfButtons,numOfHatSwitches);        //Simulation controls are disabled by default
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
+  bleGamepad.begin(bleGamepadConfig);        //Simulation controls are disabled by default
 }
 
 void loop() 

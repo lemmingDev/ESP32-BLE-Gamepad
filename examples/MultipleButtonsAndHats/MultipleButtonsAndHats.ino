@@ -7,9 +7,11 @@
  *
  */
  
+#include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 #define numOfButtons 4
 #define numOfHats 1  // Maximum 4 hat switches supported
@@ -41,8 +43,10 @@ void setup()
     currentHatStates[currentPinIndex] =  HIGH;
   }
   
-  bleGamepad.begin(numOfButtons, numOfHats);
-  bleGamepad.setAutoReport(false);
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepadConfig.setHatSwitchCount(numOfHats);
+  bleGamepad.begin(bleGamepadConfig);
 }
 
 void loop()

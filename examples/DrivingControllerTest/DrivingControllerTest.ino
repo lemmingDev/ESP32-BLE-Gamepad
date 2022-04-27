@@ -2,16 +2,17 @@
  * Driving controller test
 */
 
-#include <BleGamepad.h> 
+#include <Arduino.h>
+#include <BleGamepad.h>
 
 #define numOfButtons        10
 #define numOfHatSwitches    0
 #define enableX             false
 #define enableY             false
 #define enableZ             false
-#define enableRZ            false
 #define enableRX            false
 #define enableRY            false
+#define enableRZ            false
 #define enableSlider1       false
 #define enableSlider2       false
 #define enableRudder        false
@@ -21,6 +22,7 @@
 #define enableSteering      true
 
 BleGamepad bleGamepad("BLE Driving Controller", "lemmingDev", 100);
+BleGamepadConfiguration bleGamepadConfig;
 
 void setup() 
 {
@@ -28,9 +30,14 @@ void setup()
   Serial.println("Starting BLE work!");
   
   //Setup controller with 10 buttons, accelerator, brake and steering
-  bleGamepad.setAutoReport(false);
-  bleGamepad.setControllerType(CONTROLLER_TYPE_GAMEPAD);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
-  bleGamepad.begin(numOfButtons,numOfHatSwitches,enableX,enableY,enableZ,enableRZ,enableRX,enableRY,enableSlider1,enableSlider2,enableRudder,enableThrottle,enableAccelerator,enableBrake,enableSteering);
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD);  //CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2); // Can also be done per-axis individually. All are true by default
+  bleGamepadConfig.setWhichSimulationControls(enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering); // Can also be done per-control individually. All are false by default
+  bleGamepadConfig.setHatSwitchCount(numOfHatSwitches); // 1 by default
+
+  bleGamepad.begin(bleGamepadConfig);
   
   //Set accelerator and brake to min
   bleGamepad.setAccelerator(-32767);

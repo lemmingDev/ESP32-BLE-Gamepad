@@ -9,8 +9,8 @@
  * Possible DPAD/HAT switch position values are: 
  * DPAD_CENTERED, DPAD_UP, DPAD_UP_RIGHT, DPAD_RIGHT, DPAD_DOWN_RIGHT, DPAD_DOWN, DPAD_DOWN_LEFT, DPAD_LEFT, DPAD_UP_LEFT
  * 
- * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, Left/Right Triggers plus slider1 and slider2, and hat1/hat2/hat3/hat4 switch positions as above: 
- * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Slider 1, Slider 2, Hat1 switch position, Hat2 switch position, Hat3 switch position, Hat4 switch position);
+ * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, Left/Right Triggers plus slider1 and slider2: 
+ * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Slider 1, Slider 2);
  *
  * bleGamepad.setLeftThumb (or setRightThumb) takes 2 int16_t parameters for x and y axes (or z and rZ axes)
  * 
@@ -27,17 +27,21 @@
  * It also shows that you can disable the autoReport feature (enabled by default), and manually call the sendReport() function when wanted 
  * 
  */
- 
+
+#include <Arduino.h>
 #include <BleGamepad.h> 
 
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 void setup() 
 {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
-  bleGamepad.begin(128, 2);	//Creates a gamepad with 128 buttons, 2 hat switches and x, y, z, rZ, rX, rY and 2 sliders (no simulation controls enabled by default)
-  bleGamepad.setAutoReport(false);   //This is true by default
+  bleGamepadConfig.setAutoReport(false);   //This is true by default
+  bleGamepadConfig.setButtonCount(128);
+  bleGamepadConfig.setHatSwitchCount(2);
+  bleGamepad.begin(bleGamepadConfig);	//Creates a gamepad with 128 buttons, 2 hat switches and x, y, z, rZ, rX, rY and 2 sliders (no simulation controls enabled by default)
 }
 
 void loop() 
@@ -72,7 +76,8 @@ void loop()
     Serial.println("Release button 5 and 64. Move all axes to min. Set hat 1 and 2 to centred.");
     bleGamepad.release(BUTTON_5);
     bleGamepad.release(BUTTON_64);
-    bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767, DPAD_CENTERED, HAT_CENTERED);
+    bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767);
+    bleGamepad.setHats(DPAD_CENTERED, HAT_CENTERED);
     bleGamepad.sendReport();
     delay(500);
   }

@@ -7,9 +7,11 @@
  *
  */
  
+#include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 #define numOfButtons 10
 
@@ -27,8 +29,9 @@ void setup()
     currentButtonStates[currentPinIndex] =  HIGH;
   }
 
-  bleGamepad.begin(numOfButtons);
-  bleGamepad.setAutoReport(false);
+  bleGamepadConfig.setAutoReport(false);
+  bleGamepadConfig.setButtonCount(numOfButtons);
+  bleGamepad.begin(bleGamepadConfig);
 }
 
 void loop()

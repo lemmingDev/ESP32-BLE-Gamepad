@@ -2,6 +2,7 @@
  * A simple sketch that maps a single pin on the ESP32 to a single button on the controller
  */
 
+#include <Arduino.h>
 #include <BleGamepad.h>		// https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
 #define BUTTONPIN	35		// Pin button is attached to
