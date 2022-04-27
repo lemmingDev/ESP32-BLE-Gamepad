@@ -179,6 +179,21 @@
 #define HAT_LEFT 7
 #define HAT_UP_LEFT 8
 
+#define X_AXIS 0
+#define Y_AXIS 1
+#define Z_AXIS 2
+#define RX_AXIS 3
+#define RY_AXIS 4
+#define RZ_AXIS 5
+#define SLIDER1 6
+#define SLIDER2 7
+
+#define RUDDER 0
+#define THROTTLE 1
+#define ACCELERATOR 2
+#define BRAKE 3
+#define STEERING 4
+
 #define START_BUTTON 0
 #define SELECT_BUTTON 1
 #define MENU_BUTTON 2
@@ -191,7 +206,6 @@
 class BleGamepad
 {
 private:
-	uint8_t _controllerType;
 	uint8_t _buttons[16]; // 8 bits x 16 --> 128 bits
 	uint8_t _specialButtons;
 	int16_t _x;
@@ -227,12 +241,27 @@ public:
 	BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
 	void begin(BleGamepadConfiguration config = BleGamepadConfiguration());
 	void end(void);
-	void setControllerType(uint8_t controllerType = CONTROLLER_TYPE_GAMEPAD);
 	void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0, signed char hat1 = 0, signed char hat2 = 0, signed char hat3 = 0, signed char hat4 = 0);
 	void press(uint8_t b = BUTTON_1);	// press BUTTON_1 by default
 	void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
 	void pressSpecialButton(uint8_t b);
 	void releaseSpecialButton(uint8_t b);
+	void pressStart();
+	void releaseStart();
+	void pressSelect();
+	void releaseSelect();
+	void pressMenu();
+	void releaseMenu();
+	void pressHome();
+	void releaseHome();
+	void pressBack();
+	void releaseBack();
+	void pressVolumeInc();
+	void releaseVolumeInc();
+	void pressVoleumeDec();
+	void releaseVolumeDec();
+	void pressVolumeMute();
+	void releaseVolumeMute();
 	void setLeftThumb(int16_t x = 0, int16_t y = 0);
 	void setRightThumb(int16_t z = 0, int16_t rZ = 0);
 	void setLeftTrigger(int16_t rX = 0);
