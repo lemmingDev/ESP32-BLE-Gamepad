@@ -59,7 +59,7 @@ void BleGamepad::resetButtons()
 
 void BleGamepad::begin(BleGamepadConfiguration config)
 {
-    memcpy(configuration, &config, sizeof(config)); // so the user can't change actual values midway through operation, without calling the begin function again
+    configuration = &config; // we pass by value, so the user can't change actual values midway through operation, without calling the begin function again
 
     uint8_t buttonPaddingBits = 8 - (configuration->getButtonCount() % 8);
     if (buttonPaddingBits == 8)
