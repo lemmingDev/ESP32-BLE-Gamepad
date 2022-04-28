@@ -42,6 +42,8 @@ void setup()
     bleGamepadConfig.setButtonCount(128);
     bleGamepadConfig.setHatSwitchCount(2);
     bleGamepad.begin(bleGamepadConfig); // Creates a gamepad with 128 buttons, 2 hat switches and x, y, z, rZ, rX, rY and 2 sliders (no simulation controls enabled by default)
+
+    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
 void loop()

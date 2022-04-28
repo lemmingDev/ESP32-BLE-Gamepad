@@ -40,6 +40,9 @@ void setup()
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setAutoReport(false);
     bleGamepad.begin(bleGamepadConfig);
+
+    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+
     Serial.begin(115200);
 }
 

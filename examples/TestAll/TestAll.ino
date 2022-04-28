@@ -20,6 +20,8 @@ void setup()
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
     bleGamepad.begin(bleGamepadConfig); // Simulation controls are disabled by default
+
+    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
 void loop()

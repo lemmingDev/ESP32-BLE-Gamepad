@@ -30,6 +30,8 @@ void setup()
     BleGamepadConfiguration bleGamepadConfig;
     bleGamepadConfig.setAutoReport(false); // Disable auto reports --> You then need to force HID updates with bleGamepad.sendReport()
     bleGamepad.begin();                    // Begin library with default buttons/hats/axes
+
+    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
 void loop()

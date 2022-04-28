@@ -41,6 +41,8 @@ void setup()
 
     bleGamepad.begin(bleGamepadConfig);
 
+    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+
     // Set throttle to min
     bleGamepad.setThrottle(-32767);
 
