@@ -1,14 +1,7 @@
-## NAME CHANGE IN LIBRARAY MANAGER - PLEASE READ
-Hi all DIY gaming enthusiasts.
-Please be aware that the official name for this library in the library manager has changed from
-	
-	ESP32 BLE Gamepad  -->  ESP32-BLE-Gamepad
+## POSSIBLE BREAKING CHANGES - PLEASE READ
+A large code rebase (configuration class) along with some extra features (start, select, menu, home, back, volume up, volume down and volume mute buttons) has been committed thanks to @dexterdy
 
-This is to make it consistent with those who were also downloading it from GitHub and had 2 versions with different names and was leading to confusion.
-The library manager was automatically renaming the folder ESP32_BLE_Gamepad upon installation due to the spaces in the name. The library with the old name has been de-listed from the manager and only the new one remains.
-Please remove/delete the old version by deleting the ESP32_BLE_Gamepad folder within your libraries folder.
-
-Apologies for the early adopters, but it will save a lot of confusion moving forward.
+Please see updated examples
 
 ## NimBLE
 Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
@@ -31,6 +24,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] 2 Sliders (16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
+ - [x] Special buttons (start, select, menu, home, back, volume up, volume down, vulume mute)
  - [x] Configurable HID descriptor
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
