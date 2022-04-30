@@ -66,7 +66,7 @@ public:
     void releaseBack();
     void pressVolumeInc();
     void releaseVolumeInc();
-    void pressVoleumeDec();
+    void pressVolumeDec();
     void releaseVolumeDec();
     void pressVolumeMute();
     void releaseVolumeMute();

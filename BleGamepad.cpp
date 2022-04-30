@@ -894,7 +894,7 @@ void BleGamepad::releaseVolumeInc()
     releaseSpecialButton(5);
 }
 
-void BleGamepad::pressVoleumeDec()
+void BleGamepad::pressVolumeDec()
 {
     pressSpecialButton(6);
 }
