@@ -50,7 +50,7 @@ void loop()
 {
     if (bleGamepad.isConnected())
     {
-        Serial.println("Press buttons 1, 32, 64 and 128. Set hat 1 to down right and hat 2 to up left");
+        Serial.println("Press buttons 5, 32, 64 and 128. Set hat 1 to down right and hat 2 to up left");
 
         // Press buttons 5, 32, 64 and 128
         bleGamepad.press(BUTTON_5);
