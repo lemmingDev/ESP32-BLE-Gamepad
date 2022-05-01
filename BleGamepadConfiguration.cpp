@@ -5,9 +5,9 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _hidReportId(3),
                                                      _buttonCount(16),
                                                      _hatSwitchCount(1),
-                                                     _whichSpecialButtons({true, true, false, false, false, false, false, false}),
-                                                     _whichAxes({true, true, true, true, true, true, true, true}),
-                                                     _whichSimulationControls({false, false, false, false, false})
+                                                     _whichSpecialButtons{true, true, false, false, false, false, false, false},
+                                                     _whichAxes{true, true, true, true, true, true, true, true},
+                                                     _whichSimulationControls{false, false, false, false, false}
 {
 }
 
