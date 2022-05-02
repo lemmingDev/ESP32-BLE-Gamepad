@@ -19,7 +19,7 @@ void setup()
     bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
-    bleGamepad.begin(bleGamepadConfig); // Simulation controls are disabled by default
+    bleGamepad.begin(&bleGamepadConfig); // Simulation controls are disabled by default
 
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
@@ -41,12 +41,16 @@ void loop()
 
         Serial.println("Press start and select");
         bleGamepad.pressStart();
+        bleGamepad.sendReport();
         delay(100);
         bleGamepad.pressSelect();
+        bleGamepad.sendReport();
         delay(100);
         bleGamepad.releaseStart();
+        bleGamepad.sendReport();
         delay(100);
         bleGamepad.releaseSelect();
+        bleGamepad.sendReport();
 
         Serial.println("Move all axis simultaneously from min to max");
         for (int i = -127; i < 128; i += 1)
