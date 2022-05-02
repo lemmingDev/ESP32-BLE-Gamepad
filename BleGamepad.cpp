@@ -231,14 +231,16 @@ void BleGamepad::begin(BleGamepadConfiguration config)
             {
                 // USAGE (Home)
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x223;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x23;
+		        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
 
             if (configuration->getIncludeBack())
             {
                 // USAGE (Back)
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x224;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x24;
+	        	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
 
             if (configuration->getIncludeVolumeInc())
@@ -894,7 +896,7 @@ void BleGamepad::releaseVolumeInc()
     releaseSpecialButton(5);
 }
 
-void BleGamepad::pressVoleumeDec()
+void BleGamepad::pressVolumeDec()
 {
     pressSpecialButton(6);
 }
