@@ -18,16 +18,13 @@ void loop()
     {
         Serial.println("Pressing start and select");
         bleGamepad.pressStart();
-        bleGamepad.sendReport();
-        delay(100);
-        bleGamepad.pressSelect();
-        bleGamepad.sendReport();
         delay(100);
         bleGamepad.releaseStart();
-        bleGamepad.sendReport();
+        delay(100);
+        bleGamepad.pressSelect();
         delay(100);
         bleGamepad.releaseSelect();
-        bleGamepad.sendReport();
+        delay(100);
 
         Serial.println("Increasing volume");
         bleGamepad.pressVolumeInc();
