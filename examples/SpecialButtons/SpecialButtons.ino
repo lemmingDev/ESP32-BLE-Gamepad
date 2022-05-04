@@ -5,6 +5,7 @@ BleGamepad bleGamepad;
 
 void setup()
 {
+    Serial.begin(115200);
     BleGamepadConfiguration bleGamepadConfig;
     bleGamepadConfig.setWhichSpecialButtons(true, true, true, true, true, true, true, true);
     bleGamepad.begin(&bleGamepadConfig);
@@ -28,13 +29,23 @@ void loop()
 
         Serial.println("Increasing volume");
         bleGamepad.pressVolumeInc();
-        delay(1500);
+        delay(100);
         bleGamepad.releaseVolumeInc();
-
+        delay(100);
+        bleGamepad.pressVolumeInc();
+        delay(100);
+        bleGamepad.releaseVolumeInc();
+        delay(100);
+        
         Serial.println("Muting volume");
         bleGamepad.pressVolumeMute();
         delay(100);
         bleGamepad.releaseVolumeMute();
+        delay(1000);
+        bleGamepad.pressVolumeMute();
+        delay(100);
+        bleGamepad.releaseVolumeMute();
+
 
         Serial.println("Pressing menu and back");
         bleGamepad.pressMenu();

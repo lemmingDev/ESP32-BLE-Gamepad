@@ -135,14 +135,6 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
         tempHidReportDescriptor[hidReportDescriptorSize++] = configuration.getButtonCount();
 
-        // UNIT_EXPONENT (0)
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x55;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-
-        // UNIT (None)
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x65;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-
         // INPUT (Data,Var,Abs)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
@@ -230,7 +222,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
             if (configuration.getIncludeHome())
             {
                 // USAGE (Home)
-                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0A;
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x23;
 		        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
@@ -238,7 +230,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
             if (configuration.getIncludeBack())
             {
                 // USAGE (Back)
-                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0A;
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x24;
 	        	tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
@@ -838,82 +830,82 @@ void BleGamepad::releaseSpecialButton(uint8_t b)
 
 void BleGamepad::pressStart()
 {
-    pressSpecialButton(0);
+    pressSpecialButton(START_BUTTON);
 }
 
 void BleGamepad::releaseStart()
 {
-    releaseSpecialButton(0);
+    releaseSpecialButton(START_BUTTON);
 }
 
 void BleGamepad::pressSelect()
 {
-    pressSpecialButton(1);
+    pressSpecialButton(SELECT_BUTTON);
 }
 
 void BleGamepad::releaseSelect()
 {
-    releaseSpecialButton(1);
+    releaseSpecialButton(SELECT_BUTTON);
 }
 
 void BleGamepad::pressMenu()
 {
-    pressSpecialButton(2);
+    pressSpecialButton(MENU_BUTTON);
 }
 
 void BleGamepad::releaseMenu()
 {
-    releaseSpecialButton(2);
+    releaseSpecialButton(MENU_BUTTON);
 }
 
 void BleGamepad::pressHome()
 {
-    pressSpecialButton(3);
+    pressSpecialButton(HOME_BUTTON);
 }
 
 void BleGamepad::releaseHome()
 {
-    releaseSpecialButton(3);
+    releaseSpecialButton(HOME_BUTTON);
 }
 
 void BleGamepad::pressBack()
 {
-    pressSpecialButton(4);
+    pressSpecialButton(BACK_BUTTON);
 }
 
 void BleGamepad::releaseBack()
 {
-    releaseSpecialButton(4);
+    releaseSpecialButton(BACK_BUTTON);
 }
 
 void BleGamepad::pressVolumeInc()
 {
-    pressSpecialButton(5);
+    pressSpecialButton(VOLUME_INC_BUTTON);
 }
 
 void BleGamepad::releaseVolumeInc()
 {
-    releaseSpecialButton(5);
+    releaseSpecialButton(VOLUME_INC_BUTTON);
 }
 
 void BleGamepad::pressVolumeDec()
 {
-    pressSpecialButton(6);
+    pressSpecialButton(VOLUME_DEC_BUTTON);
 }
 
 void BleGamepad::releaseVolumeDec()
 {
-    releaseSpecialButton(6);
+    releaseSpecialButton(VOLUME_DEC_BUTTON);
 }
 
 void BleGamepad::pressVolumeMute()
 {
-    pressSpecialButton(7);
+    pressSpecialButton(VOLUME_MUTE_BUTTON);
 }
 
 void BleGamepad::releaseVolumeMute()
 {
-    releaseSpecialButton(7);
+    releaseSpecialButton(VOLUME_MUTE_BUTTON);
 }
 
 void BleGamepad::setLeftThumb(int16_t x, int16_t y)
@@ -1310,6 +1302,9 @@ void BleGamepad::taskServer(void *pvParameter)
 
     uint8_t *customHidReportDescriptor = new uint8_t[hidReportDescriptorSize];
     memcpy(customHidReportDescriptor, tempHidReportDescriptor, hidReportDescriptorSize);
+
+    for (int i = 0; i < hidReportDescriptorSize; i++)
+        Serial.printf("%02x", customHidReportDescriptor[i]);
 
     BleGamepadInstance->hid->reportMap((uint8_t *)customHidReportDescriptor, hidReportDescriptorSize);
     BleGamepadInstance->hid->startServices();
