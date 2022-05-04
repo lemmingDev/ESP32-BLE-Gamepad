@@ -61,5 +61,6 @@ void loop()
         bleGamepad.pressHome();
         delay(100);
         bleGamepad.releaseHome();
+        delay(2000);
     }
 }
