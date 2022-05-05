@@ -26,6 +26,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
  - [x] Special buttons (start, select, menu, home, back, volume up, volume down, vulume mute)
  - [x] Configurable HID descriptor
+ - [x] Configurable VID and PID values
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Uses efficient NimBLE bluetooth library
@@ -98,6 +99,8 @@ void loop()
 }
 ```
 By default, reports are sent on every button press/release or axis/slider/hat/simulation movement, however this can be disabled, and then you manually call sendReport on the gamepad instance as shown in the IndividualAxes.ino example.
+
+VID and PID values can be set. See TestAll.ino for example.
 
 There is also Bluetooth specific information that you can use (optional):
 
