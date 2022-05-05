@@ -34,7 +34,7 @@ private:
     int16_t _hat3;
     int16_t _hat4;
 
-    BleGamepadConfiguration *configuration;
+    BleGamepadConfiguration configuration;
 
     BleConnectionStatus *connectionStatus;
 
@@ -47,7 +47,7 @@ private:
 
 public:
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
-    void begin(BleGamepadConfiguration config = BleGamepadConfiguration());
+    void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
     void end(void);
     void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0);
     void press(uint8_t b = BUTTON_1);   // press BUTTON_1 by default

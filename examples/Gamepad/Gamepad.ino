@@ -32,7 +32,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("Starting BLE work!");
     bleGamepad.begin();
-    // The default bleGamepad.begin() above enables 16 buttons, all axes, one hat, start and select and no simulation controls
+    // The defaul bleGamepad.begin() above enables 16 buttons, all axes, one hat, start and select and no simulation controls
 }
 
 void loop()
@@ -48,9 +48,8 @@ void loop()
         // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
         delay(500);
 
-        Serial.println("Release button 5, 16 and start. Move all axes to min. Set DPAD (hat 1) to centred.");
+        Serial.println("Release button 5 and start. Move all axes to min. Set DPAD (hat 1) to centred.");
         bleGamepad.release(BUTTON_5);
-        bleGamepad.release(BUTTON_16);
         bleGamepad.releaseStart();
         bleGamepad.setHat1(HAT_CENTERED);
         bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767);

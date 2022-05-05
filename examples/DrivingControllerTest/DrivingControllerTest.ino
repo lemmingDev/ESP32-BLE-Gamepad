@@ -37,7 +37,7 @@ void setup()
     bleGamepadConfig.setWhichSimulationControls(enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering); // Can also be done per-control individually. All are false by default
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);                                                                      // 1 by default
 
-    bleGamepad.begin(bleGamepadConfig);
+    bleGamepad.begin(&bleGamepadConfig);
 
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 
