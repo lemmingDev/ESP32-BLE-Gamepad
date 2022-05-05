@@ -19,6 +19,8 @@ void setup()
     bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
+    bleGamepadConfig.setVid(0xe502);
+    bleGamepadConfig.setPid(0xbbaa);
     bleGamepad.begin(&bleGamepadConfig); // Simulation controls are disabled by default
 
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
