@@ -7,7 +7,9 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _hatSwitchCount(1),
                                                      _whichSpecialButtons{true, true, false, false, false, false, false, false},
                                                      _whichAxes{true, true, true, true, true, true, true, true},
-                                                     _whichSimulationControls{false, false, false, false, false}
+                                                     _whichSimulationControls{false, false, false, false, false},
+													 _vid(0xe502),
+													 _pid(0xbbab)
 {
 }
 
@@ -66,6 +68,8 @@ uint8_t BleGamepadConfiguration::getSimulationCount()
     return count;
 }
 
+uint16_t BleGamepadConfiguration::getVid(){ return _vid; }
+uint16_t BleGamepadConfiguration::getPid(){ return _pid; }
 uint8_t BleGamepadConfiguration::getControllerType() { return _controllerType; }
 uint8_t BleGamepadConfiguration::getHidReportId() { return _hidReportId; }
 uint16_t BleGamepadConfiguration::getButtonCount() { return _buttonCount; }
@@ -153,3 +157,5 @@ void BleGamepadConfiguration::setIncludeThrottle(bool value) { _whichSimulationC
 void BleGamepadConfiguration::setIncludeAccelerator(bool value) { _whichSimulationControls[ACCELERATOR] = value; }
 void BleGamepadConfiguration::setIncludeBrake(bool value) { _whichSimulationControls[BRAKE] = value; }
 void BleGamepadConfiguration::setIncludeSteering(bool value) { _whichSimulationControls[STEERING] = value; }
+void BleGamepadConfiguration::setVid(uint16_t value) { _vid = value; }
+void BleGamepadConfiguration::setPid(uint16_t value) { _pid = value; }

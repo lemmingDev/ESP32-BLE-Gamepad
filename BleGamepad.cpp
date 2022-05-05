@@ -23,6 +23,8 @@ uint8_t tempHidReportDescriptor[150];
 int hidReportDescriptorSize = 0;
 uint8_t reportSize = 0;
 uint8_t numOfButtonBytes = 0;
+uint16_t vid;
+uint16_t pid; 
 
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(),
                                                                                                        _specialButtons(0),
@@ -60,6 +62,19 @@ void BleGamepad::resetButtons()
 void BleGamepad::begin(BleGamepadConfiguration *config)
 {
     configuration = *config; // we make a copy, so the user can't change actual values midway through operation, without calling the begin function again
+	
+	vid = configuration.getVid();
+	pid = configuration.getPid();
+	
+	uint8_t high = highByte(vid);
+	uint8_t low = lowByte(vid);
+	
+	vid = low << 8 | high;
+	
+	high = highByte(pid);
+	low = lowByte(pid);
+	
+	pid = low << 8 | high;
 
     uint8_t buttonPaddingBits = 8 - (configuration.getButtonCount() % 8);
     if (buttonPaddingBits == 8)
@@ -1293,7 +1308,7 @@ void BleGamepad::taskServer(void *pvParameter)
 
     BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
 
-    BleGamepadInstance->hid->pnp(0x01, 0x02e5, 0xabbb, 0x0110);
+    BleGamepadInstance->hid->pnp(0x01, vid, pid, 0x0110);
     BleGamepadInstance->hid->hidInfo(0x00, 0x01);
 
     NimBLESecurity *pSecurity = new NimBLESecurity();
