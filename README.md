@@ -24,7 +24,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] 2 Sliders (16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
- - [x] Special buttons (start, select, menu, home, back, volume up, volume down, vulume mute)
+ - [x] Special buttons (start, select, menu, home, back, volume up, volume down, volume mute)
  - [x] Configurable HID descriptor
  - [x] Configurable VID and PID values
  - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
