@@ -32,7 +32,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("Starting BLE work!");
     bleGamepad.begin();
-    // The defaul bleGamepad.begin() above enables 16 buttons, all axes, one hat, start and select and no simulation controls
+    // The default bleGamepad.begin() above enables 16 buttons, all axes, one hat, start and select and no simulation controls
 }
 
 void loop()
