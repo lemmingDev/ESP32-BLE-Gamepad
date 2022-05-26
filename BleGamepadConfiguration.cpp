@@ -120,6 +120,8 @@ void BleGamepadConfiguration::setWhichAxes(bool xAxis, bool yAxis, bool zAxis, b
     _whichAxes[RX_AXIS] = rxAxis;
     _whichAxes[RY_AXIS] = ryAxis;
     _whichAxes[RZ_AXIS] = rzAxis;
+    _whichAxes[SLIDER1] = slider1;
+    _whichAxes[SLIDER2] = slider2;
 }
 
 void BleGamepadConfiguration::setWhichSimulationControls(bool rudder, bool throttle, bool accelerator, bool brake, bool steering)
