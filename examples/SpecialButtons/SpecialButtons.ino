@@ -8,9 +8,18 @@ void setup()
     Serial.begin(115200);
     BleGamepadConfiguration bleGamepadConfig;
     bleGamepadConfig.setWhichSpecialButtons(true, true, true, true, true, true, true, true);
+    // Can also enable special buttons individually with the following <-- They are all disabled by default
+    // bleGamepadConfig.setIncludeStart(true);
+    // bleGamepadConfig.setIncludeSelect(true);
+    // bleGamepadConfig.setIncludeMenu(true);
+    // bleGamepadConfig.setIncludeHome(true);
+    // bleGamepadConfig.setIncludeBack(true);
+    // bleGamepadConfig.setIncludeVolumeInc(true);
+    // bleGamepadConfig.setIncludeVolumeDec(true);
+    // bleGamepadConfig.setIncludeVolumeMute(true);
     bleGamepad.begin(&bleGamepadConfig);
 
-    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+    // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
 void loop()
