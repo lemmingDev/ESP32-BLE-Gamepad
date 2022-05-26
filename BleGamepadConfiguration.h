@@ -210,8 +210,8 @@ private:
     bool _whichSpecialButtons[POSSIBLESPECIALBUTTONS];
     bool _whichAxes[POSSIBLEAXES];
     bool _whichSimulationControls[POSSIBLESIMULATIONCONTROLS];
-	uint16_t _vid;
-	uint16_t _pid;
+    uint16_t _vid;
+    uint16_t _pid;
 
 public:
     BleGamepadConfiguration();
@@ -250,8 +250,8 @@ public:
     bool getIncludeBrake();
     bool getIncludeSteering();
     const bool *getWhichSimulationControls() const;
-	uint16_t getVid();
-	uint16_t getPid();
+    uint16_t getVid();
+    uint16_t getPid();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -282,8 +282,8 @@ public:
     void setIncludeBrake(bool value);
     void setIncludeSteering(bool value);
     void setWhichSimulationControls(bool rudder, bool throttle, bool accelerator, bool brake, bool steering);
-	void setVid(uint16_t value);
-	void setPid(uint16_t value);
+    void setVid(uint16_t value);
+    void setPid(uint16_t value);
 };
 
 #endif
