@@ -6,7 +6,7 @@ Please see updated examples
 ## NimBLE
 Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
 Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
-Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, ases, sliders, simulation controls etc).
+Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, axes, sliders, simulation controls etc).
 See the examples for guidance.
 
 # ESP32-BLE-Gamepad
