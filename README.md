@@ -112,8 +112,7 @@ VID and PID values can be set. See TestAll.ino for example.
 There is also Bluetooth specific information that you can use (optional):
 
 Instead of `BleGamepad bleGamepad;` you can do `BleGamepad bleGamepad("Bluetooth Device Name", "Bluetooth Device Manufacturer", 100);`.
-The third parameter is the initial battery level of your device. 
-Adjusting the battery level later on doesn't work.
+The third parameter is the initial battery level of your device.
 By default the battery level will be set to 100%, the device name will be `ESP32 BLE Gamepad` and the manufacturer will be `Espressif`.
 
 
