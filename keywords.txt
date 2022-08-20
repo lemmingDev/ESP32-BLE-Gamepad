@@ -128,6 +128,18 @@ getIncludeAccelerator KEYWORD2
 getIncludeBrake KEYWORD2
 getIncludeSteering KEYWORD2
 getWhichSimulationControls KEYWORD2
+getVid KEYWORD2
+getPid KEYWORD2
+getAxesMin KEYWORD2
+getAxesMax KEYWORD2
+getSimulationMin KEYWORD2
+getSimulationMax KEYWORD2
+setVid KEYWORD2
+setPid KEYWORD2
+setAxesMin KEYWORD2
+setAxesMax KEYWORD2
+setSimulationMin KEYWORD2
+setSimulationMax KEYWORD2
 
 #######################################
 # Constants

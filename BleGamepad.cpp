@@ -25,6 +25,11 @@ uint8_t reportSize = 0;
 uint8_t numOfButtonBytes = 0;
 uint16_t vid;
 uint16_t pid; 
+uint16_t axesMin;
+uint16_t axesMax;
+uint16_t simulationMin;
+uint16_t simulationMax;
+
 
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(),
                                                                                                        _specialButtons(0),
@@ -307,13 +312,21 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
         // LOGICAL_MINIMUM (-32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMin());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMin());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	// Use these two lines for -32767 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMax());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for 255 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
@@ -401,13 +414,21 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
         // LOGICAL_MINIMUM (-32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMin());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMin());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getSimulationMax());
+        tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMax());
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for 255 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+		//tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;		// Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;

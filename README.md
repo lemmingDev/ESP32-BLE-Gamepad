@@ -1,6 +1,12 @@
 ## POSSIBLE BREAKING CHANGES - PLEASE READ
 A large code rebase (configuration class) along with some extra features (start, select, menu, home, back, volume up, volume down and volume mute buttons) has been committed thanks to @dexterdy
 
+Since version 5 of this library, the axes and simulation controls have configurable min and max values
+The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
+This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the TestAll example for how to set back to -32767 if wanted
+
+This version of the library has been tested against NimBLE-Arduino version 2 (as of publishing, 1.4 is the latest released version, so currently only available at https://github.com/h2zero/NimBLE-Arduino/tree/master)
+
 Please see updated examples
 
 ## NimBLE
@@ -20,14 +26,14 @@ It would be great however if any improvements are fed back into this version.
 
  - [x] Button press (128 buttons)
  - [x] Button release (128 buttons)
- - [x] Axes movement (6 axes (16 bit) (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger))
- - [x] 2 Sliders (16 bit) (Slider 1 and Slider 2)
+ - [x] Axes movement (6 axes (configurable resolution up to 16 bit) (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger))
+ - [x] 2 Sliders (configurable resolution up to 16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
  - [x] Special buttons (start, select, menu, home, back, volume up, volume down, volume mute) all disabled by default
  - [x] Configurable HID descriptor
  - [x] Configurable VID and PID values
- - [x] Report optional battery level to host (basically works, but it doesn't show up in Android's status bar)
+ - [x] Report optional battery level to host
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
@@ -100,7 +106,7 @@ void loop()
         bleGamepad.release(BUTTON_5);
         bleGamepad.releaseStart();
         bleGamepad.setHat1(HAT_CENTERED);
-        bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767);
+        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);
         delay(500);
     }
 }
