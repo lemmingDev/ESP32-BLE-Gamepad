@@ -3,7 +3,7 @@ A large code rebase (configuration class) along with some extra features (start,
 
 Since version 5 of this library, the axes and simulation controls have configurable min and max values
 The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
-This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the TestAll example for how to set back to -32767 if wanted
+This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
 
 This version of the library has been tested against NimBLE-Arduino version 2 (as of publishing, 1.4 is the latest released version, so currently only available at https://github.com/h2zero/NimBLE-Arduino/tree/master)
 
