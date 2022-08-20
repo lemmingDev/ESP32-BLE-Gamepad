@@ -78,7 +78,7 @@ void loop()
         Serial.println("Release button 5 and 64. Move all axes to min. Set hat 1 and 2 to centred.");
         bleGamepad.release(BUTTON_5);
         bleGamepad.release(BUTTON_64);
-        bleGamepad.setAxes(-32767, -32767, -32767, -32767, -32767, -32767, -32767, -32767);
+        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);
         bleGamepad.setHats(DPAD_CENTERED, HAT_CENTERED);
         bleGamepad.sendReport();
         delay(500);

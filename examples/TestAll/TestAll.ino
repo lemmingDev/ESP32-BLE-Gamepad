@@ -5,14 +5,14 @@
 #include <Arduino.h>
 #include <BleGamepad.h>
 
-#define numOfButtons 128
+#define numOfButtons 64
 #define numOfHatSwitches 4
 
 BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
 
 void setup()
 {
-    BleGamepadConfiguration bleGamepadConfig;
     Serial.begin(115200);
     Serial.println("Starting BLE work!");
     bleGamepadConfig.setAutoReport(false);
@@ -20,8 +20,11 @@ void setup()
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
     bleGamepadConfig.setVid(0xe502);
-    bleGamepadConfig.setPid(0xbbaa);
-    bleGamepad.begin(&bleGamepadConfig); // Simulation controls and special buttons are disabled by default
+    bleGamepadConfig.setPid(0xabcd);
+    // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
+    bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+    bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
+    bleGamepad.begin(&bleGamepadConfig); // Simulation controls, special buttons and hats 2/3/4 are disabled by default
 
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
@@ -30,7 +33,18 @@ void loop()
 {
     if (bleGamepad.isConnected())
     {
-        Serial.println("Press all buttons one by one");
+        Serial.println("\nn--- Axes Decimal ---");
+        Serial.print("Axes Min: ");
+        Serial.println(bleGamepadConfig.getAxesMin());
+        Serial.print("Axes Max: ");
+        Serial.println(bleGamepadConfig.getAxesMax());
+        Serial.println("\nn--- Axes Hex ---");
+        Serial.print("Axes Min: ");
+        Serial.println(bleGamepadConfig.getAxesMin(), HEX);
+        Serial.print("Axes Max: ");
+        Serial.println(bleGamepadConfig.getAxesMax(), HEX);        
+        
+        Serial.println("\n\nPress all buttons one by one");
         for (int i = 1; i <= numOfButtons; i += 1)
         {
             bleGamepad.press(i);
@@ -55,9 +69,9 @@ void loop()
         bleGamepad.sendReport();
 
         Serial.println("Move all axis simultaneously from min to max");
-        for (int i = -127; i < 128; i += 1)
+        for (int i = bleGamepadConfig.getAxesMin(); i < bleGamepadConfig.getAxesMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
         {
-            bleGamepad.setAxes(i * 256, i * 256, i * 256, i * 256, i * 256, i * 256);
+            bleGamepad.setAxes(i, i, i, i, i, i);
             bleGamepad.sendReport();
             delay(10);
         }
@@ -65,9 +79,9 @@ void loop()
         bleGamepad.sendReport();
 
         Serial.println("Move all sliders simultaneously from min to max");
-        for (int i = -127; i < 128; i += 1)
+       for (int i = bleGamepadConfig.getAxesMin(); i < bleGamepadConfig.getAxesMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
         {
-            bleGamepad.setSliders(i * 256, i * 256);
+            bleGamepad.setSliders(i, i);
             bleGamepad.sendReport();
             delay(10);
         }
@@ -108,13 +122,13 @@ void loop()
 
         //    Simulation controls are disabled by default
         //    Serial.println("Move all simulation controls simultaneously from min to max");
-        //    for(int i = -127 ; i < 128 ; i += 1)
+        //    for (int i = bleGamepadConfig.getSimulationMin(); i < bleGamepadConfig.getSimulationMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
         //    {
-        //      bleGamepad.setRudder(i*256);
-        //      bleGamepad.setThrottle(i*256);
-        //      bleGamepad.setAccelerator(i*256);
-        //      bleGamepad.setBrake(i*256);
-        //      bleGamepad.setSteering(i*256);
+        //      bleGamepad.setRudder(i);
+        //      bleGamepad.setThrottle(i);
+        //      bleGamepad.setAccelerator(i);
+        //      bleGamepad.setBrake(i);
+        //      bleGamepad.setSteering(i);
         //      bleGamepad.sendReport();
         //      delay(10);
         //    }
