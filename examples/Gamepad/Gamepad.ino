@@ -52,7 +52,7 @@ void loop()
         bleGamepad.release(BUTTON_5);
         bleGamepad.releaseStart();
         bleGamepad.setHat1(HAT_CENTERED);
-        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, );
+        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);
         delay(500);
     }
 }
