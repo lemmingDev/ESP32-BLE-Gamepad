@@ -5,7 +5,7 @@ Since version 5 of this library, the axes and simulation controls have configura
 The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
 This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
 
-This version of the library has been tested against NimBLE-Arduino version 2 (as of publishing, 1.4 is the latest released version, so currently only available at https://github.com/h2zero/NimBLE-Arduino/tree/master)
+This version of the library has been tested against NimBLE-Arduino version 1.4; the latest released version --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/1.4.0
 
 Please see updated examples
 
@@ -33,7 +33,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Special buttons (start, select, menu, home, back, volume up, volume down, volume mute) all disabled by default
  - [x] Configurable HID descriptor
  - [x] Configurable VID and PID values
- - [x] Report optional battery level to host
+ - [ ] Report optional battery level to host <-- currently disabled
  - [x] Customize Bluetooth device name/manufacturer
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
