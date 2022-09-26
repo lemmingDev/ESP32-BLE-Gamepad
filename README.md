@@ -33,8 +33,8 @@ It would be great however if any improvements are fed back into this version.
  - [x] Special buttons (start, select, menu, home, back, volume up, volume down, volume mute) all disabled by default
  - [x] Configurable HID descriptor
  - [x] Configurable VID and PID values
- - [ ] Report optional battery level to host <-- currently disabled
- - [x] Customize Bluetooth device name/manufacturer
+ - [x] Configurable BLE characteristics (name, manufacturer, model number, software revision, serial number, firmware revision, hardware revision)	
+ - [ ] Report optional battery level to host <-- currently disabled <-- awaiting NimBLE support
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)

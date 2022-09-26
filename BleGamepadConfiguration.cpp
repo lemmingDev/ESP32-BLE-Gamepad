@@ -13,7 +13,12 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _axesMin(0x0000),
                                                      _axesMax(0x7FFF),
                                                      _simulationMin(0x0000),
-                                                     _simulationMax(0x7FFF)
+                                                     _simulationMax(0x7FFF),
+                                                     _modelNumber("1.0.0"),
+                                                     _softwareRevision("1.0.0"),
+                                                     _serialNumber("0123456789"),
+                                                     _firmwareRevision("0.5.2"),
+                                                     _hardwareRevision("1.0.0")
 {
 }
 
@@ -107,6 +112,11 @@ bool BleGamepadConfiguration::getIncludeAccelerator() { return _whichSimulationC
 bool BleGamepadConfiguration::getIncludeBrake() { return _whichSimulationControls[BRAKE]; }
 bool BleGamepadConfiguration::getIncludeSteering() { return _whichSimulationControls[STEERING]; }
 const bool *BleGamepadConfiguration::getWhichSimulationControls() const { return _whichSimulationControls; }
+char *BleGamepadConfiguration::getModelNumber(){ return _modelNumber; }
+char *BleGamepadConfiguration::getSoftwareRevision(){ return _softwareRevision; }
+char *BleGamepadConfiguration::getSerialNumber(){ return _serialNumber; }
+char *BleGamepadConfiguration::getFirmwareRevision(){ return _firmwareRevision; }
+char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevision; }
 
 void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute)
 {
@@ -173,3 +183,8 @@ void BleGamepadConfiguration::setAxesMin(int16_t value) { _axesMin = value; }
 void BleGamepadConfiguration::setAxesMax(int16_t value) { _axesMax = value; }
 void BleGamepadConfiguration::setSimulationMin(int16_t value) { _simulationMin = value; }
 void BleGamepadConfiguration::setSimulationMax(int16_t value) { _simulationMax = value; }
+void BleGamepadConfiguration::setModelNumber(char *value) { _modelNumber = value; }
+void BleGamepadConfiguration::setSoftwareRevision(char *value) { _softwareRevision = value; }
+void BleGamepadConfiguration::setSerialNumber(char *value) { _serialNumber = value; }
+void BleGamepadConfiguration::setFirmwareRevision(char *value) { _firmwareRevision = value; }
+void BleGamepadConfiguration::setHardwareRevision(char *value) { _hardwareRevision = value; }

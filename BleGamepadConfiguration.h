@@ -216,7 +216,11 @@ private:
     int16_t _axesMax;
     int16_t _simulationMin;
     int16_t _simulationMax;
-    
+    char *_modelNumber;
+    char *_softwareRevision;
+    char *_serialNumber;
+    char *_firmwareRevision;
+    char *_hardwareRevision;
 
 public:
     BleGamepadConfiguration();
@@ -261,6 +265,11 @@ public:
     int16_t getAxesMax();
     int16_t getSimulationMin();
     int16_t getSimulationMax();
+    char *getModelNumber();
+    char *getSoftwareRevision();
+    char *getSerialNumber();
+    char *getFirmwareRevision();
+    char *getHardwareRevision();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -297,6 +306,11 @@ public:
     void setAxesMax(int16_t value);
     void setSimulationMin(int16_t value);
     void setSimulationMax(int16_t value);
+    void setModelNumber(char *value);
+    void setSoftwareRevision(char *value);
+    void setSerialNumber(char *value);
+    void setFirmwareRevision(char *value);
+    void setHardwareRevision(char *value);
 };
 
 #endif

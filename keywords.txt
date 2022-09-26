@@ -4,7 +4,7 @@
 # Class
 #######################################
 
-BleGamepad	KEYWORD1
+BleGamepad  KEYWORD1
 BleGamepadConfiguration KEYWORD1
 
 #######################################
@@ -134,12 +134,23 @@ getAxesMin KEYWORD2
 getAxesMax KEYWORD2
 getSimulationMin KEYWORD2
 getSimulationMax KEYWORD2
+getModelNumber KEYWORD2
+getSoftwareRevision KEYWORD2
+getSerialNumber KEYWORD2
+getFirmwareRevision KEYWORD2
+getHardwareRevision KEYWORD2
 setVid KEYWORD2
 setPid KEYWORD2
 setAxesMin KEYWORD2
 setAxesMax KEYWORD2
 setSimulationMin KEYWORD2
 setSimulationMax KEYWORD2
+setModelNumber KEYWORD2
+setSoftwareRevision KEYWORD2
+setSerialNumber KEYWORD2
+setFirmwareRevision KEYWORD2
+setHardwareRevision KEYWORD2
+
 
 #######################################
 # Constants
