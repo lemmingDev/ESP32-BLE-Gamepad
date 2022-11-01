@@ -1335,10 +1335,16 @@ void BleGamepad::setBatteryLevel(uint8_t level)
     if (hid != 0)
     {
         this->hid->setBatteryLevel(this->batteryLevel);
-	if (this->isConnected())
-	{
-	    this->hid->batteryLevel()->notify();
-	}
+
+        if (this->isConnected())
+        {
+            this->hid->batteryLevel()->notify();
+        }
+		
+        if (configuration.getAutoReport())
+        {
+            sendReport();
+        }
     }
 }
 
