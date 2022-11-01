@@ -34,7 +34,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Configurable HID descriptor
  - [x] Configurable VID and PID values
  - [x] Configurable BLE characteristics (name, manufacturer, model number, software revision, serial number, firmware revision, hardware revision)	
- - [ ] Report optional battery level to host <-- currently disabled <-- awaiting NimBLE support
+ - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
@@ -120,6 +120,9 @@ There is also Bluetooth specific information that you can use (optional):
 Instead of `BleGamepad bleGamepad;` you can do `BleGamepad bleGamepad("Bluetooth Device Name", "Bluetooth Device Manufacturer", 100);`.
 The third parameter is the initial battery level of your device.
 By default the battery level will be set to 100%, the device name will be `ESP32 BLE Gamepad` and the manufacturer will be `Espressif`.
+
+Battery level can be set during operation by calling, for example, bleGamepad.setBatteryLevel(80);
+Update sent on next gamepad update if auto reporting is not enabled
 
 
 ## Credits
