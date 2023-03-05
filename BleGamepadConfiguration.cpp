@@ -10,6 +10,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _whichSimulationControls{false, false, false, false, false},
                                                      _vid(0xe502),
                                                      _pid(0xbbab),
+													 _guidVersion(0x0110),
                                                      _axesMin(0x0000),
                                                      _axesMax(0x7FFF),
                                                      _simulationMin(0x0000),
@@ -79,6 +80,7 @@ uint8_t BleGamepadConfiguration::getSimulationCount()
 
 uint16_t BleGamepadConfiguration::getVid(){ return _vid; }
 uint16_t BleGamepadConfiguration::getPid(){ return _pid; }
+uint16_t BleGamepadConfiguration::getGuidVersion(){ return _guidVersion; }
 int16_t BleGamepadConfiguration::getAxesMin(){ return _axesMin; }
 int16_t BleGamepadConfiguration::getAxesMax(){ return _axesMax; }
 int16_t BleGamepadConfiguration::getSimulationMin(){ return _simulationMin; }
@@ -179,6 +181,7 @@ void BleGamepadConfiguration::setIncludeBrake(bool value) { _whichSimulationCont
 void BleGamepadConfiguration::setIncludeSteering(bool value) { _whichSimulationControls[STEERING] = value; }
 void BleGamepadConfiguration::setVid(uint16_t value) { _vid = value; }
 void BleGamepadConfiguration::setPid(uint16_t value) { _pid = value; }
+void BleGamepadConfiguration::setGuidVersion(uint16_t value) { _guidVersion = value; }
 void BleGamepadConfiguration::setAxesMin(int16_t value) { _axesMin = value; }
 void BleGamepadConfiguration::setAxesMax(int16_t value) { _axesMax = value; }
 void BleGamepadConfiguration::setSimulationMin(int16_t value) { _simulationMin = value; }
