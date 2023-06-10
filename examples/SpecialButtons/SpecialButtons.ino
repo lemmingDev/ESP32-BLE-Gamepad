@@ -59,7 +59,7 @@ void loop()
         Serial.println("Pressing menu and back");
         bleGamepad.pressMenu();
         delay(100);
-        bleGamepad.releaseSelect();
+        bleGamepad.releaseMenu();
         delay(100);
         bleGamepad.pressBack();
         delay(100);
