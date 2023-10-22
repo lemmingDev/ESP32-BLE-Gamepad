@@ -1,14 +1,34 @@
+// uncomment the following line to use NimBLE library
+//#define USE_NIMBLE
+
 #ifndef ESP32_BLE_GAMEPAD_H
 #define ESP32_BLE_GAMEPAD_H
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
+#if defined(USE_NIMBLE)
 #include "nimconfig.h"
 #if defined(CONFIG_BT_NIMBLE_ROLE_PERIPHERAL)
 
 #include "BleConnectionStatus.h"
 #include "NimBLEHIDDevice.h"
 #include "NimBLECharacteristic.h"
+
+#define BLEDevice                  NimBLEDevice
+#define BLEServerCallbacks         NimBLEServerCallbacks
+#define BLECharacteristicCallbacks NimBLECharacteristicCallbacks
+#define BLEHIDDevice               NimBLEHIDDevice
+#define BLECharacteristic          NimBLECharacteristic
+#define BLEAdvertising             NimBLEAdvertising
+#define BLEServer                  NimBLEServer
+
+#endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
+#else  // USE_NIMBLE
+#include "BleConnectionStatus.h"
+#include "BLEHIDDevice.h"
+#include "BLECharacteristic.h"
+#endif // USE_NIMBLE
+
 #include "BleGamepadConfiguration.h"
 
 class BleGamepad
@@ -38,8 +58,13 @@ private:
 
     BleConnectionStatus *connectionStatus;
 
+#if defined(USE_NIMBLE)
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
+#else  // USE_NIMBLE
+    BLEHIDDevice* hid;
+    BLECharacteristic* inputGamepad;
+#endif // USE_NIMBLE
 
     void rawAction(uint8_t msg[], char msgSize);
     static void taskServer(void *pvParameter);
@@ -107,9 +132,12 @@ public:
     std::string deviceName;
 
 protected:
+#if defined(USE_NIMBLE)
     virtual void onStarted(NimBLEServer *pServer){};
+#else  // USE_NIMBLE
+    virtual void onStarted(BLEServer *pServer) { };
+#endif // USE_NIMBLE
 };
 
-#endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
 #endif // CONFIG_BT_ENABLED
 #endif // ESP32_BLE_GAMEPAD_H
