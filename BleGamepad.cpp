@@ -1367,95 +1367,84 @@ void BleGamepad::taskServer(void *pvParameter)
     //uint8_t newMACAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF - 0x02};
     //esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address 
 
-#if defined(USE_NIMBLE)
-    NimBLEDevice::init(BleGamepadInstance->deviceName);
-    NimBLEServer *pServer = NimBLEDevice::createServer();
-
-    pServer->setCallbacks(BleGamepadInstance->connectionStatus);
-
-    BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
-#else  // USE_NIMBLE
     BLEDevice::init(BleGamepadInstance->deviceName);
     BLEServer *pServer = BLEDevice::createServer();
 
     pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
     BleGamepadInstance->hid = new BLEHIDDevice(pServer);
-#endif // USE_NIMBLE
 
     BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
     BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
     BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
 
-#if defined(USE_NIMBLE)
-    NimBLEService *pService = pServer->getServiceByUUID(SERVICE_UUID_DEVICE_INFORMATION);
-
-	BLECharacteristic* pCharacteristic_Model_Number = pService->createCharacteristic(
-      CHARACTERISTIC_UUID_MODEL_NUMBER,
-      NIMBLE_PROPERTY::READ
-    );
-    pCharacteristic_Model_Number->setValue(modelNumber);
-
-	BLECharacteristic* pCharacteristic_Software_Revision = pService->createCharacteristic(
-      CHARACTERISTIC_UUID_SOFTWARE_REVISION,
-      NIMBLE_PROPERTY::READ
-    );
-    pCharacteristic_Software_Revision->setValue(softwareRevision);
-
-	BLECharacteristic* pCharacteristic_Serial_Number = pService->createCharacteristic(
-      CHARACTERISTIC_UUID_SERIAL_NUMBER,
-      NIMBLE_PROPERTY::READ
-    );
-    pCharacteristic_Serial_Number->setValue(serialNumber);
-
-	BLECharacteristic* pCharacteristic_Firmware_Revision = pService->createCharacteristic(
-      CHARACTERISTIC_UUID_FIRMWARE_REVISION,
-      NIMBLE_PROPERTY::READ
-    );
-    pCharacteristic_Firmware_Revision->setValue(firmwareRevision);
-
-	BLECharacteristic* pCharacteristic_Hardware_Revision = pService->createCharacteristic(
-      CHARACTERISTIC_UUID_HARDWARE_REVISION,
-      NIMBLE_PROPERTY::READ
-    );
-#else  // USE_NIMBLE
     BLEService *pService = pServer->getServiceByUUID(SERVICE_UUID_DEVICE_INFORMATION);
 
+#if defined(USE_NIMBLE)
+
 	BLECharacteristic* pCharacteristic_Model_Number = pService->createCharacteristic(
       CHARACTERISTIC_UUID_MODEL_NUMBER,
-      //BLE_PROPERTY::READ
+      NIMBLE_PROPERTY::READ
+    );
+    pCharacteristic_Model_Number->setValue(modelNumber);
+
+	BLECharacteristic* pCharacteristic_Software_Revision = pService->createCharacteristic(
+      CHARACTERISTIC_UUID_SOFTWARE_REVISION,
+      NIMBLE_PROPERTY::READ
+    );
+    pCharacteristic_Software_Revision->setValue(softwareRevision);
+
+	BLECharacteristic* pCharacteristic_Serial_Number = pService->createCharacteristic(
+      CHARACTERISTIC_UUID_SERIAL_NUMBER,
+      NIMBLE_PROPERTY::READ
+    );
+    pCharacteristic_Serial_Number->setValue(serialNumber);
+
+	BLECharacteristic* pCharacteristic_Firmware_Revision = pService->createCharacteristic(
+      CHARACTERISTIC_UUID_FIRMWARE_REVISION,
+      NIMBLE_PROPERTY::READ
+    );
+    pCharacteristic_Firmware_Revision->setValue(firmwareRevision);
+
+	BLECharacteristic* pCharacteristic_Hardware_Revision = pService->createCharacteristic(
+      CHARACTERISTIC_UUID_HARDWARE_REVISION,
+      NIMBLE_PROPERTY::READ
+    );
+
+#else  // USE_NIMBLE
+
+	BLECharacteristic* pCharacteristic_Model_Number = pService->createCharacteristic(
+      CHARACTERISTIC_UUID_MODEL_NUMBER,
       BLECharacteristic::PROPERTY_READ
     );
     pCharacteristic_Model_Number->setValue(modelNumber);
 
 	BLECharacteristic* pCharacteristic_Software_Revision = pService->createCharacteristic(
       CHARACTERISTIC_UUID_SOFTWARE_REVISION,
-      //BLE_PROPERTY::READ
       BLECharacteristic::PROPERTY_READ
     );
     pCharacteristic_Software_Revision->setValue(softwareRevision);
 
 	BLECharacteristic* pCharacteristic_Serial_Number = pService->createCharacteristic(
       CHARACTERISTIC_UUID_SERIAL_NUMBER,
-      //BLE_PROPERTY::READ
       BLECharacteristic::PROPERTY_READ
     );
     pCharacteristic_Serial_Number->setValue(serialNumber);
 
 	BLECharacteristic* pCharacteristic_Firmware_Revision = pService->createCharacteristic(
       CHARACTERISTIC_UUID_FIRMWARE_REVISION,
-      //BLE_PROPERTY::READ
       BLECharacteristic::PROPERTY_READ
     );
     pCharacteristic_Firmware_Revision->setValue(firmwareRevision);
 
 	BLECharacteristic* pCharacteristic_Hardware_Revision = pService->createCharacteristic(
       CHARACTERISTIC_UUID_HARDWARE_REVISION,
-      //BLE_PROPERTY::READ
       BLECharacteristic::PROPERTY_READ
     );
+
 #endif // USE_NIMBLE
+
     pCharacteristic_Hardware_Revision->setValue(hardwareRevision);
 
     BleGamepadInstance->hid->pnp(0x01, vid, pid, guidVersion);
@@ -1482,11 +1471,7 @@ void BleGamepad::taskServer(void *pvParameter)
 
     BleGamepadInstance->onStarted(pServer);
 
-#if defined(USE_NIMBLE)
-    NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
-#else  // USE_NIMBLE
     BLEAdvertising *pAdvertising = pServer->getAdvertising();
-#endif // USE_NIMBLE
 
     pAdvertising->setAppearance(HID_GAMEPAD);
     pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
