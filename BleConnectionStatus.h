@@ -3,6 +3,7 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
+#if defined(USE_NIMBLE)
 #include "nimconfig.h"
 #if defined(CONFIG_BT_NIMBLE_ROLE_PERIPHERAL)
 
@@ -20,5 +21,23 @@ public:
 };
 
 #endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
+
+#else  // USE_NIMBLE
+#include <BLEServer.h>
+#include "BLE2902.h"
+#include "BLECharacteristic.h"
+
+class BleConnectionStatus : public BLEServerCallbacks
+{
+public:
+  BleConnectionStatus(void);
+  bool connected = false;
+  void onConnect(BLEServer* pServer);
+  void onDisconnect(BLEServer* pServer);
+  BLECharacteristic *inputGamepad;
+};
+
+#endif // USE_NIMBLE
+//#endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
 #endif // CONFIG_BT_ENABLED
 #endif // ESP32_BLE_CONNECTION_STATUS_H
