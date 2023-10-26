@@ -137,6 +137,7 @@ This library allows you to make the ESP32 act as a Bluetooth Gamepad and control
 Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
 Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
+Ensure you have Direct X 9 installed
 
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
