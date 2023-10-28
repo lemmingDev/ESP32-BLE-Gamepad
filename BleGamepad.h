@@ -1,5 +1,5 @@
 // uncomment the following line to use NimBLE library
-//#define USE_NIMBLE
+#define USE_NIMBLE
 
 #ifndef ESP32_BLE_GAMEPAD_H
 #define ESP32_BLE_GAMEPAD_H
@@ -11,13 +11,13 @@
 #if defined(CONFIG_BT_NIMBLE_ROLE_PERIPHERAL)
 
 #include "BleConnectionStatus.h"
-#include "NimBLEHIDDevice.h"
-#include "NimBLECharacteristic.h"
+#include <NimBLEHIDDevice.h>
+#include <NimBLECharacteristic.h>
 
 #define BLEDevice                  NimBLEDevice
 #define BLEServerCallbacks         NimBLEServerCallbacks
 #define BLECharacteristicCallbacks NimBLECharacteristicCallbacks
-#define BLEHIDDevice               NimBLEHIDDevice
+//#define BLEHIDDevice               NimBLEHIDDevice
 #define BLECharacteristic          NimBLECharacteristic
 #define BLEAdvertising             NimBLEAdvertising
 #define BLEServer                  NimBLEServer
@@ -60,10 +60,18 @@ private:
 
 #if defined(USE_NIMBLE)
     NimBLEHIDDevice *hid;
+    //NimBLEDevice *hid;
     NimBLECharacteristic *inputGamepad;
+ 
+    //BLEHIDDevice *hid;
+    //BLECharacteristic *inputGamepad;
+
 #else  // USE_NIMBLE
-    BLEHIDDevice* hid;
-    BLECharacteristic* inputGamepad;
+    //BLEHIDDevice* hid;
+    //BLECharacteristic* inputGamepad;
+    BLEHIDDevice *hid;
+    BLECharacteristic *inputGamepad;
+
 #endif // USE_NIMBLE
 
     void rawAction(uint8_t msg[], char msgSize);
