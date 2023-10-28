@@ -5,17 +5,53 @@ Since version 5 of this library, the axes and simulation controls have configura
 The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
 This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
 
+## NimBLE-Mode
+The NimBLE mode enables a significant saving of RAM and FLASH memory.
+
 This version of the library has been tested against NimBLE-Arduino version 1.4.1; the latest released version --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/1.4.1
 
-Please see updated examples
-
-## NimBLE
-Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
 Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
-Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, axes, sliders, simulation controls etc).
-See the examples for guidance.
+
+### Comparison (SetBatteryLevel.ino at compile-time)
+
+**Standard/blueDroid**
+```
+Sketch uses 1096385 bytes (83%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 38440 bytes (11%) of dynamic memory, leaving 289240 bytes for local variables. Maximum is 327680 bytes.
+```
+
+**NimBLE mode**
+```
+Sketch uses 1107517 bytes (84%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 38792 bytes (11%) of dynamic memory, leaving 288888 bytes for local variables. Maximum is 327680 bytes.
+```
+
+### Comparison (SetBatteryLevel.ino at run-time) [data to follow]
+
+|   | Standard | NimBLE mode | difference
+|---|--:|--:|--:|
+| `ESP.getHeapSize()`   | 296.804 | 321.252 | **+ 24.448**  |
+| `ESP.getFreeHeap()`   | 143.572 | 260.764 | **+ 117.192** |
+| `ESP.getSketchSize()` | 994.224 | 579.264 | **- 414.960** |
+
+## How to activate NimBLE mode?
+
+### ArduinoIDE:
+Edit BleGamepad.h and remove and uncomment the first line `#define USE_NIMBLE`
+
+### PlatformIO:
+Change your `platformio.ini` to the following settings
+```ini
+lib_deps =
+  NimBLE-Arduino
+
+build_flags =
+  -D USE_NIMBLE
+```
 
 # ESP32-BLE-Gamepad
+Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, axes, sliders, simulation controls etc).
+See the examples for guidance.
 
 ## License
 Published under the MIT license. Please see license.txt.
