@@ -11,6 +11,8 @@
 #include "BleGamepad.h"
 #include "BleGamepadConfiguration.h"
 
+#include <stdexcept>
+
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
 #define LOG_TAG "BLEGamepad"
