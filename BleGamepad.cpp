@@ -571,7 +571,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     // END_COLLECTION (Application)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
 
-    xTaskCreate(this->taskServer, "server", 20000, (void *)this, 5, NULL);
+    // Set task priority from 5 to 1 in order to get ESP32-C3 working
+    xTaskCreate(this->taskServer, "server", 20000, (void *)this, 1, NULL);
 }
 
 void BleGamepad::end(void)
