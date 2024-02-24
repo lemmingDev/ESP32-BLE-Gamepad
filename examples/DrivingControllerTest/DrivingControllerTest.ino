@@ -37,10 +37,9 @@ void setup()
     bleGamepadConfig.setWhichSimulationControls(enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering); // Can also be done per-control individually. All are false by default
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);                                                                      // 1 by default
     // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-    bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-    bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
-    
-	bleGamepad.begin(&bleGamepadConfig);
+    bleGamepadConfig.setSimulationMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+    bleGamepadConfig.setSimulationMax(0x7FFF); //32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
+	  bleGamepad.begin(&bleGamepadConfig);
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 
     // Set accelerator and brake to min
