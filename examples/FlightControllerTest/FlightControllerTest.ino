@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <BleGamepad.h>
 
-#define numOfButtons 32
+#define numOfButtons 16
 #define numOfHatSwitches 0
 #define enableX true
 #define enableY true
@@ -18,7 +18,7 @@
 #define enableRudder true
 #define enableThrottle true
 #define enableAccelerator false
-#define enableBrake false
+#define enableBrake true
 #define enableSteering false
 
 BleGamepad bleGamepad("BLE Flight Controller", "lemmingDev", 100);
@@ -28,7 +28,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("Starting BLE work!");
 
-    // Setup controller with 32 buttons, accelerator, brake and steering
+    // Setup controller with 16 buttons (plus start and select), accelerator, brake and steering
     BleGamepadConfiguration bleGamepadConfig;
     bleGamepadConfig.setAutoReport(false);
     bleGamepadConfig.setControllerType(CONTROLLER_TYPE_MULTI_AXIS); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
@@ -41,17 +41,20 @@ void setup()
     // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
     bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
     bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
+    // Shows how simulation control min/max axes can be set independently of the other axes
+    bleGamepadConfig.setSimulationMin(-255); // -255 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+    bleGamepadConfig.setSimulationMax(255); // 255 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
     bleGamepad.begin(&bleGamepadConfig);
 
     // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 
-    // Set throttle to min
-    bleGamepad.setThrottle(-32767);
+    // Set throttle and rudder to min
+    bleGamepad.setThrottle(-255);
+    bleGamepad.setRudder(-255);
 
-    // Set x and y axes and rudder to center
+    // Set x and y axes to center
     bleGamepad.setX(0);
     bleGamepad.setY(0);
-    bleGamepad.setRudder(0);
 }
 
 void loop()
@@ -70,14 +73,20 @@ void loop()
         }
 
         Serial.println("Press start and select");
-        bleGamepad.pressStart();
-        delay(100);
         bleGamepad.pressSelect();
-        delay(100);
-        bleGamepad.releaseStart();
+        bleGamepad.sendReport();
         delay(100);
         bleGamepad.releaseSelect();
-
+        bleGamepad.sendReport();
+        delay(100);
+        
+        bleGamepad.pressStart();
+        bleGamepad.sendReport();
+        delay(100);
+        bleGamepad.releaseStart();
+        bleGamepad.sendReport();
+        delay(100);
+        
         Serial.println("Move x axis from center to max");
         for (int i = 0; i > -32767; i -= 256)
         {
@@ -131,8 +140,8 @@ void loop()
         bleGamepad.sendReport();
 
         Serial.println("Move rudder from min to max");
-        // for(int i = 32767 ; i > -32767 ; i -= 256)    //Use this for loop setup instead if rudder is reversed
-        for (int i = -32767; i < 32767; i += 256)
+        // for(int i = 255 ; i > -255 ; i -= 2)    //Use this for loop setup instead if rudder is reversed
+        for (int i = -255; i < 255; i += 2)
         {
             bleGamepad.setRudder(i);
             bleGamepad.sendReport();
@@ -142,13 +151,23 @@ void loop()
         bleGamepad.sendReport();
 
         Serial.println("Move throttle from min to max");
-        for (int i = -32767; i < 32767; i += 256)
+        for (int i = -255; i < 255; i += 2)
         {
             bleGamepad.setThrottle(i);
             bleGamepad.sendReport();
             delay(10);
         }
-        bleGamepad.setThrottle(-32767);
+        bleGamepad.setThrottle(-255);
+        bleGamepad.sendReport();
+
+        Serial.println("Move brake from min to max");
+        for (int i = -255; i < 255; i += 2)
+        {
+            bleGamepad.setBrake(i);
+            bleGamepad.sendReport();
+            delay(10);
+        }
+        bleGamepad.setBrake(-255);
         bleGamepad.sendReport();
     }
 }
