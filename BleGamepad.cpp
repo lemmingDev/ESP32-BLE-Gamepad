@@ -1412,7 +1412,9 @@ void BleGamepad::taskServer(void *pvParameter)
     BleGamepadInstance->hid->pnp(0x01, vid, pid, guidVersion);
     BleGamepadInstance->hid->hidInfo(0x00, 0x01);
 
-    NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_BOND);
+	// NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_BOND);
+	NimBLEDevice::setSecurityAuth(true, false, false); // enable bonding, no MITM, no SC
+
 
     uint8_t *customHidReportDescriptor = new uint8_t[hidReportDescriptorSize];
     memcpy(customHidReportDescriptor, tempHidReportDescriptor, hidReportDescriptorSize);
