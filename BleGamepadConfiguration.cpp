@@ -10,7 +10,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _whichSimulationControls{false, false, false, false, false},
                                                      _vid(0xe502),
                                                      _pid(0xbbab),
-													 _guidVersion(0x0110),
+                                                     _guidVersion(0x0110),
                                                      _axesMin(0x0000),
                                                      _axesMax(0x7FFF),
                                                      _simulationMin(0x0000),
@@ -18,7 +18,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _modelNumber("1.0.0"),
                                                      _softwareRevision("1.0.0"),
                                                      _serialNumber("0123456789"),
-                                                     _firmwareRevision("0.5.2"),
+                                                     _firmwareRevision("0.5.5"),
                                                      _hardwareRevision("1.0.0")
 {
 }
