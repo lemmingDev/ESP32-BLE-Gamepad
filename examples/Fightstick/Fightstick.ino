@@ -3,6 +3,9 @@
  *
  * Before using, adjust the numOfButtons, buttonPins, physicalButtons, hatPins etc to suit your scenario
  *
+ * If you're looking for a more compatible fighstick experience in games, try the xinput compatible fork at:
+ * https://github.com/Mystfit/ESP32-BLE-CompositeHID
+ *
  */
 
 #include <Arduino.h>
