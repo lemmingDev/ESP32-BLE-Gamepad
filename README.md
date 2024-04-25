@@ -142,7 +142,7 @@ Ensure you have Direct X 9 installed
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
-- [Xinput fork of this library](https://github.com/Mystfit/ESP32-BLE-CompositeHID)
+- [Composite Gamepad/Mouse/Keyboard and Xinput capable fork of this library](https://github.com/Mystfit/ESP32-BLE-CompositeHID)
 
 or the NimBLE versions at
 
