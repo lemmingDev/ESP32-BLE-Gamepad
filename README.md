@@ -140,7 +140,7 @@ Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows tes
 Ensure you have Direct X 9 installed
 
 Gamepads desgined for Android use a different button mapping. This effects analog triggers, where the standard left and right trigger axes are not detected.
-Android calls the HID report for right trigger "GAS" and left trigger "BRAKE". Enabling the "Accelerator" and "Brake" simulation controls allows them to be used instead of right and left trigger.
+Android calls the HID report for right trigger `"GAS"` and left trigger `"BRAKE"`. Enabling the `"Accelerator"` and `"Brake"` simulation controls allows them to be used instead of right and left trigger.
 
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
