@@ -37,7 +37,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Compatible with Windows
- - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
+ - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows) (see notes)
  - [x] Compatible with Linux (limited testing)
  - [x] Compatible with MacOS X (limited testing)
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
@@ -139,10 +139,12 @@ Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons
 Ensure you have Direct X 9 installed
 
+Gamepads desgined for Android use a different button mapping. This effects analog triggers, where the standard left and right trigger axes are not detected.
+Android calls the HID report for right trigger "GAS" and left trigger "BRAKE". Enabling the "Accelerator" and "Brake" simulation controls allows them to be used instead of right and left trigger.
+
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
-- [Composite Gamepad/Mouse/Keyboard and Xinput capable fork of this library](https://github.com/Mystfit/ESP32-BLE-CompositeHID)
 
 or the NimBLE versions at
 
