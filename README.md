@@ -66,7 +66,7 @@ It would be great however if any improvements are fed back into this version.
  * (or HAT_CENTERED, HAT_UP etc)
  *
  * bleGamepad.setAxes sets all axes at once. There are a few:
- * (x axis, y axis, z axis, rx axis, ry axis, rz axis, slider 1, slider 2)
+ * (x axis, y axis, z axis, rz axis, rx axis, ry axis, slider 1, slider 2)
  *
  * Library can also be configured to support up to 5 simulation controls
  * (rudder, throttle, accelerator, brake, steering), but they are not enabled by default.
