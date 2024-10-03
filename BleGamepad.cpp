@@ -90,6 +90,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     firmwareRevision = configuration.getFirmwareRevision();
     hardwareRevision = configuration.getHardwareRevision();
 
+#ifndef PNPVersionField
 	vid = configuration.getVid();
 	pid = configuration.getPid();
 	guidVersion = configuration.getGuidVersion();
@@ -107,6 +108,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 	high = highByte(guidVersion);
 	low = lowByte(guidVersion);
 	guidVersion = low << 8 | high;
+#endif
 
     uint8_t buttonPaddingBits = 8 - (configuration.getButtonCount() % 8);
     if (buttonPaddingBits == 8)
