@@ -10,6 +10,7 @@
 #include "NimBLEHIDDevice.h"
 #include "NimBLECharacteristic.h"
 #include "BleGamepadConfiguration.h"
+#include "BleOutputReceiver.h"
 
 class BleGamepad
 {
@@ -38,8 +39,13 @@ private:
 
     BleConnectionStatus *connectionStatus;
 
+    BleOutputReceiver *outputReceiver;
+
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
+    NimBLECharacteristic *outputGamepad;
+    
+    uint8_t *outputBackupBuffer;
 
     void rawAction(uint8_t msg[], char msgSize);
     static void taskServer(void *pvParameter);
@@ -105,6 +111,8 @@ public:
     uint8_t batteryLevel;
     std::string deviceManufacturer;
     std::string deviceName;
+    bool isOutputReceived();
+    uint8_t* getOutputBuffer();
 
 protected:
     virtual void onStarted(NimBLEServer *pServer){};

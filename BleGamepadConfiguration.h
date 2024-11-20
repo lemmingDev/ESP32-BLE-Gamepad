@@ -222,6 +222,8 @@ private:
     char *_serialNumber;
     char *_firmwareRevision;
     char *_hardwareRevision;
+    bool _enableOutputReport;
+    uint16_t _outputReportLength;
 
 public:
     BleGamepadConfiguration();
@@ -272,6 +274,8 @@ public:
     char *getSerialNumber();
     char *getFirmwareRevision();
     char *getHardwareRevision();
+    bool getEnableOutputReport();
+    uint16_t getOutputReportLength();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -314,6 +318,8 @@ public:
     void setSerialNumber(char *value);
     void setFirmwareRevision(char *value);
     void setHardwareRevision(char *value);
+    void setEnableOutputReport(bool value);
+    void setOutputReportLength(uint16_t value);
 };
 
 #endif
