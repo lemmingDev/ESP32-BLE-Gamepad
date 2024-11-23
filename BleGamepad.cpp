@@ -90,11 +90,11 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     firmwareRevision = configuration.getFirmwareRevision();
     hardwareRevision = configuration.getHardwareRevision();
 
-#ifndef PNPVersionField
 	vid = configuration.getVid();
 	pid = configuration.getPid();
 	guidVersion = configuration.getGuidVersion();
 
+#ifndef PNPVersionField
 	uint8_t high = highByte(vid);
 	uint8_t low = lowByte(vid);
 
