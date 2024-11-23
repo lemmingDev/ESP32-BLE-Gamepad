@@ -36,6 +36,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Configurable BLE characteristics (name, manufacturer, model number, software revision, serial number, firmware revision, hardware revision)	
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
+ - [x] Output report function
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
  - [x] Compatible with Linux (limited testing)
