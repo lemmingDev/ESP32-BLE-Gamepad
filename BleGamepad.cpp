@@ -47,6 +47,8 @@ std::string serialNumber;
 std::string firmwareRevision;
 std::string hardwareRevision;
 
+bool enableOutputReport = false;
+uint16_t outputReportLength = 64;
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(),
                                                                                                        _specialButtons(0),
                                                                                                        _x(0),
@@ -94,20 +96,18 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 	pid = configuration.getPid();
 	guidVersion = configuration.getGuidVersion();
 
-#ifndef PNPVersionField
-	uint8_t high = highByte(vid);
-	uint8_t low = lowByte(vid);
+  #ifndef PNPVersionField
+	  uint8_t high = highByte(vid);
+	  uint8_t low = lowByte(vid)
+	  vid = low << 8 | high;
 
-	vid = low << 8 | high;
-
-	high = highByte(pid);
-	low = lowByte(pid);
-
-	pid = low << 8 | high;
+	  high = highByte(pid);
+	  low = lowByte(pid)
+	  pid = low << 8 | high;
 	
-	high = highByte(guidVersion);
-	low = lowByte(guidVersion);
-	guidVersion = low << 8 | high;
+	  high = highByte(guidVersion);
+	  low = lowByte(guidVersion);
+	  guidVersion = low << 8 | high;
 #endif
 
     uint8_t buttonPaddingBits = 8 - (configuration.getButtonCount() % 8);
@@ -568,6 +568,49 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
         // END_COLLECTION (Physical)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+    }
+
+    if (configuration.getEnableOutputReport()){
+        // Usage Page (Vendor Defined 0xFF00)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+
+        // Usage (Vendor Usage 0x01)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+        // Usage (0x01)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+        // Logical Minimum (0)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+
+        // Logical Maximum (255)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+
+        // Report Size (8 bits)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
+
+        if(configuration.getOutputReportLength()<=0xFF){
+            // Report Count (0~255 bytes)
+            tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+            tempHidReportDescriptor[hidReportDescriptorSize++] = configuration.getOutputReportLength();
+        }else{
+            // Report Count (0~65535 bytes)
+            tempHidReportDescriptor[hidReportDescriptorSize++] = 0x96;
+            tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getOutputReportLength());
+            tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getOutputReportLength());
+        }
+        
+        // Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x91;
+        tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
     }
 
     // END_COLLECTION (Application)
@@ -1359,6 +1402,22 @@ void BleGamepad::setBatteryLevel(uint8_t level)
     }
 }
 
+bool BleGamepad::isOutputReceived(){
+    if(enableOutputReport && outputReceiver){
+        if(this->outputReceiver->outputFlag){
+            this->outputReceiver->outputFlag=false; // Clear Flag
+            return true;
+        }
+    }
+    return false;
+}
+uint8_t* BleGamepad::getOutputBuffer(){
+    if(enableOutputReport && outputReceiver){
+        memcpy(outputBackupBuffer, outputReceiver->outputBuffer, outputReportLength); // Creating a backup to avoid buffer being overwritten while processing data
+        return outputBackupBuffer;
+    }
+    return nullptr;
+}
 void BleGamepad::taskServer(void *pvParameter)
 {
     BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
@@ -1376,6 +1435,13 @@ void BleGamepad::taskServer(void *pvParameter)
 
     BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->inputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
     BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
+
+    if (enableOutputReport){
+        BleGamepadInstance->outputGamepad = BleGamepadInstance->hid->outputReport(BleGamepadInstance->configuration.getHidReportId());
+        BleGamepadInstance->outputReceiver = new BleOutputReceiver(outputReportLength);
+        BleGamepadInstance->outputBackupBuffer = new uint8_t[outputReportLength];
+        BleGamepadInstance->outputGamepad->setCallbacks(BleGamepadInstance->outputReceiver);
+    }
 
     BleGamepadInstance->hid->manufacturer()->setValue(BleGamepadInstance->deviceManufacturer);
 
