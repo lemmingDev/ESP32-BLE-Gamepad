@@ -14,7 +14,8 @@ class BleOutputReceiver : public NimBLECharacteristicCallbacks
 public:
     BleOutputReceiver(uint16_t outputReportLength);
     ~BleOutputReceiver();
-    void onWrite(NimBLECharacteristic *pCharacteristic) override;
+    //void onWrite(NimBLECharacteristic *pCharacteristic) override;    // Compatible with 1.4.3
+    void onWrite(NimBLECharacteristic *pCharacteristic);    // Compatible with over 1.4.3
     bool outputFlag = false;
     uint16_t outputReportLength;
     uint8_t *outputBuffer;
