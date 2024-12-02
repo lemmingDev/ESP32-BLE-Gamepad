@@ -1,5 +1,7 @@
 /*
  * Test receiving Output Report
+ * Here is a C# testing program for sending OutputReport from the host to the device
+ * https://github.com/Sab1e-GitHub/HIDOutputDemo_CSharp
  */
 #include <BleGamepad.h>
 
