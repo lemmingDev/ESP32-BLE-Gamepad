@@ -15,7 +15,7 @@ BleOutputReceiver::~BleOutputReceiver()
     }
 }
 
-void BleOutputReceiver::onWrite(NimBLECharacteristic *pCharacteristic)
+void BleOutputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo)
 {
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
