@@ -96,21 +96,19 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 	pid = configuration.getPid();
 	guidVersion = configuration.getGuidVersion();
 
-    enableOutputReport = configuration.getEnableOutputReport();
-    outputReportLength = configuration.getOutputReportLength();
-	uint8_t high = highByte(vid);
-	uint8_t low = lowByte(vid);
+  #ifndef PNPVersionField
+	  uint8_t high = highByte(vid);
+	  uint8_t low = lowByte(vid)
+	  vid = low << 8 | high;
 
-	vid = low << 8 | high;
-
-	high = highByte(pid);
-	low = lowByte(pid);
-
-	pid = low << 8 | high;
+	  high = highByte(pid);
+	  low = lowByte(pid)
+	  pid = low << 8 | high;
 	
-	high = highByte(guidVersion);
-	low = lowByte(guidVersion);
-	guidVersion = low << 8 | high;
+	  high = highByte(guidVersion);
+	  low = lowByte(guidVersion);
+	  guidVersion = low << 8 | high;
+#endif
 
     uint8_t buttonPaddingBits = 8 - (configuration.getButtonCount() % 8);
     if (buttonPaddingBits == 8)

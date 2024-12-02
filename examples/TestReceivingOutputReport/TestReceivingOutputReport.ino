@@ -30,7 +30,7 @@ void setup() {
   bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
 
   // Try NOT to modify VID, otherwise it may cause the host to be unable to send output reports to the device.
-  bleGamepadConfig.setVid(0x3412);
+  bleGamepadConfig.setVid(0x1234);
   // You can freely set the PID
   bleGamepadConfig.setPid(0x0100);
   bleGamepad.begin(&bleGamepadConfig);
