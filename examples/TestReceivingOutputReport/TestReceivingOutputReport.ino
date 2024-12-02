@@ -32,7 +32,7 @@ void setup() {
   // Try NOT to modify VID, otherwise it may cause the host to be unable to send output reports to the device.
   bleGamepadConfig.setVid(0x1234);
   // You can freely set the PID
-  bleGamepadConfig.setPid(0x0100);
+  bleGamepadConfig.setPid(0x0001);
   bleGamepad.begin(&bleGamepadConfig);
 
   // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
