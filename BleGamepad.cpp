@@ -96,6 +96,9 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 	pid = configuration.getPid();
 	guidVersion = configuration.getGuidVersion();
 
+    enableOutputReport = configuration.getEnableOutputReport();
+    outputReportLength = configuration.getOutputReportLength();
+    
   #ifndef PNPVersionField
 	  uint8_t high = highByte(vid);
 	  uint8_t low = lowByte(vid)
