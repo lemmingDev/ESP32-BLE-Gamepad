@@ -8,6 +8,7 @@
 
 #include <NimBLEServer.h>
 #include "NimBLECharacteristic.h"
+#include "NimBLEConnInfo.h"
 
 class BleOutputReceiver : public NimBLECharacteristicCallbacks
 {
