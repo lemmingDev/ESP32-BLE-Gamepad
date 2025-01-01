@@ -1497,6 +1497,7 @@ void BleGamepad::taskServer(void *pvParameter)
 
     NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
     pAdvertising->setAppearance(HID_GAMEPAD);
+    pAdvertising->setName(BleGamepadInstance->deviceName);
     pAdvertising->addServiceUUID(BleGamepadInstance->hid->getHidService()->getUUID());
     pAdvertising->start();
     BleGamepadInstance->hid->setBatteryLevel(BleGamepadInstance->batteryLevel);
