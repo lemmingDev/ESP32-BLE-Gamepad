@@ -5,7 +5,7 @@ Since version 5 of this library, the axes and simulation controls have configura
 The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
 This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
 
-This version of the library has been tested against NimBLE-Arduino version 2.1.0; the latest released version through Arduino Library Manager --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.1.0
+This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.1.3 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.1.3
 
 Please see updated examples
 
@@ -42,6 +42,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Compatible with Linux (limited testing)
  - [x] Compatible with MacOS X (limited testing)
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
+                           (Use the Xinput fork suggested below which has been tested to work) 
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
