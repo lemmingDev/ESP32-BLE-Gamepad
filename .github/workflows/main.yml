@@ -2,9 +2,16 @@
 name: Compile Sketches
 
 'on':
-  - push
-  - pull_request
-  - ci-builds-*
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]*"
+    branches:
+      - "master"
+      - "ci-builds-*"
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
 
 jobs:
   compile-sketches:
