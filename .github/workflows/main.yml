@@ -1,0 +1,44 @@
+---
+name: Compile Sketches
+
+'on':
+  - push
+  - pull_request
+  - ci-builds-*
+
+jobs:
+  compile-sketches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # See: https://github.com/arduino/compile-sketches#readme
+      - name: Compile sketches
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: esp32:esp32:esp32
+          sketch-paths: |
+            # - examples/CharacteristicsConfiguration/CharacteristicsConfiguration.ino # disable because  esp_base_mac_addr_set is disabled in BleCompositeHID.cpp
+            - examples/DrivingControllerTest/DrivingControllerTest.ino
+            - examples/Fightstick/Fightstick.ino
+            - examples/FlightControllerTest/FlightControllerTest.ino
+            - examples/Gamepad/Gamepad.ino
+            - examples/IndividualAxes/IndividualAxes.ino
+            - examples/Keypad4x4/Keypad4x4.ino
+            - examples/MultipleButtons/MultipleButtons.ino
+            - examples/MultipleButtonsAndHats/MultipleButtonsAndHats.ino
+            - examples/MultipleButtonsDebounce/MultipleButtonsDebounce.ino
+            - examples/PotAsAxis/PotAsAxis.ino
+            - examples/SetBatteryLevel/SetBatteryLevel.ino
+            - examples/SingleButton/SingleButton.ino
+            - examples/SingleButtonDebounce/SingleButtonDebounce.ino
+            - examples/SpecialButtons/SpecialButtons.ino
+            - examples/TestAll/TestAll.ino
+            - examples/TestReceivingOutputReport/TestReceivingOutputReport.ino
+          libraries: |
+            - name: NimBLE-Arduino
+            - name: Keypad
+            - name: Bounce2
+            - source-path: .
