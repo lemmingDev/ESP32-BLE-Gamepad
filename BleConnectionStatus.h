@@ -17,6 +17,7 @@ public:
     bool connected = false;
     void onConnect(NimBLEServer *pServer, NimBLEConnInfo& connInfo) override;
     void onDisconnect(NimBLEServer *pServer, NimBLEConnInfo& connInfo, int reason) override;
+    void onAuthenticationComplete(NimBLEConnInfo& connInfo) override;
     NimBLECharacteristic *inputGamepad;
 };
 
