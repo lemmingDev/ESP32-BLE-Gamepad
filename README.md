@@ -1,20 +1,3 @@
-## POSSIBLE BREAKING CHANGES - PLEASE READ
-A large code rebase (configuration class) along with some extra features (start, select, menu, home, back, volume up, volume down and volume mute buttons) has been committed thanks to @dexterdy
-
-Since version 5 of this library, the axes and simulation controls have configurable min and max values
-The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
-This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
-
-This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.1.3 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.1.3
-
-Please see updated examples
-
-## NimBLE
-Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
-Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
-Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, axes, sliders, simulation controls etc).
-See the examples for guidance.
-
 # ESP32-BLE-Gamepad
 
 ## License
@@ -42,7 +25,24 @@ It would be great however if any improvements are fed back into this version.
  - [x] Compatible with Linux (limited testing)
  - [x] Compatible with MacOS X (limited testing)
  - [ ] Compatible with iOS (No - not even for accessibility switch - This is not a “Made for iPhone” (MFI) compatible device)
-                           (Use the Xinput fork suggested below which has been tested to work) 
+                           (Use the Xinput fork suggested below which has been tested to work)
+
+## NimBLE
+Since version 3 of this library, the more efficient NimBLE library is used instead of the default BLE implementation
+Please use the library manager to install it, or get it from here: https://github.com/h2zero/NimBLE-Arduino
+Since version 3, this library also supports a configurable HID desciptor, which allows users to customise how the device presents itself to the OS (number of buttons, hats, axes, sliders, simulation controls etc).
+See the examples for guidance.
+
+## POSSIBLE BREAKING CHANGES - PLEASE READ
+A large code rebase (configuration class) along with some extra features (start, select, menu, home, back, volume up, volume down and volume mute buttons) has been committed thanks to @dexterdy
+
+Since version 5 of this library, the axes and simulation controls have configurable min and max values
+The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
+This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
+
+This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.1.3 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.1.3
+
+Please see updated examples
 
 ## Installation
 - (Make sure you can use the ESP32 with the Arduino IDE. [Instructions can be found here.](https://github.com/espressif/arduino-esp32#installation-instructions))
