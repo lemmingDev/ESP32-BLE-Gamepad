@@ -14,7 +14,7 @@ BleGamepadConfiguration bleGamepadConfig;                          // Create a B
 // Compiler adds 0x02 to the last value of board's base MAC address to get the BT MAC address, so take 0x02 away from the value you actually want when setting
 // I've noticed the first number is a little picky and if set incorrectly don't work and will default to the board's embedded address
 // 0xAA definately works, so use that, or experiment
-uint8_t newMACAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF - 0x02};
+//uint8_t newMACAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF - 0x02}; // This doesn't seem to be working any more
     
 void setup()
 {
@@ -37,7 +37,7 @@ void setup()
     bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal     
     
     bleGamepad.begin(&bleGamepadConfig); // Begin gamepad with configuration options
-    esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address
+    //esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address - this doesn't seem to be working any more
 }
 
 void loop()
