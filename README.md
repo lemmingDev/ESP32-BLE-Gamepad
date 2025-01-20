@@ -127,6 +127,9 @@ Battery level can be set during operation by calling, for example, bleGamepad.se
 Update sent on next gamepad update if auto reporting is not enabled
 
 
+## Troubleshooting Guide
+Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](TroubleshootingGuide.md)
+
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
 
