@@ -1,6 +1,5 @@
 /*
  * Sets BLE characteristic options
- * Also shows how to set a custom MAC address
  * Use BLE Scanner etc on Android to see them
  */
 
