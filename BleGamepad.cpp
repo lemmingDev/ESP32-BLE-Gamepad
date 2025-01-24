@@ -4,7 +4,9 @@
 #include "NimBLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
+#include <driver/adc.h>
 #include "sdkconfig.h"
+
 #include "BleConnectionStatus.h"
 #include "BleGamepad.h"
 #include "BleGamepadConfiguration.h"
@@ -35,10 +37,10 @@ uint8_t numOfButtonBytes = 0;
 uint16_t vid;
 uint16_t pid;
 uint16_t guidVersion;
-uint16_t axesMin;
-uint16_t axesMax;
-uint16_t simulationMin;
-uint16_t simulationMax;
+int16_t axesMin;
+int16_t axesMax;
+int16_t simulationMin;
+int16_t simulationMax;
 std::string modelNumber;
 std::string softwareRevision;
 std::string serialNumber;
@@ -627,37 +629,70 @@ void BleGamepad::end(void)
 
 void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2)
 {
-    if (x == -32768)
+    if (x < axesMin)
     {
-        x = -32767;
+        x = axesMin;
     }
-    if (y == -32768)
+    if (y < axesMin)
     {
-        y = -32767;
+        y = axesMin;
     }
-    if (z == -32768)
+    if (z < axesMin)
     {
-        z = -32767;
+        z = axesMin;
     }
-    if (rZ == -32768)
+    if (rZ < axesMin)
     {
-        rZ = -32767;
+        rZ = axesMin;
     }
-    if (rX == -32768)
+    if (rX < axesMin)
     {
-        rX = -32767;
+        rX = axesMin;
     }
-    if (rY == -32768)
+    if (rY < axesMin)
     {
-        rY = -32767;
+        rY = axesMin;
     }
-    if (slider1 == -32768)
+    if (slider1 < axesMin)
     {
-        slider1 = -32767;
+        slider1 = axesMin;
     }
-    if (slider2 == -32768)
+    if (slider2 < axesMin)
     {
-        slider2 = -32767;
+        slider2 = axesMin;
+    }
+	
+	if (x > axesMax)
+    {
+        x = axesMax;
+    }
+    if (y > axesMax)
+    {
+        y = axesMax;
+    }
+    if (z > axesMax)
+    {
+        z = axesMax;
+    }
+    if (rZ > axesMax)
+    {
+        rZ = axesMax;
+    }
+    if (rX > axesMax)
+    {
+        rX = axesMax;
+    }
+    if (rY > axesMax)
+    {
+        rY = axesMax;
+    }
+    if (slider1 > axesMax)
+    {
+        slider1 = axesMax;
+    }
+    if (slider2 > axesMax)
+    {
+        slider2 = axesMax;
     }
 
     _x = x;
@@ -677,25 +712,46 @@ void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX
 
 void BleGamepad::setSimulationControls(int16_t rudder, int16_t throttle, int16_t accelerator, int16_t brake, int16_t steering)
 {
-    if (rudder == -32768)
+    if (rudder < simulationMin)
     {
-        rudder = -32767;
+        rudder = simulationMin;
     }
-    if (throttle == -32768)
+    if (throttle < simulationMin)
     {
-        throttle = -32767;
+        throttle = simulationMin;
     }
-    if (accelerator == -32768)
+    if (accelerator < simulationMin)
     {
-        accelerator = -32767;
+        accelerator = simulationMin;
     }
-    if (brake == -32768)
+    if (brake < simulationMin)
     {
-        brake = -32767;
+        brake = simulationMin;
     }
-    if (steering == -32768)
+    if (steering < simulationMin)
     {
-        steering = -32767;
+        steering = simulationMin;
+    }
+	
+	if (rudder > simulationMax)
+    {
+        rudder = simulationMax;
+    }
+    if (throttle > simulationMax)
+    {
+        throttle = simulationMax;
+    }
+    if (accelerator > simulationMax)
+    {
+        accelerator = simulationMax;
+    }
+    if (brake > simulationMax)
+    {
+        brake = simulationMax;
+    }
+    if (steering > simulationMax)
+    {
+        steering = simulationMax;
     }
 
     _rudder = rudder;
@@ -725,13 +781,22 @@ void BleGamepad::setHats(signed char hat1, signed char hat2, signed char hat3, s
 
 void BleGamepad::setSliders(int16_t slider1, int16_t slider2)
 {
-    if (slider1 == -32768)
+    if (slider1 < axesMin)
     {
-        slider1 = -32767;
+        slider1 = axesMin;
     }
-    if (slider2 == -32768)
+    if (slider2 < axesMin)
     {
-        slider2 = -32767;
+        slider2 = axesMin;
+    }
+	
+	if (slider1 > axesMax)
+    {
+        slider1 = axesMax;
+    }
+    if (slider2 > axesMax)
+    {
+        slider2 = axesMin;
     }
 
     _slider1 = slider1;
@@ -1020,13 +1085,22 @@ void BleGamepad::releaseVolumeMute()
 
 void BleGamepad::setLeftThumb(int16_t x, int16_t y)
 {
-    if (x == -32768)
+    if (x < axesMin)
     {
-        x = -32767;
+        x = axesMin;
     }
-    if (y == -32768)
+    if (y < axesMin)
     {
-        y = -32767;
+        y = axesMin;
+    }
+	
+	if (x > axesMax)
+    {
+        x = axesMax;
+    }
+    if (y > axesMax)
+    {
+        y = axesMax;
     }
 
     _x = x;
@@ -1040,13 +1114,22 @@ void BleGamepad::setLeftThumb(int16_t x, int16_t y)
 
 void BleGamepad::setRightThumb(int16_t z, int16_t rZ)
 {
-    if (z == -32768)
+    if (z < axesMin)
     {
-        z = -32767;
+        z = axesMin;
     }
-    if (rZ == -32768)
+    if (rZ < axesMin)
     {
-        rZ = -32767;
+        rZ = axesMin;
+    }
+	
+	if (z > axesMax)
+    {
+        z = axesMax;
+    }
+    if (rZ > axesMax)
+    {
+        rZ = axesMax;
     }
 
     _z = z;
@@ -1060,9 +1143,14 @@ void BleGamepad::setRightThumb(int16_t z, int16_t rZ)
 
 void BleGamepad::setLeftTrigger(int16_t rX)
 {
-    if (rX == -32768)
+    if (rX < axesMin)
     {
-        rX = -32767;
+        rX = axesMin;
+    }
+	
+	if (rX > axesMax)
+    {
+        rX = axesMax;
     }
 
     _rX = rX;
@@ -1075,9 +1163,14 @@ void BleGamepad::setLeftTrigger(int16_t rX)
 
 void BleGamepad::setRightTrigger(int16_t rY)
 {
-    if (rY == -32768)
+    if (rY < axesMin)
     {
-        rY = -32767;
+        rY = axesMin;
+    }
+	
+	if (rY > axesMax)
+    {
+        rY = axesMax;
     }
 
     _rY = rY;
@@ -1090,13 +1183,22 @@ void BleGamepad::setRightTrigger(int16_t rY)
 
 void BleGamepad::setTriggers(int16_t rX, int16_t rY)
 {
-    if (rX == -32768)
+    if (rX < axesMin)
     {
-        rX = -32767;
+        rX = axesMin;
     }
-    if (rY == -32768)
+    if (rY < axesMin)
     {
-        rY = -32767;
+        rY = axesMin;
+    }
+	
+	if (rX > axesMax)
+    {
+        rX = axesMax;
+    }
+    if (rY > axesMax)
+    {
+        rY = axesMax;
     }
 
     _rX = rX;
@@ -1160,9 +1262,14 @@ void BleGamepad::setHat4(signed char hat4)
 
 void BleGamepad::setX(int16_t x)
 {
-    if (x == -32768)
+    if (x < axesMin)
     {
-        x = -32767;
+        x = axesMin;
+    }
+	
+	if (x > axesMax)
+    {
+        x = axesMax;
     }
 
     _x = x;
@@ -1175,9 +1282,14 @@ void BleGamepad::setX(int16_t x)
 
 void BleGamepad::setY(int16_t y)
 {
-    if (y == -32768)
+    if (y < axesMin)
     {
-        y = -32767;
+        y = axesMin;
+    }
+	
+	if (y > axesMax)
+    {
+        y = axesMax;
     }
 
     _y = y;
@@ -1190,9 +1302,14 @@ void BleGamepad::setY(int16_t y)
 
 void BleGamepad::setZ(int16_t z)
 {
-    if (z == -32768)
+    if (z < axesMin)
     {
-        z = -32767;
+        z = axesMin;
+    }
+	
+	if (z > axesMax)
+    {
+        z = axesMax;
     }
 
     _z = z;
@@ -1205,9 +1322,14 @@ void BleGamepad::setZ(int16_t z)
 
 void BleGamepad::setRZ(int16_t rZ)
 {
-    if (rZ == -32768)
+    if (rZ < axesMin)
     {
-        rZ = -32767;
+        rZ = axesMin;
+    }
+	
+	if (rZ > axesMax)
+    {
+        rZ = axesMax;
     }
 
     _rZ = rZ;
@@ -1220,9 +1342,14 @@ void BleGamepad::setRZ(int16_t rZ)
 
 void BleGamepad::setRX(int16_t rX)
 {
-    if (rX == -32768)
+    if (rX < axesMin)
     {
-        rX = -32767;
+        rX = axesMin;
+    }
+	
+	if (rX > axesMax)
+    {
+        rX = axesMax;
     }
 
     _rX = rX;
@@ -1235,9 +1362,14 @@ void BleGamepad::setRX(int16_t rX)
 
 void BleGamepad::setRY(int16_t rY)
 {
-    if (rY == -32768)
+    if (rY < axesMin)
     {
-        rY = -32767;
+        rY = axesMin;
+    }
+	
+	if (rY > axesMax)
+    {
+        rY = axesMax;
     }
 
     _rY = rY;
@@ -1250,9 +1382,14 @@ void BleGamepad::setRY(int16_t rY)
 
 void BleGamepad::setSlider(int16_t slider)
 {
-    if (slider == -32768)
+    if (slider < axesMin)
     {
-        slider = -32767;
+        slider = axesMin;
+    }
+	
+	if (slider > axesMax)
+    {
+        slider = axesMax;
     }
 
     _slider1 = slider;
@@ -1265,9 +1402,14 @@ void BleGamepad::setSlider(int16_t slider)
 
 void BleGamepad::setSlider1(int16_t slider1)
 {
-    if (slider1 == -32768)
+    if (slider1 < axesMin)
     {
-        slider1 = -32767;
+        slider1 = axesMin;
+    }
+	
+	if (slider1 > axesMax)
+    {
+        slider1 = axesMax;
     }
 
     _slider1 = slider1;
@@ -1280,9 +1422,14 @@ void BleGamepad::setSlider1(int16_t slider1)
 
 void BleGamepad::setSlider2(int16_t slider2)
 {
-    if (slider2 == -32768)
+    if (slider2 < axesMin)
     {
-        slider2 = -32767;
+        slider2 = axesMin;
+    }
+	
+	if (slider2 > axesMax)
+    {
+        slider2 = axesMax;
     }
 
     _slider2 = slider2;
@@ -1295,9 +1442,14 @@ void BleGamepad::setSlider2(int16_t slider2)
 
 void BleGamepad::setRudder(int16_t rudder)
 {
-    if (rudder == -32768)
+    if (rudder < simulationMin)
     {
-        rudder = -32767;
+        rudder = simulationMin;
+    }
+	
+	if (rudder > simulationMax)
+    {
+        rudder = simulationMax;
     }
 
     _rudder = rudder;
@@ -1310,9 +1462,14 @@ void BleGamepad::setRudder(int16_t rudder)
 
 void BleGamepad::setThrottle(int16_t throttle)
 {
-    if (throttle == -32768)
+    if (throttle < simulationMin)
     {
-        throttle = -32767;
+        throttle = simulationMin;
+    }
+	
+	if (throttle > simulationMax)
+    {
+        throttle = simulationMax;
     }
 
     _throttle = throttle;
@@ -1325,9 +1482,14 @@ void BleGamepad::setThrottle(int16_t throttle)
 
 void BleGamepad::setAccelerator(int16_t accelerator)
 {
-    if (accelerator == -32768)
+    if (accelerator < simulationMin)
     {
-        accelerator = -32767;
+        accelerator = simulationMin;
+    }
+	
+	if (accelerator > simulationMax)
+    {
+        accelerator = simulationMax;
     }
 
     _accelerator = accelerator;
@@ -1340,9 +1502,14 @@ void BleGamepad::setAccelerator(int16_t accelerator)
 
 void BleGamepad::setBrake(int16_t brake)
 {
-    if (brake == -32768)
+    if (brake < simulationMin)
     {
-        brake = -32767;
+        brake = simulationMin;
+    }
+	
+	if (brake > simulationMax)
+    {
+        brake = simulationMax;
     }
 
     _brake = brake;
@@ -1355,9 +1522,14 @@ void BleGamepad::setBrake(int16_t brake)
 
 void BleGamepad::setSteering(int16_t steering)
 {
-    if (steering == -32768)
+    if (steering < simulationMin)
     {
-        steering = -32767;
+        steering = simulationMin;
+    }
+	
+	if (steering > simulationMax)
+    {
+        steering = simulationMax;
     }
 
     _steering = steering;
