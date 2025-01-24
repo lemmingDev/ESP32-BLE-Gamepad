@@ -4,9 +4,7 @@
 #include "NimBLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
-#include <driver/adc.h>
 #include "sdkconfig.h"
-
 #include "BleConnectionStatus.h"
 #include "BleGamepad.h"
 #include "BleGamepadConfiguration.h"
