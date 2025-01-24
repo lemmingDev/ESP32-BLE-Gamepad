@@ -4,7 +4,6 @@
 #include "NimBLEHIDDevice.h"
 #include "HIDTypes.h"
 #include "HIDKeyboardTypes.h"
-#include <driver/adc.h>
 #include "sdkconfig.h"
 
 #include "BleConnectionStatus.h"
@@ -662,7 +661,7 @@ void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX
         slider2 = axesMin;
     }
 	
-	if (x > axesMax)
+    if (x > axesMax)
     {
         x = axesMax;
     }
@@ -733,7 +732,7 @@ void BleGamepad::setSimulationControls(int16_t rudder, int16_t throttle, int16_t
         steering = simulationMin;
     }
 	
-	if (rudder > simulationMax)
+    if (rudder > simulationMax)
     {
         rudder = simulationMax;
     }
@@ -789,8 +788,8 @@ void BleGamepad::setSliders(int16_t slider1, int16_t slider2)
     {
         slider2 = axesMin;
     }
-	
-	if (slider1 > axesMax)
+
+    if (slider1 > axesMax)
     {
         slider1 = axesMax;
     }
@@ -1094,7 +1093,7 @@ void BleGamepad::setLeftThumb(int16_t x, int16_t y)
         y = axesMin;
     }
 	
-	if (x > axesMax)
+    if (x > axesMax)
     {
         x = axesMax;
     }
@@ -1123,7 +1122,7 @@ void BleGamepad::setRightThumb(int16_t z, int16_t rZ)
         rZ = axesMin;
     }
 	
-	if (z > axesMax)
+    if (z > axesMax)
     {
         z = axesMax;
     }
@@ -1148,7 +1147,7 @@ void BleGamepad::setLeftTrigger(int16_t rX)
         rX = axesMin;
     }
 	
-	if (rX > axesMax)
+    if (rX > axesMax)
     {
         rX = axesMax;
     }
@@ -1168,7 +1167,7 @@ void BleGamepad::setRightTrigger(int16_t rY)
         rY = axesMin;
     }
 	
-	if (rY > axesMax)
+    if (rY > axesMax)
     {
         rY = axesMax;
     }
@@ -1187,15 +1186,17 @@ void BleGamepad::setTriggers(int16_t rX, int16_t rY)
     {
         rX = axesMin;
     }
+	
     if (rY < axesMin)
     {
         rY = axesMin;
     }
 	
-	if (rX > axesMax)
+    if (rX > axesMax)
     {
         rX = axesMax;
     }
+	
     if (rY > axesMax)
     {
         rY = axesMax;
@@ -1267,7 +1268,7 @@ void BleGamepad::setX(int16_t x)
         x = axesMin;
     }
 	
-	if (x > axesMax)
+    if (x > axesMax)
     {
         x = axesMax;
     }
@@ -1287,7 +1288,7 @@ void BleGamepad::setY(int16_t y)
         y = axesMin;
     }
 	
-	if (y > axesMax)
+    if (y > axesMax)
     {
         y = axesMax;
     }
@@ -1307,7 +1308,7 @@ void BleGamepad::setZ(int16_t z)
         z = axesMin;
     }
 	
-	if (z > axesMax)
+    if (z > axesMax)
     {
         z = axesMax;
     }
@@ -1327,7 +1328,7 @@ void BleGamepad::setRZ(int16_t rZ)
         rZ = axesMin;
     }
 	
-	if (rZ > axesMax)
+    if (rZ > axesMax)
     {
         rZ = axesMax;
     }
@@ -1347,7 +1348,7 @@ void BleGamepad::setRX(int16_t rX)
         rX = axesMin;
     }
 	
-	if (rX > axesMax)
+    if (rX > axesMax)
     {
         rX = axesMax;
     }
@@ -1367,7 +1368,7 @@ void BleGamepad::setRY(int16_t rY)
         rY = axesMin;
     }
 	
-	if (rY > axesMax)
+    if (rY > axesMax)
     {
         rY = axesMax;
     }
@@ -1387,7 +1388,7 @@ void BleGamepad::setSlider(int16_t slider)
         slider = axesMin;
     }
 	
-	if (slider > axesMax)
+   if (slider > axesMax)
     {
         slider = axesMax;
     }
@@ -1407,7 +1408,7 @@ void BleGamepad::setSlider1(int16_t slider1)
         slider1 = axesMin;
     }
 	
-	if (slider1 > axesMax)
+    if (slider1 > axesMax)
     {
         slider1 = axesMax;
     }
@@ -1427,7 +1428,7 @@ void BleGamepad::setSlider2(int16_t slider2)
         slider2 = axesMin;
     }
 	
-	if (slider2 > axesMax)
+    if (slider2 > axesMax)
     {
         slider2 = axesMax;
     }
@@ -1447,7 +1448,7 @@ void BleGamepad::setRudder(int16_t rudder)
         rudder = simulationMin;
     }
 	
-	if (rudder > simulationMax)
+    if (rudder > simulationMax)
     {
         rudder = simulationMax;
     }
@@ -1467,7 +1468,7 @@ void BleGamepad::setThrottle(int16_t throttle)
         throttle = simulationMin;
     }
 	
-	if (throttle > simulationMax)
+    if (throttle > simulationMax)
     {
         throttle = simulationMax;
     }
@@ -1487,7 +1488,7 @@ void BleGamepad::setAccelerator(int16_t accelerator)
         accelerator = simulationMin;
     }
 	
-	if (accelerator > simulationMax)
+    if (accelerator > simulationMax)
     {
         accelerator = simulationMax;
     }
@@ -1507,7 +1508,7 @@ void BleGamepad::setBrake(int16_t brake)
         brake = simulationMin;
     }
 	
-	if (brake > simulationMax)
+    if (brake > simulationMax)
     {
         brake = simulationMax;
     }
@@ -1527,7 +1528,7 @@ void BleGamepad::setSteering(int16_t steering)
         steering = simulationMin;
     }
 	
-	if (steering > simulationMax)
+    if (steering > simulationMax)
     {
         steering = simulationMax;
     }
@@ -1590,11 +1591,6 @@ uint8_t* BleGamepad::getOutputBuffer(){
 void BleGamepad::taskServer(void *pvParameter)
 {
     BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
-
-    // Use the procedure below to set a custom Bluetooth MAC address
-    // Compiler adds 0x02 to the last value of board's base MAC address to get the BT MAC address, so take 0x02 away from the value you actually want when setting
-    //uint8_t newMACAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF - 0x02};
-    //esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address 
     
     NimBLEDevice::init(BleGamepadInstance->deviceName);
     NimBLEServer *pServer = NimBLEDevice::createServer();
@@ -1649,8 +1645,8 @@ void BleGamepad::taskServer(void *pvParameter)
     BleGamepadInstance->hid->setPnp(0x01, vid, pid, guidVersion);
     BleGamepadInstance->hid->setHidInfo(0x00, 0x01);
 
-	// NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_BOND);
-	NimBLEDevice::setSecurityAuth(true, false, false); // enable bonding, no MITM, no SC
+    // NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_BOND);
+    NimBLEDevice::setSecurityAuth(true, false, false); // enable bonding, no MITM, no SC
 
 
     uint8_t *customHidReportDescriptor = new uint8_t[hidReportDescriptorSize];
