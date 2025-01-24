@@ -57,7 +57,7 @@ void loop()
             }
         }
 
-        if (currentButtonStates != previousButtonStates)
+        if (memcmp((const void *)currentButtonStates, (const void *)previousButtonStates, sizeof(currentButtonStates)) != 0)
         {
             for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
             {

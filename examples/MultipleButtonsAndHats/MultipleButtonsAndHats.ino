@@ -121,8 +121,8 @@ void loop()
         // Set hat values
         bleGamepad.setHats(hatValues[0], hatValues[1], hatValues[2], hatValues[3]);
 
-        // Update previous states to current states and send report
-        if (currentButtonStates != previousButtonStates || currentHatStates != previousHatStates)
+        // Update previous states to current states if required and send report
+		if ((memcmp((const void *)currentButtonStates, (const void *)previousButtonStates, sizeof(currentButtonStates)) != 0) && (memcmp((const void *)currentHatStates, (const void *)previousHatStates, sizeof(currentHatStates)) != 0))
         {
             for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
             {
