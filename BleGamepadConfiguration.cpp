@@ -18,7 +18,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _modelNumber("1.0.0"),
                                                      _softwareRevision("1.0.0"),
                                                      _serialNumber("0123456789"),
-                                                     _firmwareRevision("0.6.7"),
+                                                     _firmwareRevision("0.6.8"),
                                                      _hardwareRevision("1.0.0"),
                                                      _enableOutputReport(false),
                                                      _outputReportLength(64)
