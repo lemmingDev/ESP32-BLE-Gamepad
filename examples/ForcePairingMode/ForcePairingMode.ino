@@ -15,7 +15,7 @@
  * After deleting bonds, it is best to unpair them from the client device such
  * as your phone or PC otherwise the gamepad may briefly connect while searching
  *
- * The deleteBond and deletAllBonds functions can optionalayy reset the gamepad with
+ * The deleteBond and deletAllBonds functions can optionally reset the gamepad with
  * deletAllBonds(true) or deleteBond(true), although it shouldn't be needed
  * as the advertising should now start again after a client is disconnected
  * 
