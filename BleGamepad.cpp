@@ -1399,30 +1399,129 @@ void BleGamepad::setBatteryLevel(uint8_t level)
     }
 }
 
-bool BleGamepad::isOutputReceived(){
-    if(enableOutputReport && outputReceiver){
-        if(this->outputReceiver->outputFlag){
+bool BleGamepad::isOutputReceived()
+{
+    if(enableOutputReport && outputReceiver)
+	{
+        if(this->outputReceiver->outputFlag)
+		{
             this->outputReceiver->outputFlag=false; // Clear Flag
             return true;
         }
     }
     return false;
 }
-uint8_t* BleGamepad::getOutputBuffer(){
-    if(enableOutputReport && outputReceiver){
+
+uint8_t* BleGamepad::getOutputBuffer()
+{
+    if(enableOutputReport && outputReceiver)
+	{
         memcpy(outputBackupBuffer, outputReceiver->outputBuffer, outputReportLength); // Creating a backup to avoid buffer being overwritten while processing data
         return outputBackupBuffer;
     }
     return nullptr;
 }
+
+bool BleGamepad::deleteAllBonds(bool resetBoard)
+{
+	bool success = false;
+	
+	NimBLEDevice::deleteAllBonds();
+	success = true;
+	delay(500);
+		
+	if (resetBoard)
+	{
+	    ESP.restart();
+	}
+ 
+	return success;	// Returns false if all bonds are not deleted
+}
+
+bool BleGamepad::deleteBond(bool resetBoard)
+{
+	bool success = false;
+	
+	NimBLEServer* server = NimBLEDevice::getServer();
+	
+    if (server) 
+	{
+		NimBLEConnInfo info = server->getPeerInfo(0);
+		NimBLEAddress address = info.getAddress();
+		
+		success = NimBLEDevice::deleteBond(address);	
+
+		delay(500);
+		
+		if (resetBoard)
+		{
+		    ESP.restart();
+		}
+    } 
+	return success;	// Returns false if current bond is not deleted
+}
+
+bool BleGamepad::enterPairingMode()
+{
+	NimBLEServer* server = NimBLEDevice::getServer();
+	
+    if (server) 
+	{
+		//Serial.println("Entered pairing mode");
+		
+		// Get current connection information and address
+		NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
+		NimBLEAddress currentAddress = currentConnInfo.getAddress();
+		//Serial.print("Current Address is: ");
+		//Serial.println(currentAddress.toString().c_str());
+		
+		// Disconnect from current connection
+		for (uint16_t connHandle : server->getPeerDevices()) 
+		{
+            server->disconnect(connHandle); // Disconnect the client
+			//Serial.println("Disconnected from client");
+			delay(1000);
+        }
+		
+		bool connectedToOldDevice = true;
+		
+		// While connected to old device, keep allowing to connect new new devices
+		while(connectedToOldDevice)
+		{
+			//Serial.println("While loop entered");
+			delay(10);	// Needs a delay to work - do not remove!
+			
+			if(this->isConnected())
+			{
+			    NimBLEConnInfo newConnInfo = server->getPeerInfo(0);
+		        NimBLEAddress newAddress = newConnInfo.getAddress();
+		
+				//Serial.print("Current Address is: ");
+		        //Serial.println(newAddress.toString().c_str());
+		
+			    // Block specific MAC address
+		        if (newAddress == currentAddress) 
+		        {
+					//Serial.println("Addresses match - blocking");
+			        server->disconnect(newConnInfo.getConnHandle());
+					delay(500);
+		        }
+				else
+				{
+					//Serial.println("New device connected");
+					connectedToOldDevice = false;
+					return true;
+				}
+			}
+		}
+		return false; // Might want to adjust this function to stay in pairing mode for a while, and then return false after a while if no other device pairs with it
+    }
+}
+
+
 void BleGamepad::taskServer(void *pvParameter)
 {
     BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
-
-    // Use the procedure below to set a custom Bluetooth MAC address
-    // Compiler adds 0x02 to the last value of board's base MAC address to get the BT MAC address, so take 0x02 away from the value you actually want when setting
-    //uint8_t newMACAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF - 0x02};
-    //esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address 
     
     NimBLEDevice::init(BleGamepadInstance->deviceName);
     NimBLEServer *pServer = NimBLEDevice::createServer();
