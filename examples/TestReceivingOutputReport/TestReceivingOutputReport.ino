@@ -3,6 +3,7 @@
  * Here is a C# testing program for sending OutputReport from the host to the device
  * https://github.com/Sab1e-GitHub/HIDOutputDemo_CSharp
  */
+
 #include <BleGamepad.h>
 
 #define numOfButtons 16
@@ -10,7 +11,8 @@
 BleGamepad bleGamepad;
 BleGamepadConfiguration bleGamepadConfig;
 
-void setup() {
+void setup() 
+{
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
 
@@ -22,7 +24,7 @@ void setup() {
   // Do not set the OutputReportLength too large, otherwise it will be truncated. For example, if the hexadecimal value of 10000 in decimal is 0x2710, it will be truncated to 0x710.
 
   bleGamepadConfig.setHidReportId(0x05);  // (Optional) Set ReportID to 0x05. 
-  //When you send data from the upper computer to ESP32, you must send the ReportID in the first byte! The default ReportID is 3.
+  // When you send data from the upper computer to ESP32, you must send the ReportID in the first byte! The default ReportID is 3.
 
   bleGamepadConfig.setButtonCount(numOfButtons);
 
@@ -31,21 +33,28 @@ void setup() {
 
   // Try NOT to modify VID, otherwise it may cause the host to be unable to send output reports to the device.
   bleGamepadConfig.setVid(0x1234);
+  
   // You can freely set the PID
   bleGamepadConfig.setPid(0x0001);
   bleGamepad.begin(&bleGamepadConfig);
 
-  // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+  // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
-void loop() {
-  if (bleGamepad.isConnected()) {
-    if (bleGamepad.isOutputReceived()) {
+void loop() 
+{
+  if (bleGamepad.isConnected()) 
+  {
+    if (bleGamepad.isOutputReceived()) 
+    {
       uint8_t* buffer = bleGamepad.getOutputBuffer();
       Serial.print("Receive: ");
-      for (int i = 0; i < 64; i++) {
+      
+      for (int i = 0; i < 64; i++) 
+      {
         Serial.printf("0x%X ",buffer[i]); // Print data from buffer
       }
+      
       Serial.println("");
     }
   }
