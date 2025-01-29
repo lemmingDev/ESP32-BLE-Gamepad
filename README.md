@@ -20,6 +20,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Output report function
+ - [x] Functions avalable for force pairing/ignore current client and/or delete pairings
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
  - [x] Compatible with Linux (limited testing)
@@ -40,7 +41,7 @@ Since version 5 of this library, the axes and simulation controls have configura
 The decision was made to set defaults to 0 for minimum and 32767 for maximum (previously -32767 to 32767)
 This was due to the fact that non-Windows operating systems and some online web-based game controller testers didn't play well with negative numbers. Existing sketches should take note, and see the DrivingControllerTest example for how to set back to -32767 if wanted
 
-This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.1.3 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.1.3
+This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.2.1 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.2.1
 
 Please see updated examples
 
