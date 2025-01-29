@@ -20,7 +20,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Output report function
- - [x] Functions avalable for force pairing/ignore current client and/or delete pairings
+ - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows)
  - [x] Compatible with Linux (limited testing)
