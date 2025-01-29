@@ -31,6 +31,7 @@ jobs:
             - examples/DrivingControllerTest/DrivingControllerTest.ino
             - examples/Fightstick/Fightstick.ino
             - examples/FlightControllerTest/FlightControllerTest.ino
+            - examples/ForcePairingMode/ForcePairingMode.ino
             - examples/Gamepad/Gamepad.ino
             - examples/IndividualAxes/IndividualAxes.ino
             - examples/Keypad4x4/Keypad4x4.ino
