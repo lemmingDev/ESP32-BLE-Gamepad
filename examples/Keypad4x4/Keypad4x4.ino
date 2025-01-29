@@ -1,6 +1,6 @@
 /*
  * Shows how to use a 4 x 4 keypad, commonly seen in Arduino starter kits, with the library
- * https://www.aliexpress.com/item/32879638645.html
+ * https://www.aliexpress.com/w/wholesale-Arduino-4*4-Matrix-Keyboard.html
  * It maps the 16 buttons to the first 16 buttons of the controller
  * Only certain combinations work for multiple presses over 2 buttons
  */
