@@ -152,6 +152,9 @@ setSoftwareRevision KEYWORD2
 setSerialNumber KEYWORD2
 setFirmwareRevision KEYWORD2
 setHardwareRevision KEYWORD2
+deleteBond KEYWORD2
+deleteAllBonds KEYWORD2
+enterPairingMode KEYWORD2
 
 
 #######################################
