@@ -113,9 +113,9 @@ public:
     std::string deviceName;
     bool isOutputReceived();
     uint8_t* getOutputBuffer();
-	bool deleteBond(bool resetBoard = false);
-	bool deleteAllBonds(bool resetBoard = false);
-	bool enterPairingMode();
+    bool deleteBond(bool resetBoard = false);
+    bool deleteAllBonds(bool resetBoard = false);
+    bool enterPairingMode();
 
 protected:
     virtual void onStarted(NimBLEServer *pServer){};
