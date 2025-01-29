@@ -1516,6 +1516,7 @@ bool BleGamepad::enterPairingMode()
 		}
 		return false; // Might want to adjust this function to stay in pairing mode for a while, and then return false after a while if no other device pairs with it
     }
+	return false;
 }
 
 
