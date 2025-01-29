@@ -45,7 +45,7 @@ void setup()
 
     BleGamepadConfiguration bleGamepadConfig;
     bleGamepadConfig.setAutoReport(false);
-	bleGamepadConfig.setWhichAxes(0, 0, 0, 0, 0, 0, 0, 0);	// Disable all axes
+    bleGamepadConfig.setWhichAxes(0, 0, 0, 0, 0, 0, 0, 0);	// Disable all axes
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setHatSwitchCount(numOfHats);
     bleGamepad.begin(&bleGamepadConfig);
