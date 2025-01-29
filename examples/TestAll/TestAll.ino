@@ -23,11 +23,11 @@ void setup()
     bleGamepadConfig.setPid(0xabcd);
     // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
     //bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+    bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
     bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
     bleGamepad.begin(&bleGamepadConfig); // Simulation controls, special buttons and hats 2/3/4 are disabled by default
 
-    // changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+    // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 }
 
 void loop()
@@ -80,7 +80,7 @@ void loop()
         bleGamepad.sendReport();
 
         Serial.println("Move all sliders simultaneously from min to max");
-       for (int i = bleGamepadConfig.getAxesMin(); i < bleGamepadConfig.getAxesMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
+        for (int i = bleGamepadConfig.getAxesMin(); i < bleGamepadConfig.getAxesMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
         {
             bleGamepad.setSliders(i, i);
             bleGamepad.sendReport();
