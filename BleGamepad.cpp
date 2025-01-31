@@ -7,6 +7,7 @@
 #include "sdkconfig.h"
 #include "BleConnectionStatus.h"
 #include "BleGamepad.h"
+#include "NimBLELog.h"
 #include "BleGamepadConfiguration.h"
 
 #include <stdexcept>
@@ -231,6 +232,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
             // REPORT_COUNT
             tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
             tempHidReportDescriptor[hidReportDescriptorSize++] = configuration.getDesktopSpecialButtonCount();
+            
             if (configuration.getIncludeStart())
             {
                 // USAGE (Start)
@@ -273,7 +275,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
                 // USAGE (Home)
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0A;
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x23;
-		            tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
 
             if (configuration.getIncludeBack())
@@ -281,7 +283,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
                 // USAGE (Back)
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x0A;
                 tempHidReportDescriptor[hidReportDescriptorSize++] = 0x24;
-	        	    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+                tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
             }
 
             if (configuration.getIncludeVolumeInc())
@@ -343,9 +345,9 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
         tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getAxesMin());
         tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMin());
-        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;		// Use these two lines for 0 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;    // Use these two lines for 0 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-	//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	// Use these two lines for -32767 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;    // Use these two lines for -32767 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
@@ -354,7 +356,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getAxesMax());
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for 255 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-	//tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	// Use these two lines for +32767 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
@@ -447,7 +449,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMin());
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;	    // Use these two lines for 0 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-	//tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
 
         // LOGICAL_MAXIMUM (+32767)
@@ -456,7 +458,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getSimulationMax());
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for 255 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-	//tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for +32767 max
+        //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for +32767 max
         //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
 
         // REPORT_SIZE (16)
@@ -570,7 +572,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
     }
 
-    if (configuration.getEnableOutputReport()){
+    if (configuration.getEnableOutputReport())
+	{
         // Usage Page (Vendor Defined 0xFF00)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
@@ -597,11 +600,14 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
         tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
 
-        if(configuration.getOutputReportLength()<=0xFF){
+        if(configuration.getOutputReportLength()<=0xFF)
+		{
             // Report Count (0~255 bytes)
             tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
             tempHidReportDescriptor[hidReportDescriptorSize++] = configuration.getOutputReportLength();
-        }else{
+        }
+		else
+		{
             // Report Count (0~65535 bytes)
             tempHidReportDescriptor[hidReportDescriptorSize++] = 0x96;
             tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getOutputReportLength());
@@ -891,6 +897,7 @@ uint8_t BleGamepad::specialButtonBitPosition(uint8_t b)
     if (b >= POSSIBLESPECIALBUTTONS)
         throw std::invalid_argument("Index out of range");
     uint8_t bit = 0;
+    
     for (int i = 0; i < b; i++)
     {
         if (configuration.getWhichSpecialButtons()[i])
@@ -1423,41 +1430,45 @@ uint8_t* BleGamepad::getOutputBuffer()
 
 bool BleGamepad::deleteAllBonds(bool resetBoard)
 {
-	bool success = false;
+    bool success = false;
 	
-	NimBLEDevice::deleteAllBonds();
-	success = true;
-	delay(500);
-		
-	if (resetBoard)
-	{
-	    ESP.restart();
-	}
- 
-	return success;	// Returns false if all bonds are not deleted
+    NimBLEDevice::deleteAllBonds();
+	NIMBLE_LOGD(LOG_TAG, "deleteAllBonds - All bonds deleted");
+    success = true;
+    delay(500);
+	
+    if (resetBoard)
+    {
+		NIMBLE_LOGD(LOG_TAG, "deleteAllBonds - Reboot ESP32");
+        ESP.restart();
+    }
+
+    return success;	// Returns false if all bonds are not deleted
 }
 
 bool BleGamepad::deleteBond(bool resetBoard)
 {
-	bool success = false;
+    bool success = false;
 	
-	NimBLEServer* server = NimBLEDevice::getServer();
+    NimBLEServer* server = NimBLEDevice::getServer();
 	
-        if (server) 
-	{
-		NimBLEConnInfo info = server->getPeerInfo(0);
-		NimBLEAddress address = info.getAddress();
+    if (server) 
+    {
+        NimBLEConnInfo info = server->getPeerInfo(0);
+        NimBLEAddress address = info.getAddress();
 		
-		success = NimBLEDevice::deleteBond(address);	
+        success = NimBLEDevice::deleteBond(address);	
+		NIMBLE_LOGD(LOG_TAG, "deleteBond - Bond for %s deleted", std::string(address).c_str());
 
-		delay(500);
+        delay(500);
 		
-		if (resetBoard)
-		{
-		    ESP.restart();
-		}
-        } 
-	return success;	// Returns false if current bond is not deleted
+        if (resetBoard)
+        {
+			NIMBLE_LOGD(LOG_TAG, "deleteBond - Reboot ESP32");
+            ESP.restart();
+        }
+    } 
+    return success;	// Returns false if current bond is not deleted
 }
 
 bool BleGamepad::enterPairingMode()
@@ -1466,51 +1477,48 @@ bool BleGamepad::enterPairingMode()
 	
     if (server) 
     {
-        //Serial.println("Entered pairing mode");
+        NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Pairing mode entered");
 		
-	// Get current connection information and address
-	NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
-	NimBLEAddress currentAddress = currentConnInfo.getAddress();
-	//Serial.print("Current Address is: ");
-	//Serial.println(currentAddress.toString().c_str());
+        // Get current connection information and address
+        NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
+        NimBLEAddress currentAddress = currentConnInfo.getAddress();
+        NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Connected Address: %s", std::string(currentAddress).c_str());
 	
-	// Disconnect from current connection
-	for (uint16_t connHandle : server->getPeerDevices()) 
-	{
+        // Disconnect from current connection
+        for (uint16_t connHandle : server->getPeerDevices()) 
+        {
             server->disconnect(connHandle); // Disconnect the client
-            //Serial.println("Disconnected from client");
-            delay(1000);
+			NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Disconnected from client");
+            delay(500);
         }
 		
-	bool connectedToOldDevice = true;
+        bool connectedToOldDevice = true;
 		
-	// While connected to old device, keep allowing to connect new new devices
-	while(connectedToOldDevice)
-	{
-	    //Serial.println("While loop entered");
-	    delay(10);	// Needs a delay to work - do not remove!
+        // While connected to old device, keep allowing to connect new new devices
+		NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Advertising for clients...");
+        while(connectedToOldDevice)
+        {
+            delay(10);	// Needs a delay to work - do not remove!
 		
             if(this->isConnected())
             {
-		NimBLEConnInfo newConnInfo = server->getPeerInfo(0);
-		NimBLEAddress newAddress = newConnInfo.getAddress();
+                NimBLEConnInfo newConnInfo = server->getPeerInfo(0);
+                NimBLEAddress newAddress = newConnInfo.getAddress();
 		
-		//Serial.print("Current Address is: ");
-		//Serial.println(newAddress.toString().c_str());
-		
-		// Block specific MAC address
-		if (newAddress == currentAddress) 
-		{
-		    //Serial.println("Addresses match - blocking");
-		    server->disconnect(newConnInfo.getConnHandle());
-		    delay(500);
-		}
-		else
-		{
-		    //Serial.println("New device connected");
-		    connectedToOldDevice = false;
-		    return true;
-		}
+                // Block specific MAC address
+                if (newAddress == currentAddress) 
+                {
+                    NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Connected to previous client, so disconnect and continue advertising for new client");
+                    server->disconnect(newConnInfo.getConnHandle());
+					delay(500);
+                }
+                else
+                {
+                    NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Connected to new client");
+					NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Exit pairing mode");
+                    connectedToOldDevice = false;
+                    return true;
+                }
             }
         }
         return false; // Might want to adjust this function to stay in pairing mode for a while, and then return false after a while if no other device pairs with it
@@ -1518,6 +1526,44 @@ bool BleGamepad::enterPairingMode()
     return false;
 }
 
+NimBLEAddress BleGamepad::getAddress()
+{
+	NimBLEServer* server = NimBLEDevice::getServer();
+    
+	if (server) 
+    {
+        
+        // Get current connection information and address
+        NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
+        NimBLEAddress currentAddress = currentConnInfo.getAddress();
+		return currentAddress;
+	}
+	NimBLEAddress blankAddress;
+	return blankAddress;
+}
+
+String BleGamepad::getStringAddress()
+{
+	NimBLEServer* server = NimBLEDevice::getServer();
+    
+	if (server) 
+    {
+        
+        // Get current connection information and address
+        NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
+        NimBLEAddress currentAddress = currentConnInfo.getAddress();
+		return currentAddress.toString().c_str();
+	}
+	NimBLEAddress blankAddress;
+	return blankAddress.toString().c_str();
+}
+
+NimBLEConnInfo BleGamepad::getPeerInfo()
+{
+	NimBLEServer* server = NimBLEDevice::getServer();
+    NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
+	return currentConnInfo;
+}
 
 void BleGamepad::taskServer(void *pvParameter)
 {
@@ -1526,6 +1572,7 @@ void BleGamepad::taskServer(void *pvParameter)
     NimBLEDevice::init(BleGamepadInstance->deviceName);
     NimBLEServer *pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(BleGamepadInstance->connectionStatus);
+	pServer->advertiseOnDisconnect(true);
 
     BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
 
@@ -1599,6 +1646,6 @@ void BleGamepad::taskServer(void *pvParameter)
     pAdvertising->start();
     BleGamepadInstance->hid->setBatteryLevel(BleGamepadInstance->batteryLevel);
 
-    ESP_LOGD(LOG_TAG, "Advertising started!");
+    NIMBLE_LOGD(LOG_TAG, "Advertising started!");
     vTaskDelay(portMAX_DELAY); // delay(portMAX_DELAY);
 }

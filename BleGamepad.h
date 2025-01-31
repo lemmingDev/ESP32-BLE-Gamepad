@@ -35,7 +35,7 @@ private:
     int16_t _hat3;
     int16_t _hat4;
 
-    BleGamepadConfiguration configuration;
+    //BleGamepadConfiguration configuration;
 
     BleConnectionStatus *connectionStatus;
 
@@ -52,6 +52,7 @@ private:
     uint8_t specialButtonBitPosition(uint8_t specialButton);
 
 public:
+    BleGamepadConfiguration configuration;
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
     void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
     void end(void);
@@ -116,6 +117,10 @@ public:
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();
+	NimBLEAddress getAddress();
+	String getStringAddress();
+	NimBLEConnInfo getPeerInfo();
+
 
 protected:
     virtual void onStarted(NimBLEServer *pServer){};
