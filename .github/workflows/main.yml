@@ -33,6 +33,7 @@ jobs:
             - examples/FlightControllerTest/FlightControllerTest.ino
             - examples/ForcePairingMode/ForcePairingMode.ino
             - examples/Gamepad/Gamepad.ino
+            - examples/GetPeerInfo/GetPeerInfo.ino
             - examples/IndividualAxes/IndividualAxes.ino
             - examples/Keypad4x4/Keypad4x4.ino
             - examples/MultipleButtons/MultipleButtons.ino
