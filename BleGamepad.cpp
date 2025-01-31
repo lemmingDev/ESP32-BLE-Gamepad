@@ -1535,13 +1535,12 @@ NimBLEAddress BleGamepad::getAddress()
 
   if (server)
   {
-
     // Get current connection information and address
     NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
     NimBLEAddress currentAddress = currentConnInfo.getAddress();
     return currentAddress;
   }
-  NimBLEAddress blankAddress;
+  NimBLEAddress blankAddress("00:00:00:00:00:00", 0);
   return blankAddress;
 }
 
@@ -1551,13 +1550,12 @@ String BleGamepad::getStringAddress()
 
   if (server)
   {
-
     // Get current connection information and address
     NimBLEConnInfo currentConnInfo = server->getPeerInfo(0);
     NimBLEAddress currentAddress = currentConnInfo.getAddress();
     return currentAddress.toString().c_str();
   }
-  NimBLEAddress blankAddress;
+  NimBLEAddress blankAddress("00:00:00:00:00:00", 0);
   return blankAddress.toString().c_str();
 }
 
@@ -1605,7 +1603,8 @@ void BleGamepad::taskServer(void *pvParameter)
   BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->getInputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
   BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
 
-  if (enableOutputReport) {
+  if (enableOutputReport) 
+  {
     BleGamepadInstance->outputGamepad = BleGamepadInstance->hid->getOutputReport(BleGamepadInstance->configuration.getHidReportId());
     BleGamepadInstance->outputReceiver = new BleOutputReceiver(outputReportLength);
     BleGamepadInstance->outputBackupBuffer = new uint8_t[outputReportLength];
