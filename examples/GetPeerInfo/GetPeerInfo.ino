@@ -13,7 +13,6 @@
 
 #include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
-#include <NimBLEServer.h>
 
 #define PEER_INFO_PIN 0 // Pin button is attached to
 
@@ -60,6 +59,8 @@ void loop()
       Serial.println(peerInfo.getSecKeySize());                      // uint8_t
 
       Serial.println("\n----- OUPTPUT CONFIGURATION INFORMATION -----\n");
+      Serial.println(bleGamepad.getDeviceName());
+      Serial.println(bleGamepad.getDeviceManufacturer());
       Serial.println(bleGamepad.configuration.getModelNumber());
       Serial.println(bleGamepad.configuration.getSoftwareRevision());
       Serial.println(bleGamepad.configuration.getSerialNumber());

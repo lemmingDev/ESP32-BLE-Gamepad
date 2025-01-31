@@ -155,7 +155,9 @@ setHardwareRevision KEYWORD2
 deleteBond KEYWORD2
 deleteAllBonds KEYWORD2
 enterPairingMode KEYWORD2
-
+getPeerInfo KEYWORD2
+getDeviceName KEYWORD2
+getDeviceManufacturer KEYWORD2
 
 #######################################
 # Constants

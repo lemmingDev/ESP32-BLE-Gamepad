@@ -14,7 +14,7 @@
 
 class BleGamepad
 {
-private:
+  private:
     uint8_t _buttons[16]; // 8 bits x 16 --> 128 bits
     uint8_t _specialButtons;
     int16_t _x;
@@ -44,14 +44,14 @@ private:
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
     NimBLECharacteristic *outputGamepad;
-    
+
     uint8_t *outputBackupBuffer;
 
     void rawAction(uint8_t msg[], char msgSize);
     static void taskServer(void *pvParameter);
     uint8_t specialButtonBitPosition(uint8_t specialButton);
 
-public:
+  public:
     BleGamepadConfiguration configuration;
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
     void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
@@ -117,13 +117,15 @@ public:
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();
-	NimBLEAddress getAddress();
-	String getStringAddress();
-	NimBLEConnInfo getPeerInfo();
+    NimBLEAddress getAddress();
+    String getStringAddress();
+    NimBLEConnInfo getPeerInfo();
+    String getDeviceName();
+    String getDeviceManufacturer();
 
 
-protected:
-    virtual void onStarted(NimBLEServer *pServer){};
+  protected:
+    virtual void onStarted(NimBLEServer *pServer) {};
 };
 
 #endif // CONFIG_BT_NIMBLE_ROLE_PERIPHERAL
