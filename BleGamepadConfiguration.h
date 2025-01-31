@@ -224,6 +224,7 @@ private:
     char *_hardwareRevision;
     bool _enableOutputReport;
     uint16_t _outputReportLength;
+	int8_t _powerLevel;
 
 public:
     BleGamepadConfiguration();
@@ -276,6 +277,7 @@ public:
     char *getHardwareRevision();
     bool getEnableOutputReport();
     uint16_t getOutputReportLength();
+	int8_t getTXPowerLevel();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -320,6 +322,7 @@ public:
     void setHardwareRevision(char *value);
     void setEnableOutputReport(bool value);
     void setOutputReportLength(uint16_t value);
+	void setTXPowerLevel(int8_t value);
 };
 
 #endif

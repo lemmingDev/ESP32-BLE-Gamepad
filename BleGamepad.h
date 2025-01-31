@@ -109,6 +109,8 @@ class BleGamepad
     bool isConnected(void);
     void resetButtons();
     void setBatteryLevel(uint8_t level);
+	void setTXPowerLevel(int8_t level = 9);
+	int8_t getTXPowerLevel();
     uint8_t batteryLevel;
     std::string deviceManufacturer;
     std::string deviceName;

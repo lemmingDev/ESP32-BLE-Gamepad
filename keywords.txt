@@ -158,6 +158,8 @@ enterPairingMode KEYWORD2
 getPeerInfo KEYWORD2
 getDeviceName KEYWORD2
 getDeviceManufacturer KEYWORD2
+getTXPowerLevel KEYWORD2
+setTXPowerLevel KEYWORD2
 
 #######################################
 # Constants

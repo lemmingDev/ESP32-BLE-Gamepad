@@ -45,6 +45,7 @@ std::string softwareRevision;
 std::string serialNumber;
 std::string firmwareRevision;
 std::string hardwareRevision;
+int8_t powerLevel;
 
 bool enableOutputReport = false;
 uint16_t outputReportLength = 64;
@@ -97,6 +98,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
   enableOutputReport = configuration.getEnableOutputReport();
   outputReportLength = configuration.getOutputReportLength();
+  
+  powerLevel = configuration.getTXPowerLevel();
 
 #ifndef PNPVersionField
   uint8_t high = highByte(vid);
@@ -1575,12 +1578,24 @@ String BleGamepad::getDeviceManufacturer()
   return this->deviceManufacturer.c_str();
 }
 
+int8_t BleGamepad::getTXPowerLevel()
+{
+  return NimBLEDevice::getPower();
+}
+
+void BleGamepad::setTXPowerLevel(int8_t level)
+{
+  powerLevel = level;
+  NimBLEDevice::setPower(powerLevel);  // The only valid values are: -12, -9, -6, -3, 0, 3, 6 and 9
+}
+
 
 void BleGamepad::taskServer(void *pvParameter)
 {
   BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
 
   NimBLEDevice::init(BleGamepadInstance->deviceName);
+  NimBLEDevice::setPower(powerLevel); // Set transmit power for advertising (Range: -127 to +9 dBm)
   NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
   pServer->advertiseOnDisconnect(true);

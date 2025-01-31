@@ -69,6 +69,7 @@ void loop()
       Serial.println(bleGamepad.configuration.getVid(), HEX);
       Serial.println(bleGamepad.configuration.getPid(), HEX);
       Serial.println(bleGamepad.configuration.getGuidVersion());
+	  Serial.println(bleGamepad.configuration.getTXPowerLevel());
       Serial.println();
       delay(1000);
     }
