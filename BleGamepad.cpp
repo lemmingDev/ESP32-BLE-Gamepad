@@ -33,13 +33,16 @@ uint8_t tempHidReportDescriptor[150];
 int hidReportDescriptorSize = 0;
 uint8_t reportSize = 0;
 uint8_t numOfButtonBytes = 0;
-uint16_t vid;
-uint16_t pid;
-uint16_t guidVersion;
-uint16_t axesMin;
-uint16_t axesMax;
-uint16_t simulationMin;
-uint16_t simulationMax;
+static uint16_t vid;
+static uint16_t pid;
+static uint16_t guidVersion;
+static int16_t axesMin;
+static int16_t axesMax;
+static int16_t simulationMin;
+static int16_t simulationMax;
+static int16_t motionMin;
+static int16_t motionMax;
+
 std::string modelNumber;
 std::string softwareRevision;
 std::string serialNumber;
@@ -68,6 +71,12 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _hat2(0),
   _hat3(0),
   _hat4(0),
+  _gX(0),
+  _gY(0),
+  _gZ(0),
+  _aX(0),
+  _aY(0),
+  _aZ(0),
   hid(0)
 {
   this->resetButtons();
@@ -139,8 +148,19 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   {
     numOfSpecialButtonBytes++;
   }
+  
+  uint8_t numOfMotionBytes = 0;
+  if (configuration.getIncludeAccelerometer())
+  {
+    numOfMotionBytes += 6;
+  }
+  
+  if (configuration.getIncludeGyroscope())
+  {
+    numOfMotionBytes += 6;
+  }
 
-  reportSize = numOfButtonBytes + numOfSpecialButtonBytes + numOfAxisBytes + numOfSimulationBytes + configuration.getHatSwitchCount();
+  reportSize = numOfButtonBytes + numOfSpecialButtonBytes + numOfAxisBytes + numOfSimulationBytes + numOfMotionBytes + configuration.getHatSwitchCount();
 
   // USAGE_PAGE (Generic Desktop)
   tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -341,8 +361,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
     // USAGE (Pointer)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
     // LOGICAL_MINIMUM (-32767)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
@@ -519,6 +539,123 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
 
   } // Simulation Controls
+  
+  
+  // Gyroscope
+  if (configuration.getIncludeGyroscope())
+  {
+    // COLLECTION (Physical)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xA1;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    
+    // USAGE_PAGE (Generic Desktop)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    
+    // USAGE (Gyroscope - Rotational X - Rx)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x33;
+    
+    // USAGE (Rotational - Rotational Y - Ry)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x34;
+    
+    // USAGE (Rotational - Rotational Z - Rz)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x35;
+
+    // LOGICAL_MINIMUM (-32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getMotionMin());
+    tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getMotionMin());
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;	    // Use these two lines for 0 min
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
+
+    // LOGICAL_MAXIMUM (+32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getMotionMax());
+    tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getMotionMax());
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for 255 max
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for +32767 max
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+
+    // REPORT_SIZE (16)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x10;
+
+    // REPORT_COUNT (3)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
+
+    // INPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // END_COLLECTION (Physical)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+    
+  } //Gyroscope
+  
+  // Accelerometer
+  if (configuration.getIncludeAccelerometer())
+  {
+    // COLLECTION (Physical)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xA1;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    
+    // USAGE_PAGE (Generic Desktop)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    
+    // USAGE (Accelerometer - Vector X - Vx)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x40;
+    
+    // USAGE (Accelerometer - Vector Y - Vy)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x41;
+    
+    // USAGE (Accelerometer - Vector Z - Vz)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x42;
+
+    // LOGICAL_MINIMUM (-32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getMotionMin());
+    tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getMotionMin());
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;	    // Use these two lines for 0 min
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;	    // Use these two lines for -32767 min
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
+
+    // LOGICAL_MAXIMUM (+32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = lowByte(configuration.getMotionMax());
+    tempHidReportDescriptor[hidReportDescriptorSize++] = highByte(configuration.getMotionMax());
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for 255 max
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;	    // Use these two lines for +32767 max
+    //tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+
+    // REPORT_SIZE (16)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x10;
+
+    // REPORT_COUNT (3)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
+
+    // INPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // END_COLLECTION (Physical)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+    
+  } //Accelerometer
 
   if (configuration.getHatSwitchCount() > 0)
   {
@@ -573,7 +710,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
     // END_COLLECTION (Physical)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
-  }
+  } // Hat Switches
+
 
   if (configuration.getEnableOutputReport())
   {
@@ -837,6 +975,26 @@ void BleGamepad::sendReport(void)
       m[currentReportIndex++] = (_steering >> 8);
     }
 
+    if (configuration.getIncludeGyroscope())
+    {
+      m[currentReportIndex++] = _gX;
+      m[currentReportIndex++] = (_gX >> 8);
+      m[currentReportIndex++] = _gY;
+      m[currentReportIndex++] = (_gY >> 8);
+      m[currentReportIndex++] = _gZ;
+      m[currentReportIndex++] = (_gZ >> 8);
+    }
+    
+    if (configuration.getIncludeAccelerometer())
+    {
+      m[currentReportIndex++] = _aX;
+      m[currentReportIndex++] = (_aX >> 8);
+      m[currentReportIndex++] = _aY;
+      m[currentReportIndex++] = (_aY >> 8);
+      m[currentReportIndex++] = _aZ;
+      m[currentReportIndex++] = (_aZ >> 8);
+    }
+    
     if (configuration.getHatSwitchCount() > 0)
     {
       signed char hats[4];
@@ -851,9 +1009,17 @@ void BleGamepad::sendReport(void)
         m[currentReportIndex++] = hats[currentHatIndex];
       }
     }
-
+  
     this->inputGamepad->setValue(m, sizeof(m));
     this->inputGamepad->notify();
+    
+    // Testing
+    //Serial.println("HID Report");
+    //for (int i = 0; i < sizeof(m); i++)
+    //{
+    //    Serial.printf("%02x", m[i]);
+    //    Serial.println();
+    //}
   }
 }
 
@@ -1587,6 +1753,90 @@ void BleGamepad::setTXPowerLevel(int8_t level)
   NimBLEDevice::setPower(powerLevel);  // The only valid values are: -12, -9, -6, -3, 0, 3, 6 and 9
 }
 
+void BleGamepad::setGyroscope(int16_t gX, int16_t gY, int16_t gZ)
+{
+  if (gX == -32768)
+  {
+    gX = -32767;
+  }
+  
+  if (gY == -32768)
+  {
+    gY = -32767;
+  }
+  
+  if (gY == -32768)
+  {
+    gY = -32767;
+  }
+  
+  _gX = gX;
+  _gY = gY;
+  _gZ = gZ; 
+  
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setAccelerometer(int16_t aX, int16_t aY, int16_t aZ)
+{
+  _aX = aX;
+  _aY = aY;
+  _aZ = aZ;
+  
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setMotionControls(int16_t gX, int16_t gY, int16_t gZ, int16_t aX, int16_t aY, int16_t aZ)
+{
+  if (gX == -32768)
+  {
+    gX = -32767;
+  }
+  
+  if (gY == -32768)
+  {
+    gY = -32767;
+  }
+  
+  if (gZ == -32768)
+  {
+    gZ = -32767;
+  }
+  
+  if (aX == -32768)
+  {
+    aX = -32767;
+  }
+  
+  if (aY == -32768)
+  {
+    aY = -32767;
+  }
+  
+  if (aZ == -32768)
+  {
+    aZ = -32767;
+  }
+  
+  _gX = gX;
+  _gY = gY;
+  _gZ = gZ;
+  _aX = aX;
+  _aY = aY;
+  _aZ = aZ; 
+  
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
 
 void BleGamepad::taskServer(void *pvParameter)
 {
@@ -1657,8 +1907,11 @@ void BleGamepad::taskServer(void *pvParameter)
 
   // Testing
   //for (int i = 0; i < hidReportDescriptorSize; i++)
+  //{
   //    Serial.printf("%02x", customHidReportDescriptor[i]);
-
+  //    Serial.println();
+  //}
+  
   BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, hidReportDescriptorSize);
   BleGamepadInstance->hid->startServices();
 

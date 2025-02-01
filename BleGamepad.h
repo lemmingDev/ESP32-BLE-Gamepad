@@ -34,6 +34,12 @@ class BleGamepad
     int16_t _hat2;
     int16_t _hat3;
     int16_t _hat4;
+    int16_t _gX;
+    int16_t _gY;
+    int16_t _gZ;
+    int16_t _aX;
+    int16_t _aY;
+    int16_t _aZ;
 
     //BleGamepadConfiguration configuration;
 
@@ -109,8 +115,8 @@ class BleGamepad
     bool isConnected(void);
     void resetButtons();
     void setBatteryLevel(uint8_t level);
-	void setTXPowerLevel(int8_t level = 9);
-	int8_t getTXPowerLevel();
+	  void setTXPowerLevel(int8_t level = 9);
+    int8_t getTXPowerLevel();
     uint8_t batteryLevel;
     std::string deviceManufacturer;
     std::string deviceName;
@@ -124,6 +130,9 @@ class BleGamepad
     NimBLEConnInfo getPeerInfo();
     String getDeviceName();
     String getDeviceManufacturer();
+    void setGyroscope(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0);
+    void setAccelerometer(int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
+    void setMotionControls(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0, int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
 
 
   protected:

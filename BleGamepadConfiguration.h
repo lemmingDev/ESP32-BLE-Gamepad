@@ -217,6 +217,8 @@ private:
     int16_t _axesMax;
     int16_t _simulationMin;
     int16_t _simulationMax;
+    int16_t _motionMin;
+    int16_t _motionMax;
     char *_modelNumber;
     char *_softwareRevision;
     char *_serialNumber;
@@ -224,7 +226,9 @@ private:
     char *_hardwareRevision;
     bool _enableOutputReport;
     uint16_t _outputReportLength;
-	int8_t _powerLevel;
+	  int8_t _powerLevel;
+    bool _includeGyroscope;
+    bool _includeAccelerometer; 
 
 public:
     BleGamepadConfiguration();
@@ -270,6 +274,8 @@ public:
     int16_t getAxesMax();
     int16_t getSimulationMin();
     int16_t getSimulationMax();
+    int16_t getMotionMin();
+    int16_t getMotionMax();
     char *getModelNumber();
     char *getSoftwareRevision();
     char *getSerialNumber();
@@ -277,7 +283,9 @@ public:
     char *getHardwareRevision();
     bool getEnableOutputReport();
     uint16_t getOutputReportLength();
-	int8_t getTXPowerLevel();
+	  int8_t getTXPowerLevel();
+    bool getIncludeAccelerometer();
+    bool getIncludeGyroscope();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -301,7 +309,7 @@ public:
     void setIncludeRzAxis(bool value);
     void setIncludeSlider1(bool value);
     void setIncludeSlider2(bool value);
-    void setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rxAxis, bool ryAxis, bool rzAxis, bool slider1, bool slider2);
+    void setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rzAxis, bool rxAxis, bool ryAxis, bool slider1, bool slider2);
     void setIncludeRudder(bool value);
     void setIncludeThrottle(bool value);
     void setIncludeAccelerator(bool value);
@@ -315,6 +323,8 @@ public:
     void setAxesMax(int16_t value);
     void setSimulationMin(int16_t value);
     void setSimulationMax(int16_t value);
+    void setMotionMin(int16_t value);
+    void setMotionMax(int16_t value);
     void setModelNumber(char *value);
     void setSoftwareRevision(char *value);
     void setSerialNumber(char *value);
@@ -322,7 +332,9 @@ public:
     void setHardwareRevision(char *value);
     void setEnableOutputReport(bool value);
     void setOutputReportLength(uint16_t value);
-	void setTXPowerLevel(int8_t value);
+	  void setTXPowerLevel(int8_t value);
+    void setIncludeGyroscope(bool value);
+    void setIncludeAccelerometer(bool value);     
 };
 
 #endif

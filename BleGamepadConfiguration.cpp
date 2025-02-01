@@ -8,6 +8,8 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _whichSpecialButtons{false, false, false, false, false, false, false, false},
                                                      _whichAxes{true, true, true, true, true, true, true, true},
                                                      _whichSimulationControls{false, false, false, false, false},
+                                                     _includeGyroscope(false),
+                                                     _includeAccelerometer(false),
                                                      _vid(0xe502),
                                                      _pid(0xbbab),
                                                      _guidVersion(0x0110),
@@ -15,14 +17,16 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _axesMax(0x7FFF),
                                                      _simulationMin(0x0000),
                                                      _simulationMax(0x7FFF),
+                                                     _motionMin(0x0000),
+                                                     _motionMax(0x7FFF),
                                                      _modelNumber("1.0.0"),
                                                      _softwareRevision("1.0.0"),
                                                      _serialNumber("0123456789"),
-                                                     _firmwareRevision("0.7.0"),
+                                                     _firmwareRevision("0.7.1"),
                                                      _hardwareRevision("1.0.0"),
                                                      _enableOutputReport(false),
                                                      _outputReportLength(64),
-													 _powerLevel(9)
+													                           _powerLevel(9)
 {
 }
 
@@ -88,6 +92,8 @@ int16_t BleGamepadConfiguration::getAxesMin(){ return _axesMin; }
 int16_t BleGamepadConfiguration::getAxesMax(){ return _axesMax; }
 int16_t BleGamepadConfiguration::getSimulationMin(){ return _simulationMin; }
 int16_t BleGamepadConfiguration::getSimulationMax(){ return _simulationMax; }
+int16_t BleGamepadConfiguration::getMotionMin(){ return _motionMin; }
+int16_t BleGamepadConfiguration::getMotionMax(){ return _motionMax; }
 uint8_t BleGamepadConfiguration::getControllerType() { return _controllerType; }
 uint8_t BleGamepadConfiguration::getHidReportId() { return _hidReportId; }
 uint16_t BleGamepadConfiguration::getButtonCount() { return _buttonCount; }
@@ -117,6 +123,8 @@ bool BleGamepadConfiguration::getIncludeAccelerator() { return _whichSimulationC
 bool BleGamepadConfiguration::getIncludeBrake() { return _whichSimulationControls[BRAKE]; }
 bool BleGamepadConfiguration::getIncludeSteering() { return _whichSimulationControls[STEERING]; }
 const bool *BleGamepadConfiguration::getWhichSimulationControls() const { return _whichSimulationControls; }
+bool BleGamepadConfiguration::getIncludeGyroscope() { return _includeGyroscope; }
+bool BleGamepadConfiguration::getIncludeAccelerometer() { return _includeAccelerometer; }
 char *BleGamepadConfiguration::getModelNumber(){ return _modelNumber; }
 char *BleGamepadConfiguration::getSoftwareRevision(){ return _softwareRevision; }
 char *BleGamepadConfiguration::getSerialNumber(){ return _serialNumber; }
@@ -138,14 +146,14 @@ void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bo
     _whichSpecialButtons[VOLUME_MUTE_BUTTON] = volumeMute;
 }
 
-void BleGamepadConfiguration::setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rxAxis, bool ryAxis, bool rzAxis, bool slider1, bool slider2)
+void BleGamepadConfiguration::setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rzAxis, bool rxAxis, bool ryAxis, bool slider1, bool slider2)
 {
     _whichAxes[X_AXIS] = xAxis;
     _whichAxes[Y_AXIS] = yAxis;
     _whichAxes[Z_AXIS] = zAxis;
+    _whichAxes[RZ_AXIS] = rzAxis;
     _whichAxes[RX_AXIS] = rxAxis;
     _whichAxes[RY_AXIS] = ryAxis;
-    _whichAxes[RZ_AXIS] = rzAxis;
     _whichAxes[SLIDER1] = slider1;
     _whichAxes[SLIDER2] = slider2;
 }
@@ -175,9 +183,9 @@ void BleGamepadConfiguration::setIncludeVolumeMute(bool value) { _whichSpecialBu
 void BleGamepadConfiguration::setIncludeXAxis(bool value) { _whichAxes[X_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeYAxis(bool value) { _whichAxes[Y_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeZAxis(bool value) { _whichAxes[Z_AXIS] = value; }
+void BleGamepadConfiguration::setIncludeRzAxis(bool value) { _whichAxes[RZ_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeRxAxis(bool value) { _whichAxes[RX_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeRyAxis(bool value) { _whichAxes[RY_AXIS] = value; }
-void BleGamepadConfiguration::setIncludeRzAxis(bool value) { _whichAxes[RZ_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeSlider1(bool value) { _whichAxes[SLIDER1] = value; }
 void BleGamepadConfiguration::setIncludeSlider2(bool value) { _whichAxes[SLIDER2] = value; }
 void BleGamepadConfiguration::setIncludeRudder(bool value) { _whichSimulationControls[RUDDER] = value; }
@@ -185,6 +193,8 @@ void BleGamepadConfiguration::setIncludeThrottle(bool value) { _whichSimulationC
 void BleGamepadConfiguration::setIncludeAccelerator(bool value) { _whichSimulationControls[ACCELERATOR] = value; }
 void BleGamepadConfiguration::setIncludeBrake(bool value) { _whichSimulationControls[BRAKE] = value; }
 void BleGamepadConfiguration::setIncludeSteering(bool value) { _whichSimulationControls[STEERING] = value; }
+void BleGamepadConfiguration::setIncludeGyroscope(bool value) { _includeGyroscope = value; }
+void BleGamepadConfiguration::setIncludeAccelerometer(bool value) { _includeAccelerometer = value; }
 void BleGamepadConfiguration::setVid(uint16_t value) { _vid = value; }
 void BleGamepadConfiguration::setPid(uint16_t value) { _pid = value; }
 void BleGamepadConfiguration::setGuidVersion(uint16_t value) { _guidVersion = value; }
@@ -192,6 +202,8 @@ void BleGamepadConfiguration::setAxesMin(int16_t value) { _axesMin = value; }
 void BleGamepadConfiguration::setAxesMax(int16_t value) { _axesMax = value; }
 void BleGamepadConfiguration::setSimulationMin(int16_t value) { _simulationMin = value; }
 void BleGamepadConfiguration::setSimulationMax(int16_t value) { _simulationMax = value; }
+void BleGamepadConfiguration::setMotionMin(int16_t value) { _motionMin = value; }
+void BleGamepadConfiguration::setMotionMax(int16_t value) { _motionMax = value; }
 void BleGamepadConfiguration::setModelNumber(char *value) { _modelNumber = value; }
 void BleGamepadConfiguration::setSoftwareRevision(char *value) { _softwareRevision = value; }
 void BleGamepadConfiguration::setSerialNumber(char *value) { _serialNumber = value; }
