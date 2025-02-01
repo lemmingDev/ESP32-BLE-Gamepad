@@ -10,6 +10,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Button press (128 buttons)
  - [x] Button release (128 buttons)
  - [x] Axes movement (6 axes (configurable resolution up to 16 bit) (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger))
+ - [x] Gyroscope and Accelerometer
  - [x] 2 Sliders (configurable resolution up to 16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
@@ -151,6 +152,7 @@ Android calls the HID report for right trigger `"GAS"` and left trigger `"BRAKE"
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
+- [Composite Gamepad/Mouse/Keyboard and Xinput capable fork of this library](https://github.com/Mystfit/ESP32-BLE-CompositeHID)
 
 or the NimBLE versions at
 
