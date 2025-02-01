@@ -25,7 +25,7 @@
 #include <Arduino.h>
 #include <BleGamepad.h>
 
-#define numOfButtons 10
+#define numOfButtons 28
 #define numOfHatSwitches 0
 #define enableX false
 #define enableY false
@@ -36,11 +36,11 @@
 #define enableSlider1 false
 #define enableSlider2 false
 
-int16_t motionMin = 0x8000;       // -32767 --> Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-int16_t motionCenter = 0x00;
-//int16_t motionMin = 0x00;         // Set motionulation minimum axes to zero.
-//int16_t motionCenter = 0x3FFF;
-int16_t motionMax = 0x7FFF;       // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+int16_t motMin = 0x8000;       // -32767 --> Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
+int16_t motCenter = 0x00;
+//int16_t motMin = 0x00;         // Set motionulation minimum axes to zero.
+//int16_t motCenter = 0x3FFF;
+int16_t motMax = 0x7FFF;       // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
 int16_t stepAmount = 0xFF;        // 255
 uint16_t delayAmount = 25;
 
@@ -54,20 +54,20 @@ void setup()
   // Setup controller with 10 buttons, gyroscope and accelerometer
   BleGamepadConfiguration bleGamepadConfig;
   bleGamepadConfig.setAutoReport(false);
-  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
+  bleGamepadConfig.setControllerType(CONTROLLER_TYPE_MULTI_AXIS); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
   bleGamepadConfig.setButtonCount(numOfButtons);
-  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
+  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRZ, enableRX, enableRY, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
   bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);                                                                      // 1 by default
   bleGamepadConfig.setIncludeGyroscope(true);
   bleGamepadConfig.setIncludeAccelerometer(true);
-  bleGamepadConfig.setMotionMin(motionMin);
-  bleGamepadConfig.setMotionMax(motionMax);
+  bleGamepadConfig.setMotionMin(motMin);
+  bleGamepadConfig.setMotionMax(motMax);
 
   bleGamepad.begin(&bleGamepadConfig);
   // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
 
   // Set gyroscope and accelerometer to center (first 3 are gyroscope, last 3 are accelerometer)
-  bleGamepad.setMotionControls(motionCenter, motionCenter, motionCenter, motionCenter, motionCenter, motionCenter);
+  bleGamepad.setMotionControls(motCenter, motCenter, motCenter, motCenter, motCenter, motCenter);
 
   bleGamepad.sendReport();
 }
@@ -76,21 +76,21 @@ void loop()
 {
   if (bleGamepad.isConnected())
   {
-    // BUTTONS
-    Serial.println("Press all buttons one by one");
-    for (int i = 1; i <= numOfButtons; i += 1)
-    {
-      bleGamepad.press(i);
-      bleGamepad.sendReport();
-      delay(100);
-      bleGamepad.release(i);
-      bleGamepad.sendReport();
-      delay(25);
-    }
+    //    // BUTTONS
+    //    Serial.println("Press all buttons one by one");
+    //    for (int i = 1; i <= numOfButtons; i += 1)
+    //    {
+    //      bleGamepad.press(i);
+    //      bleGamepad.sendReport();
+    //      delay(100);
+    //      bleGamepad.release(i);
+    //      bleGamepad.sendReport();
+    //      delay(25);
+    //    }
 
     // GYROSCOPE
     Serial.println("Move all 3 gyroscope axes from center to min");
-    for (int i = motionCenter; i > motionMin; i -= stepAmount)
+    for (int i = motCenter; i > motMin; i -= stepAmount)
     {
       bleGamepad.setGyroscope(i, i, i);
       bleGamepad.sendReport();
@@ -98,7 +98,7 @@ void loop()
     }
 
     Serial.println("Move all 3 gyroscope axes from min to max");
-    for (int i = motionMin; i < motionMax; i += stepAmount)
+    for (int i = motMin; i < motMax; i += stepAmount)
     {
       bleGamepad.setGyroscope(i, i, i);
       bleGamepad.sendReport();
@@ -106,18 +106,18 @@ void loop()
     }
 
     Serial.println("Move all 3 gyroscope axes from max to center");
-    for (int i = motionMax; i > motionCenter; i -= stepAmount)
+    for (int i = motMax; i > motCenter; i -= stepAmount)
     {
       bleGamepad.setGyroscope(i, i, i);
       bleGamepad.sendReport();
       delay(delayAmount);
     }
-    bleGamepad.setGyroscope(motionCenter);
+    bleGamepad.setGyroscope(motCenter);
     bleGamepad.sendReport();
 
     // ACCELEROMETER
     Serial.println("Move all 3 accelerometer axes from center to min");
-    for (int i = motionCenter; i > motionMin; i -= stepAmount)
+    for (int i = motCenter; i > motMin; i -= stepAmount)
     {
       bleGamepad.setAccelerometer(i, i, i);
       bleGamepad.sendReport();
@@ -125,7 +125,7 @@ void loop()
     }
 
     Serial.println("Move all 3 accelerometer axes from min to max");
-    for (int i = motionMin; i < motionMax; i += stepAmount)
+    for (int i = motMin; i < motMax; i += stepAmount)
     {
       bleGamepad.setAccelerometer(i, i, i);
       bleGamepad.sendReport();
@@ -133,13 +133,13 @@ void loop()
     }
 
     Serial.println("Move all 3 accelerometer axes from max to center");
-    for (int i = motionMax; i > motionCenter; i -= stepAmount)
+    for (int i = motMax; i > motCenter; i -= stepAmount)
     {
       bleGamepad.setAccelerometer(i, i, i);
       bleGamepad.sendReport();
       delay(delayAmount);
     }
-    bleGamepad.setAccelerometer(motionCenter);
+    bleGamepad.setAccelerometer(motCenter);
     bleGamepad.sendReport();
   }
 }
