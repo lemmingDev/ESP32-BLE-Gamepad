@@ -210,6 +210,8 @@ private:
     bool _whichSpecialButtons[POSSIBLESPECIALBUTTONS];
     bool _whichAxes[POSSIBLEAXES];
     bool _whichSimulationControls[POSSIBLESIMULATIONCONTROLS];
+    bool _includeGyroscope;
+    bool _includeAccelerometer;
     uint16_t _vid;
     uint16_t _pid;
     uint16_t _guidVersion;
@@ -227,8 +229,7 @@ private:
     bool _enableOutputReport;
     uint16_t _outputReportLength;
 	  int8_t _powerLevel;
-    bool _includeGyroscope;
-    bool _includeAccelerometer; 
+ 
 
 public:
     BleGamepadConfiguration();
@@ -267,6 +268,8 @@ public:
     bool getIncludeBrake();
     bool getIncludeSteering();
     const bool *getWhichSimulationControls() const;
+    bool getIncludeAccelerometer();
+    bool getIncludeGyroscope();
     uint16_t getVid();
     uint16_t getPid();
     uint16_t getGuidVersion();
@@ -284,8 +287,6 @@ public:
     bool getEnableOutputReport();
     uint16_t getOutputReportLength();
 	  int8_t getTXPowerLevel();
-    bool getIncludeAccelerometer();
-    bool getIncludeGyroscope();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -316,6 +317,8 @@ public:
     void setIncludeBrake(bool value);
     void setIncludeSteering(bool value);
     void setWhichSimulationControls(bool rudder, bool throttle, bool accelerator, bool brake, bool steering);
+    void setIncludeGyroscope(bool value);
+    void setIncludeAccelerometer(bool value);
     void setVid(uint16_t value);
     void setPid(uint16_t value);
     void setGuidVersion(uint16_t value);
@@ -332,9 +335,7 @@ public:
     void setHardwareRevision(char *value);
     void setEnableOutputReport(bool value);
     void setOutputReportLength(uint16_t value);
-	  void setTXPowerLevel(int8_t value);
-    void setIncludeGyroscope(bool value);
-    void setIncludeAccelerometer(bool value);     
+	  void setTXPowerLevel(int8_t value);     
 };
 
 #endif
