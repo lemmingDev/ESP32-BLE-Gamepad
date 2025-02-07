@@ -310,7 +310,7 @@ public:
     void setIncludeRzAxis(bool value);
     void setIncludeSlider1(bool value);
     void setIncludeSlider2(bool value);
-    void setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rzAxis, bool rxAxis, bool ryAxis, bool slider1, bool slider2);
+    void setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rxAxis, bool ryAxis, bool rzAxis, bool slider1, bool slider2);
     void setIncludeRudder(bool value);
     void setIncludeThrottle(bool value);
     void setIncludeAccelerator(bool value);

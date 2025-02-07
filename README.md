@@ -44,6 +44,9 @@ This was due to the fact that non-Windows operating systems and some online web-
 
 This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.2.1 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.2.1
 
+setAxes accepts them in the order (x, y, z, rx, ry, rz)
+setHIDAxes accepts them in the order (x, y, z, rz, rx, ry)
+
 Please see updated examples
 
 ## Installation
@@ -71,6 +74,9 @@ Please see updated examples
  *
  * bleGamepad.setAxes sets all axes at once. There are a few:
  * (x axis, y axis, z axis, rx axis, ry axis, rz axis, slider 1, slider 2)
+ *
+ * Alternatively, bleGamepad.setHIDAxes sets all axes at once. in the order of:
+ * (x axis, y axis, z axis, rz axis, ry axis, rz axis, slider 1, slider 2)  <- order HID report is actually given in
  *
  * Library can also be configured to support up to 5 simulation controls
  * (rudder, throttle, accelerator, brake, steering), but they are not enabled by default.
@@ -101,7 +107,8 @@ void loop()
         bleGamepad.press(BUTTON_5);
         bleGamepad.press(BUTTON_16);
         bleGamepad.pressStart();
-        bleGamepad.setAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);
+        bleGamepad.setAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);       //(X, Y, Z, RX, RY, RZ)
+        //bleGamepad.setHIDAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);  //(X, Y, Z, RZ, RX, RY)
         bleGamepad.setHat1(HAT_DOWN_RIGHT);
         // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
         delay(500);
@@ -110,10 +117,12 @@ void loop()
         bleGamepad.release(BUTTON_5);
         bleGamepad.releaseStart();
         bleGamepad.setHat1(HAT_CENTERED);
-        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);
+        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);           //(X, Y, Z, RX, RY, RZ)
+        //bleGamepad.setHIDAxes(0, 0, 0, 0, 0, 0, 0, 0);      //(X, Y, Z, RZ, RX, RY)
         delay(500);
     }
 }
+
 ```
 By default, reports are sent on every button press/release or axis/slider/hat/simulation movement, however this can be disabled, and then you manually call sendReport on the gamepad instance as shown in the IndividualAxes.ino example.
 
@@ -148,6 +157,8 @@ Ensure you have Direct X 9 installed
 
 Gamepads desgined for Android use a different button mapping. This effects analog triggers, where the standard left and right trigger axes are not detected.
 Android calls the HID report for right trigger `"GAS"` and left trigger `"BRAKE"`. Enabling the `"Accelerator"` and `"Brake"` simulation controls allows them to be used instead of right and left trigger.
+
+Right thumbstick on Windows is usually z, rz, whereas on Android, this may be z, rx, so you may want to set them separately with setZ and setRX, instead of using setRightThumb(z, rz), or use setRightThumbAndroid(z, rx)
 
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)

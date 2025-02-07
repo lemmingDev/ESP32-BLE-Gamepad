@@ -20,9 +20,9 @@ class BleGamepad
     int16_t _x;
     int16_t _y;
     int16_t _z;
-    int16_t _rZ;
     int16_t _rX;
     int16_t _rY;
+    int16_t _rZ;
     int16_t _slider1;
     int16_t _slider2;
     int16_t _rudder;
@@ -62,7 +62,8 @@ class BleGamepad
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
     void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
     void end(void);
-    void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0);
+    void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rX = 0, int16_t rY = 0, int16_t rZ = 0, int16_t slider1 = 0, int16_t slider2 = 0);
+    void setHIDAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0);
     void press(uint8_t b = BUTTON_1);   // press BUTTON_1 by default
     void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
     void pressSpecialButton(uint8_t b);
@@ -85,6 +86,7 @@ class BleGamepad
     void releaseVolumeMute();
     void setLeftThumb(int16_t x = 0, int16_t y = 0);
     void setRightThumb(int16_t z = 0, int16_t rZ = 0);
+    void setRightThumbAndroid(int16_t z = 0, int16_t rX = 0);
     void setLeftTrigger(int16_t rX = 0);
     void setRightTrigger(int16_t rY = 0);
     void setTriggers(int16_t rX = 0, int16_t rY = 0);

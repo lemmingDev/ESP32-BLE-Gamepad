@@ -22,7 +22,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _modelNumber("1.0.0"),
                                                      _softwareRevision("1.0.0"),
                                                      _serialNumber("0123456789"),
-                                                     _firmwareRevision("0.7.1"),
+                                                     _firmwareRevision("0.7.2"),
                                                      _hardwareRevision("1.0.0"),
                                                      _enableOutputReport(false),
                                                      _outputReportLength(64),
@@ -146,7 +146,7 @@ void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bo
     _whichSpecialButtons[VOLUME_MUTE_BUTTON] = volumeMute;
 }
 
-void BleGamepadConfiguration::setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rzAxis, bool rxAxis, bool ryAxis, bool slider1, bool slider2)
+void BleGamepadConfiguration::setWhichAxes(bool xAxis, bool yAxis, bool zAxis, bool rxAxis, bool ryAxis, bool rzAxis, bool slider1, bool slider2)
 {
     _whichAxes[X_AXIS] = xAxis;
     _whichAxes[Y_AXIS] = yAxis;

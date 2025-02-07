@@ -57,9 +57,9 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _x(0),
   _y(0),
   _z(0),
-  _rZ(0),
   _rX(0),
   _rY(0),
+  _rZ(0),
   _slider1(0),
   _slider2(0),
   _rudder(0),
@@ -771,7 +771,57 @@ void BleGamepad::end(void)
 {
 }
 
-void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2)
+void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rX, int16_t rY, int16_t rZ, int16_t slider1, int16_t slider2)
+{
+  if (x == -32768)
+  {
+    x = -32767;
+  }
+  if (y == -32768)
+  {
+    y = -32767;
+  }
+  if (z == -32768)
+  {
+    z = -32767;
+  }
+  if (rZ == -32768)
+  {
+    rZ = -32767;
+  }
+  if (rX == -32768)
+  {
+    rX = -32767;
+  }
+  if (rY == -32768)
+  {
+    rY = -32767;
+  }
+  if (slider1 == -32768)
+  {
+    slider1 = -32767;
+  }
+  if (slider2 == -32768)
+  {
+    slider2 = -32767;
+  }
+
+  _x = x;
+  _y = y;
+  _z = z;
+  _rZ = rZ;
+  _rX = rX;
+  _rY = rY;
+  _slider1 = slider1;
+  _slider2 = slider2;
+
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setHIDAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2)
 {
   if (x == -32768)
   {
@@ -1226,6 +1276,26 @@ void BleGamepad::setRightThumb(int16_t z, int16_t rZ)
 
   _z = z;
   _rZ = rZ;
+
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setRightThumbAndroid(int16_t z, int16_t rX)
+{
+  if (z == -32768)
+  {
+    z = -32767;
+  }
+  if (rX == -32768)
+  {
+    rX = -32767;
+  }
+
+  _z = z;
+  _rX = rX;
 
   if (configuration.getAutoReport())
   {
