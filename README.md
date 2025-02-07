@@ -9,7 +9,7 @@ It would be great however if any improvements are fed back into this version.
 
  - [x] Button press (128 buttons)
  - [x] Button release (128 buttons)
- - [x] Axes movement (6 axes (configurable resolution up to 16 bit) (x, y, z, rZ, rX, rY) --> (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger))
+ - [x] Axes movement (6 axes (configurable resolution up to 16 bit) (x, y, z, rX, rY, rZ) --> In Windows usually (Left Thumb X, Left Thumb Y, Right Thumb X, Left Trigger, Right Trigger, Right Thumb Y))
  - [x] Gyroscope and Accelerometer
  - [x] 2 Sliders (configurable resolution up to 16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
