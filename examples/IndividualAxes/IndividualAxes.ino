@@ -10,9 +10,12 @@
  * DPAD_CENTERED, DPAD_UP, DPAD_UP_RIGHT, DPAD_RIGHT, DPAD_DOWN_RIGHT, DPAD_DOWN, DPAD_DOWN_LEFT, DPAD_LEFT, DPAD_UP_LEFT
  *
  * bleGamepad.setAxes takes the following int16_t parameters for the Left/Right Thumb X/Y, Left/Right Triggers plus slider1 and slider2:
- * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Slider 1, Slider 2);
+ * (Left Thumb X, Left Thumb Y, Right Thumb X, Right Thumb Y, Left Trigger, Right Trigger, Slider 1, Slider 2) (x, y, z, rx, ry, rz)
+ *
+ * bleGamepad.setHIDAxes instead takes them in a slightly different order (x, y, z, rz, rx, ry)
  *
  * bleGamepad.setLeftThumb (or setRightThumb) takes 2 int16_t parameters for x and y axes (or z and rZ axes)
+ * bleGamepad.setRightThumbAndroid takes 2 int16_t parameters for z and rx axes
  *
  * bleGamepad.setLeftTrigger (or setRightTrigger) takes 1 int16_t parameter for rX axis (or rY axis)
  *

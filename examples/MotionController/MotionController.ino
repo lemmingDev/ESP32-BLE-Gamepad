@@ -56,7 +56,7 @@ void setup()
   bleGamepadConfig.setAutoReport(false);
   bleGamepadConfig.setControllerType(CONTROLLER_TYPE_MULTI_AXIS); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
   bleGamepadConfig.setButtonCount(numOfButtons);
-  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRZ, enableRX, enableRY, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
+  bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
   bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);                                                                      // 1 by default
   bleGamepadConfig.setIncludeGyroscope(true);
   bleGamepadConfig.setIncludeAccelerometer(true);

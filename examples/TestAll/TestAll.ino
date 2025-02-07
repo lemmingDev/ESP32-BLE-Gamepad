@@ -72,7 +72,8 @@ void loop()
         Serial.println("Move all axis simultaneously from min to max");
         for (int i = bleGamepadConfig.getAxesMin(); i < bleGamepadConfig.getAxesMax(); i += (bleGamepadConfig.getAxesMax() / 256) + 1)
         {
-            bleGamepad.setAxes(i, i, i, i, i, i);
+            bleGamepad.setAxes(i, i, i, i, i, i);       // (x, y, z, rx, ry, rz)
+            //bleGamepad.setHIDAxes(i, i, i, i, i, i);  // (x, y, z, rz, rx, ry)
             bleGamepad.sendReport();
             delay(10);
         }

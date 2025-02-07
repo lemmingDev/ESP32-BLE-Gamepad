@@ -10,9 +10,9 @@
 #define enableX true
 #define enableY true
 #define enableZ false
-#define enableRZ false
 #define enableRX false
 #define enableRY false
+#define enableRZ false
 #define enableSlider1 false
 #define enableSlider2 false
 #define enableRudder true
@@ -35,7 +35,7 @@ void setup()
     bleGamepadConfig.setButtonCount(numOfButtons);
     bleGamepadConfig.setIncludeStart(true);
     bleGamepadConfig.setIncludeSelect(true);
-    bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRZ, enableRX, enableRY, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
+    bleGamepadConfig.setWhichAxes(enableX, enableY, enableZ, enableRX, enableRY, enableRZ, enableSlider1, enableSlider2);      // Can also be done per-axis individually. All are true by default
     bleGamepadConfig.setWhichSimulationControls(enableRudder, enableThrottle, enableAccelerator, enableBrake, enableSteering); // Can also be done per-control individually. All are false by default
     bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);                                                                      // 1 by default
     // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default

@@ -44,7 +44,7 @@ void setup()
   bleGamepad.begin(&bleGamepadConfig); // Begin gamepad with configuration options
   
   // Change power level to 6
-  bleGamepad.setTXPowerLevel(6);
+  bleGamepad.setTXPowerLevel(6);    // The default of 9 (strongest transmit power level) will be used if not set
 
 }
 

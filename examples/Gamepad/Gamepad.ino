@@ -14,6 +14,9 @@
  * bleGamepad.setAxes sets all axes at once. There are a few:
  * (x axis, y axis, z axis, rx axis, ry axis, rz axis, slider 1, slider 2)
  *
+ * Alternatively, bleGamepad.setHIDAxes sets all axes at once. in the order of:
+ * (x axis, y axis, z axis, rZ axis, rX axis, rY axis, slider 1, slider 2)  <- order HID report is actually given in
+ *
  * Library can also be configured to support up to 5 simulation controls
  * (rudder, throttle, accelerator, brake, steering), but they are not enabled by default.
  *
@@ -43,7 +46,8 @@ void loop()
         bleGamepad.press(BUTTON_5);
         bleGamepad.press(BUTTON_16);
         bleGamepad.pressStart();
-        bleGamepad.setAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);
+        bleGamepad.setAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);       //(X, Y, Z, RX, RY, RZ)
+        //bleGamepad.setHIDAxes(32767, 32767, 32767, 32767, 32767, 32767, 32767, 32767);  //(X, Y, Z, RZ, RX, RY)
         bleGamepad.setHat1(HAT_DOWN_RIGHT);
         // All axes, sliders, hats etc can also be set independently. See the IndividualAxes.ino example
         delay(500);
@@ -52,7 +56,8 @@ void loop()
         bleGamepad.release(BUTTON_5);
         bleGamepad.releaseStart();
         bleGamepad.setHat1(HAT_CENTERED);
-        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);
+        bleGamepad.setAxes(0, 0, 0, 0, 0, 0, 0, 0);           //(X, Y, Z, RX, RY, RZ)
+        //bleGamepad.setHIDAxes(0, 0, 0, 0, 0, 0, 0, 0);      //(X, Y, Z, RZ, RX, RY)
         delay(500);
     }
 }
