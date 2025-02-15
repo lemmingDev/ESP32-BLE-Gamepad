@@ -11,6 +11,8 @@ It would be great however if any improvements are fed back into this version.
  - [x] Button release (128 buttons)
  - [x] Axes movement (6 axes (configurable resolution up to 16 bit) (x, y, z, rX, rY, rZ) --> In Windows usually (Left Thumb X, Left Thumb Y, Right Thumb X, Left Trigger, Right Trigger, Right Thumb Y))
  - [x] Gyroscope and Accelerometer
+ - [x] Set battery percentage
+ - [x] Set battery power state information using UUID 0x2A1A. Use nRF Connect on Android for example to see this information
  - [x] 2 Sliders (configurable resolution up to 16 bit) (Slider 1 and Slider 2)
  - [x] 4 point of view hats (ie. d-pad plus 3 other hat switches)
  - [x] Simulation controls (rudder, throttle, accelerator, brake, steering)
@@ -44,7 +46,7 @@ This was due to the fact that non-Windows operating systems and some online web-
 
 This version endeavors to be compatible with the latest released version of NimBLE-Arduino through the Arduino Library Manager; currently version 2.2.1 at the time of this writing; --> https://github.com/h2zero/NimBLE-Arduino/releases/tag/2.2.1
 
-setAxes accepts them in the order (x, y, z, rx, ry, rz)
+setAxes accepts axes in the order (x, y, z, rx, ry, rz)
 setHIDAxes accepts them in the order (x, y, z, rz, rx, ry)
 
 Please see updated examples

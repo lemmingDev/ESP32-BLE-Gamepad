@@ -79,8 +79,13 @@ setIncludeGyroscope	KEYWORD2
 setIncludeAccelerometer	KEYWORD2
 setWhichSimulationControls	KEYWORD2
 resetButtons	KEYWORD2
-setBatteryLevel	KEYWORD2
-pressSpecialButton	KEYWORD2
+setBatteryLevel KEYWORD2
+setPowerStateAll  KEYWORD2
+setBatteryPowerInformation KEYWORD2
+setDischargingState KEYWORD2
+setChargingState  KEYWORD2
+setPowerLevel KEYWORD2
+pressSpecialButton  KEYWORD2
 releaseSpecialButton	KEYWORD2
 pressStart	KEYWORD2
 releaseStart	KEYWORD2

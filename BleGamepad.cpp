@@ -20,13 +20,26 @@
 static const char *LOG_TAG = "BLEGamepad";
 #endif
 
-#define SERVICE_UUID_DEVICE_INFORMATION        "180A"      // Service - Device information
+#define SERVICE_UUID_DEVICE_INFORMATION         "180A"      // Service - Device information
 
-#define CHARACTERISTIC_UUID_MODEL_NUMBER       "2A24"      // Characteristic - Model Number String - 0x2A24
-#define CHARACTERISTIC_UUID_SOFTWARE_REVISION  "2A28"      // Characteristic - Software Revision String - 0x2A28
-#define CHARACTERISTIC_UUID_SERIAL_NUMBER      "2A25"      // Characteristic - Serial Number String - 0x2A25
-#define CHARACTERISTIC_UUID_FIRMWARE_REVISION  "2A26"      // Characteristic - Firmware Revision String - 0x2A26
-#define CHARACTERISTIC_UUID_HARDWARE_REVISION  "2A27"      // Characteristic - Hardware Revision String - 0x2A27
+#define CHARACTERISTIC_UUID_MODEL_NUMBER        "2A24"      // Characteristic - Model Number String - 0x2A24
+#define CHARACTERISTIC_UUID_SOFTWARE_REVISION   "2A28"      // Characteristic - Software Revision String - 0x2A28
+#define CHARACTERISTIC_UUID_SERIAL_NUMBER       "2A25"      // Characteristic - Serial Number String - 0x2A25
+#define CHARACTERISTIC_UUID_FIRMWARE_REVISION   "2A26"      // Characteristic - Firmware Revision String - 0x2A26
+#define CHARACTERISTIC_UUID_HARDWARE_REVISION   "2A27"      // Characteristic - Hardware Revision String - 0x2A27
+#define CHARACTERISTIC_UUID_BATTERY_POWER_STATE "2A1A"      // Characteristic - Battery Power State - 0x2A1A
+
+#define POWER_STATE_UNKNOWN         0 // B00
+#define POWER_STATE_NOT_SUPPORTED   1 // B01
+#define POWER_STATE_NOT_PRESENT     2 // B10
+#define POWER_STATE_NOT_DISCHARGING 2 // B10
+#define POWER_STATE_NOT_CHARGING    2 // B10
+#define POWER_STATE_GOOD            2 // B10
+#define POWER_STATE_PRESENT         3 // B11
+#define POWER_STATE_DISCHARGING     3 // B11
+#define POWER_STATE_CHARGING        3 // B11
+#define POWER_STATE_CRITICAL        3 // B11
+
 
 
 uint8_t tempHidReportDescriptor[150];
@@ -77,7 +90,12 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _aX(0),
   _aY(0),
   _aZ(0),
-  hid(0)
+  _batteryPowerInformation(0),
+  _dischargingState(0),
+  _chargingState(0),
+  _powerLevel(0),
+  hid(0),
+  pCharacteristic_Power_State(0)
 {
   this->resetButtons();
   this->deviceName = deviceName;
@@ -1906,14 +1924,65 @@ void BleGamepad::setMotionControls(int16_t gX, int16_t gY, int16_t gZ, int16_t a
     sendReport();
   }
 }
+    
+void BleGamepad::setPowerStateAll(uint8_t batteryPowerInformation, uint8_t dischargingState, uint8_t chargingState, uint8_t powerLevel)
+{
+    uint8_t powerStateBits = B00000000;
+    
+    _batteryPowerInformation = batteryPowerInformation;
+    _dischargingState = dischargingState;
+    _chargingState = chargingState;
+    _powerLevel = powerLevel;
 
+    // HID Battery Power State Bits:
+    // Bits 0 and 1: Battery Power Information : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Not Present,               3(B11) = Present
+    // Bits 2 and 3: Discharging State         : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Not Discharging,           3(B11) = Discharging
+    // Bits 4 and 5: Charging State            : 0(B00) = Unknown, 1(B01) = Not Chargeable, 2(B10) = Not Charging (Chargeable), 3(B11) = Charging (Chargeable)
+    // Bits 6 and 7: Power Level               : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Good Level,                3(B11) = Critically Low Level
+
+    powerStateBits |= (_batteryPowerInformation << 0);  // Populate first 2 bits with data
+    powerStateBits |= (_dischargingState        << 2);  // Populate second 2 bits with data
+    powerStateBits |= (_chargingState           << 4);  // Populate third 2 bits with data
+    powerStateBits |= (_powerLevel              << 6);  // Populate last 2 bits with data
+
+    if (this->pCharacteristic_Power_State) 
+    {
+      this->pCharacteristic_Power_State->setValue(&powerStateBits, 1);
+      this->pCharacteristic_Power_State->notify();
+    }
+}
+
+
+void BleGamepad::setBatteryPowerInformation(uint8_t batteryPowerInformation)
+{
+  _batteryPowerInformation = batteryPowerInformation;
+  setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
+}
+
+void BleGamepad::setDischargingState(uint8_t dischargingState)
+{
+  _dischargingState = dischargingState;
+  setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
+}
+
+void BleGamepad::setChargingState(uint8_t chargingState)
+{
+  _chargingState = chargingState;
+  setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
+}
+
+void BleGamepad::setPowerLevel(uint8_t powerLevel)
+{
+  _powerLevel = powerLevel;
+  setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
+}
 
 void BleGamepad::taskServer(void *pvParameter)
 {
   BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
 
   NimBLEDevice::init(BleGamepadInstance->deviceName);
-  NimBLEDevice::setPower(powerLevel); // Set transmit power for advertising (Range: -127 to +9 dBm)
+  NimBLEDevice::setPower(powerLevel); // Set transmit power for advertising (Range: -12 to +9 dBm)
   NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
   pServer->advertiseOnDisconnect(true);
@@ -1964,6 +2033,13 @@ void BleGamepad::taskServer(void *pvParameter)
         NIMBLE_PROPERTY::READ
       );
   pCharacteristic_Hardware_Revision->setValue(hardwareRevision);
+  
+  NimBLECharacteristic* pCharacteristic_Power_State = BleGamepadInstance->hid->getBatteryService()->createCharacteristic(
+        CHARACTERISTIC_UUID_BATTERY_POWER_STATE,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+      );
+  BleGamepadInstance->pCharacteristic_Power_State = pCharacteristic_Power_State; // Assign the created characteristic
+  BleGamepadInstance->pCharacteristic_Power_State->setValue(B00000000); // Now it's safe to call setValue <- Set all to unknown by default
 
   BleGamepadInstance->hid->setPnp(0x01, vid, pid, guidVersion);
   BleGamepadInstance->hid->setHidInfo(0x00, 0x01);
@@ -1975,12 +2051,14 @@ void BleGamepad::taskServer(void *pvParameter)
   uint8_t *customHidReportDescriptor = new uint8_t[hidReportDescriptorSize];
   memcpy(customHidReportDescriptor, tempHidReportDescriptor, hidReportDescriptorSize);
 
-  // Testing
+  // Testing - Ask ChatGPT to convert it into a commented HID descriptor
+  //Serial.println("------- HID DESCRIPTOR START -------");
   //for (int i = 0; i < hidReportDescriptorSize; i++)
   //{
   //    Serial.printf("%02x", customHidReportDescriptor[i]);
   //    Serial.println();
   //}
+  //Serial.println("------- HID DESCRIPTOR END -------");
   
   BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, hidReportDescriptorSize);
   BleGamepadInstance->hid->startServices();

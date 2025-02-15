@@ -40,6 +40,10 @@ class BleGamepad
     int16_t _aX;
     int16_t _aY;
     int16_t _aZ;
+    uint8_t _batteryPowerInformation;
+    uint8_t _dischargingState;
+    uint8_t _chargingState;
+    uint8_t _powerLevel;
 
     //BleGamepadConfiguration configuration;
 
@@ -50,6 +54,7 @@ class BleGamepad
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
     NimBLECharacteristic *outputGamepad;
+    NimBLECharacteristic *pCharacteristic_Power_State;
 
     uint8_t *outputBackupBuffer;
 
@@ -117,7 +122,12 @@ class BleGamepad
     bool isConnected(void);
     void resetButtons();
     void setBatteryLevel(uint8_t level);
-	  void setTXPowerLevel(int8_t level = 9);
+    void setPowerStateAll(uint8_t batteryPowerInformation, uint8_t dischargingState, uint8_t chargingState, uint8_t powerLevel);
+    void setBatteryPowerInformation(uint8_t batteryPowerInformation);
+    void setDischargingState(uint8_t dischargingState);
+    void setChargingState(uint8_t chargingState);
+    void setPowerLevel(uint8_t powerLevel);
+    void setTXPowerLevel(int8_t level = 9);
     int8_t getTXPowerLevel();
     uint8_t batteryLevel;
     std::string deviceManufacturer;
