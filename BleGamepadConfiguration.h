@@ -199,16 +199,16 @@
 #define VOLUME_DEC_BUTTON 6
 #define VOLUME_MUTE_BUTTON 7
 
-#define POWER_STATE_UNKNOWN         0 // B00
-#define POWER_STATE_NOT_SUPPORTED   1 // B01
-#define POWER_STATE_NOT_PRESENT     2 // B10
-#define POWER_STATE_NOT_DISCHARGING 2 // B10
-#define POWER_STATE_NOT_CHARGING    2 // B10
-#define POWER_STATE_GOOD            2 // B10
-#define POWER_STATE_PRESENT         3 // B11
-#define POWER_STATE_DISCHARGING     3 // B11
-#define POWER_STATE_CHARGING        3 // B11
-#define POWER_STATE_CRITICAL        3 // B11
+#define POWER_STATE_UNKNOWN         0 // 0b00
+#define POWER_STATE_NOT_SUPPORTED   1 // 0b01
+#define POWER_STATE_NOT_PRESENT     2 // 0b10
+#define POWER_STATE_NOT_DISCHARGING 2 // 0b10
+#define POWER_STATE_NOT_CHARGING    2 // 0b10
+#define POWER_STATE_GOOD            2 // 0b10
+#define POWER_STATE_PRESENT         3 // 0b11
+#define POWER_STATE_DISCHARGING     3 // 0b11
+#define POWER_STATE_CHARGING        3 // 0b11
+#define POWER_STATE_CRITICAL        3 // 0b11
 
 class BleGamepadConfiguration
 {

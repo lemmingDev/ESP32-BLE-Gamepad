@@ -1927,7 +1927,7 @@ void BleGamepad::setMotionControls(int16_t gX, int16_t gY, int16_t gZ, int16_t a
     
 void BleGamepad::setPowerStateAll(uint8_t batteryPowerInformation, uint8_t dischargingState, uint8_t chargingState, uint8_t powerLevel)
 {
-    uint8_t powerStateBits = B00000000;
+    uint8_t powerStateBits = 0b00000000;
     
     _batteryPowerInformation = batteryPowerInformation;
     _dischargingState = dischargingState;
@@ -1935,10 +1935,10 @@ void BleGamepad::setPowerStateAll(uint8_t batteryPowerInformation, uint8_t disch
     _powerLevel = powerLevel;
 
     // HID Battery Power State Bits:
-    // Bits 0 and 1: Battery Power Information : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Not Present,               3(B11) = Present
-    // Bits 2 and 3: Discharging State         : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Not Discharging,           3(B11) = Discharging
-    // Bits 4 and 5: Charging State            : 0(B00) = Unknown, 1(B01) = Not Chargeable, 2(B10) = Not Charging (Chargeable), 3(B11) = Charging (Chargeable)
-    // Bits 6 and 7: Power Level               : 0(B00) = Unknown, 1(B01) = Not Supported,  2(B10) = Good Level,                3(B11) = Critically Low Level
+    // Bits 0 and 1: Battery Power Information : 0(0b00) = Unknown, 1(0b01) = Not Supported,  2(0b10) = Not Present,               3(0b11) = Present
+    // Bits 2 and 3: Discharging State         : 0(0b00) = Unknown, 1(0b01) = Not Supported,  2(0b10) = Not Discharging,           3(0b11) = Discharging
+    // Bits 4 and 5: Charging State            : 0(0b00) = Unknown, 1(0b01) = Not Chargeable, 2(0b10) = Not Charging (Chargeable), 3(0b11) = Charging (Chargeable)
+    // Bits 6 and 7: Power Level               : 0(0b00) = Unknown, 1(0b01) = Not Supported,  2(0b10) = Good Level,                3(0b11) = Critically Low Level
 
     powerStateBits |= (_batteryPowerInformation << 0);  // Populate first 2 bits with data
     powerStateBits |= (_dischargingState        << 2);  // Populate second 2 bits with data
@@ -2039,7 +2039,7 @@ void BleGamepad::taskServer(void *pvParameter)
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
       );
   BleGamepadInstance->pCharacteristic_Power_State = pCharacteristic_Power_State; // Assign the created characteristic
-  BleGamepadInstance->pCharacteristic_Power_State->setValue(B00000000); // Now it's safe to call setValue <- Set all to unknown by default
+  BleGamepadInstance->pCharacteristic_Power_State->setValue(0b00000000); // Now it's safe to call setValue <- Set all to unknown by default
 
   BleGamepadInstance->hid->setPnp(0x01, vid, pid, guidVersion);
   BleGamepadInstance->hid->setHidInfo(0x00, 0x01);
