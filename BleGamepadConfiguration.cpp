@@ -26,7 +26,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _hardwareRevision("1.0.0"),
                                                      _enableOutputReport(false),
                                                      _outputReportLength(64),
-													                           _powerLevel(9)
+													                           _transmitPowerLevel(9)
 {
 }
 
@@ -132,7 +132,7 @@ char *BleGamepadConfiguration::getFirmwareRevision(){ return _firmwareRevision; 
 char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevision; }
 bool BleGamepadConfiguration::getEnableOutputReport(){ return _enableOutputReport; }
 uint16_t BleGamepadConfiguration::getOutputReportLength(){ return _outputReportLength; }
-int8_t BleGamepadConfiguration::getTXPowerLevel(){ return _powerLevel; }	// Returns the power level that was set as the server started
+int8_t BleGamepadConfiguration::getTXPowerLevel(){ return _transmitPowerLevel; }	// Returns the power level that was set as the server started
 
 void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute)
 {
@@ -211,4 +211,4 @@ void BleGamepadConfiguration::setFirmwareRevision(char *value) { _firmwareRevisi
 void BleGamepadConfiguration::setHardwareRevision(char *value) { _hardwareRevision = value; }
 void BleGamepadConfiguration::setEnableOutputReport(bool value) { _enableOutputReport = value; }
 void BleGamepadConfiguration::setOutputReportLength(uint16_t value) { _outputReportLength = value; }
-void BleGamepadConfiguration::setTXPowerLevel(int8_t value) { _powerLevel = value; }
+void BleGamepadConfiguration::setTXPowerLevel(int8_t value) { _transmitPowerLevel = value; }

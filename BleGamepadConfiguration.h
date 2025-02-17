@@ -239,7 +239,7 @@ private:
     char *_hardwareRevision;
     bool _enableOutputReport;
     uint16_t _outputReportLength;
-	  int8_t _powerLevel;
+	  int8_t _transmitPowerLevel;
  
 
 public:

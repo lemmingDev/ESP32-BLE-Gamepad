@@ -7,7 +7,7 @@
    If you just need the MAC address, you can instead call bleGamepad.getAddress() which returns type NimBLEAddress
    or bleGamepad.getStringAddress() to get it directly as a string
 
-   This sketch also chows how to access the information used to configure the BLE device such as vid, pid, model number and software revision etc
+   This sketch also shows how to access the information used to configure the BLE device such as vid, pid, model number and software revision etc
    See CharacteristicsConfiguration.ino example to see how to set them
 */
 
@@ -69,7 +69,7 @@ void loop()
       Serial.println(bleGamepad.configuration.getVid(), HEX);
       Serial.println(bleGamepad.configuration.getPid(), HEX);
       Serial.println(bleGamepad.configuration.getGuidVersion());
-	  Serial.println(bleGamepad.configuration.getTXPowerLevel());
+      Serial.println(bleGamepad.configuration.getTXPowerLevel());
       Serial.println();
       delay(1000);
     }

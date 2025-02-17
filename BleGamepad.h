@@ -15,7 +15,15 @@
 class BleGamepad
 {
   private:
-    uint8_t _buttons[16]; // 8 bits x 16 --> 128 bits
+    std::string deviceManufacturer;
+    std::string deviceName;
+    uint8_t tempHidReportDescriptor[150];
+    int hidReportDescriptorSize;
+    uint8_t hidReportSize;
+    uint8_t numOfButtonBytes;
+    bool enableOutputReport;
+    uint16_t outputReportLength;
+    uint8_t _buttons[16]; // 8 bits x 16 bytes = 128 bits --> 128 button max
     uint8_t _specialButtons;
     int16_t _x;
     int16_t _y;
@@ -64,6 +72,7 @@ class BleGamepad
 
   public:
     BleGamepadConfiguration configuration;
+    
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
     void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
     void end(void);
@@ -130,8 +139,6 @@ class BleGamepad
     void setTXPowerLevel(int8_t level = 9);
     int8_t getTXPowerLevel();
     uint8_t batteryLevel;
-    std::string deviceManufacturer;
-    std::string deviceName;
     bool isOutputReceived();
     uint8_t* getOutputBuffer();
     bool deleteBond(bool resetBoard = false);
