@@ -71,9 +71,9 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _powerLevel(0),
   hid(0),
   pCharacteristic_Power_State(0),
-  configuration(),
   pServer(nullptr), 
-  nus(nullptr)
+  nus(nullptr),
+  configuration()
 {
   this->resetButtons();
   this->deviceName = deviceName;
