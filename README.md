@@ -24,6 +24,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Uses efficient NimBLE bluetooth library
  - [x] Output report function
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
+ - [x] Nordic UART Service functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows) (see notes)
  - [x] Compatible with Linux (limited testing)

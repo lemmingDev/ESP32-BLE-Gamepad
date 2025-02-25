@@ -40,7 +40,7 @@ static const char *LOG_TAG = "BLEGamepad";
 #define POWER_STATE_CHARGING        3 // 0b11
 #define POWER_STATE_CRITICAL        3 // 0b11
 
-BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel) : _buttons(),
+BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel, bool delayAdvertising) : _buttons(),
   _specialButtons(0),
   _x(0),
   _y(0),
@@ -71,12 +71,15 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _powerLevel(0),
   hid(0),
   pCharacteristic_Power_State(0),
-  configuration()
+  configuration(),
+  pServer(nullptr), 
+  nus(nullptr)
 {
   this->resetButtons();
   this->deviceName = deviceName;
   this->deviceManufacturer = deviceManufacturer;
   this->batteryLevel = batteryLevel;
+  this->delayAdvertising = delayAdvertising;
   this->connectionStatus = new BleConnectionStatus();
   
   hidReportDescriptorSize = 0;
@@ -84,6 +87,7 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   numOfButtonBytes = 0;
   enableOutputReport = false;
   outputReportLength = 64;
+  nusInitialized = false;
 }
 
 void BleGamepad::resetButtons()
@@ -1933,6 +1937,42 @@ void BleGamepad::setPowerLevel(uint8_t powerLevel)
   setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
 }
 
+void BleGamepad::beginNUS() 
+{
+    if (!this->nusInitialized) 
+    {
+        // Extrememly important to make sure that the pointer to server is actually valid
+        while(!NimBLEDevice::isInitialized ()){}        // Wait until the server is initialized
+        while(NimBLEDevice::getServer() == nullptr){}   // Ensure pointer to server is actually valid
+        
+        // Now server is nkown to be valid, initialise nus to new BleNUS instance
+        nus = new BleNUS(NimBLEDevice::getServer()); // Pass the existing BLE server
+        nus->begin();
+        nusInitialized = true;
+    }
+}
+
+BleNUS* BleGamepad::getNUS() 
+{
+    return nus;  // Return a pointer instead of a reference
+}
+
+void BleGamepad::sendDataOverNUS(const uint8_t* data, size_t length) 
+{
+  if (nus) 
+  {
+    nus->sendData(data, length);
+  }
+}
+
+void BleGamepad::setNUSDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length)) 
+{
+  if (nus) 
+  {
+    nus->setDataReceivedCallback(callback);
+  }
+}
+
 void BleGamepad::taskServer(void *pvParameter)
 {
   BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
@@ -2025,9 +2065,18 @@ void BleGamepad::taskServer(void *pvParameter)
   pAdvertising->setAppearance(HID_GAMEPAD);
   pAdvertising->setName(BleGamepadInstance->deviceName);
   pAdvertising->addServiceUUID(BleGamepadInstance->hid->getHidService()->getUUID());
-  pAdvertising->start();
+  
+  if(BleGamepadInstance->delayAdvertising)
+  {
+    NIMBLE_LOGD(LOG_TAG, "Main NimBLE server advertising delayed (until Nordic UART Service added)");
+  }
+  else
+  {
+    NIMBLE_LOGD(LOG_TAG, "Main NimBLE server advertising started!");
+    pAdvertising->start();
+  }
+  
   BleGamepadInstance->hid->setBatteryLevel(BleGamepadInstance->batteryLevel);
 
-  NIMBLE_LOGD(LOG_TAG, "Advertising started!");
   vTaskDelay(portMAX_DELAY); // delay(portMAX_DELAY);
 }

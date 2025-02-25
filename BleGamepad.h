@@ -11,6 +11,7 @@
 #include "NimBLECharacteristic.h"
 #include "BleGamepadConfiguration.h"
 #include "BleOutputReceiver.h"
+#include "BleNUS.h"
 
 class BleGamepad
 {
@@ -52,13 +53,17 @@ class BleGamepad
     uint8_t _dischargingState;
     uint8_t _chargingState;
     uint8_t _powerLevel;
-
+    bool nusInitialized;
+    
     //BleGamepadConfiguration configuration;
 
     BleConnectionStatus *connectionStatus;
 
     BleOutputReceiver *outputReceiver;
 
+    NimBLEServer *pServer;
+    BleNUS* nus;
+    
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
     NimBLECharacteristic *outputGamepad;
@@ -73,7 +78,7 @@ class BleGamepad
   public:
     BleGamepadConfiguration configuration;
     
-    BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
+    BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100, bool delayAdvertising = false);
     void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
     void end(void);
     void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rX = 0, int16_t rY = 0, int16_t rZ = 0, int16_t slider1 = 0, int16_t slider2 = 0);
@@ -139,6 +144,7 @@ class BleGamepad
     void setTXPowerLevel(int8_t level = 9);
     int8_t getTXPowerLevel();
     uint8_t batteryLevel;
+    bool delayAdvertising;
     bool isOutputReceived();
     uint8_t* getOutputBuffer();
     bool deleteBond(bool resetBoard = false);
@@ -152,7 +158,10 @@ class BleGamepad
     void setGyroscope(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0);
     void setAccelerometer(int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
     void setMotionControls(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0, int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
-
+    void beginNUS();
+    void sendDataOverNUS(const uint8_t* data, size_t length);
+    void setNUSDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length));
+    BleNUS* getNUS();
 
   protected:
     virtual void onStarted(NimBLEServer *pServer) {};

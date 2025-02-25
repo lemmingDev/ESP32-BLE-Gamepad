@@ -178,6 +178,10 @@ setTXPowerLevel	KEYWORD2
 setGyroscope	KEYWORD2
 setAccelerometer	KEYWORD2
 setMotionControls KEYWORD2
+beginNUS  KEYWORD2
+sendDataOverNUS KEYWORD2
+setNUSDataReceivedCallback  KEYWORD2
+getNUS  KEYWORD2
 
 #######################################
 # Constants
