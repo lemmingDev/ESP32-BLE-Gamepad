@@ -1060,7 +1060,7 @@ void BleGamepad::setButtons32(uint32_t states) {
       sendReport();
     }
   }
-}
+
 
 void BleGamepad::press(uint8_t b)
 {
