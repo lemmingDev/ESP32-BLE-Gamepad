@@ -15,7 +15,7 @@ class BleFeatureReceiver : public NimBLECharacteristicCallbacks
 public:
     BleFeatureReceiver(uint16_t featureReportLength);
     ~BleFeatureReceiver();
-    //void onRead(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo) override;
+    void onRead(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo) override;
     void onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo) override;
     bool featureFlag = false;
     uint16_t featureReportLength;

@@ -15,6 +15,14 @@ BleFeatureReceiver::~BleFeatureReceiver()
     }
 }
 
+void BleFeatureReceiver::onRead(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo)
+{
+    // Set data for the host
+    pCharacteristic->setValue(featureBuffer, featureReportLength);
+
+    featureFlag = true;
+}
+
 void BleFeatureReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo)
 {
     // Retrieve data sent from the host
