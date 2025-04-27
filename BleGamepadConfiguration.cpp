@@ -126,11 +126,11 @@ bool BleGamepadConfiguration::getIncludeSteering() { return _whichSimulationCont
 const bool *BleGamepadConfiguration::getWhichSimulationControls() const { return _whichSimulationControls; }
 bool BleGamepadConfiguration::getIncludeGyroscope() { return _includeGyroscope; }
 bool BleGamepadConfiguration::getIncludeAccelerometer() { return _includeAccelerometer; }
-char *BleGamepadConfiguration::getModelNumber(){ return _modelNumber; }
-char *BleGamepadConfiguration::getSoftwareRevision(){ return _softwareRevision; }
-char *BleGamepadConfiguration::getSerialNumber(){ return _serialNumber; }
-char *BleGamepadConfiguration::getFirmwareRevision(){ return _firmwareRevision; }
-char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevision; }
+const char *BleGamepadConfiguration::getModelNumber(){ return _modelNumber; }
+const char *BleGamepadConfiguration::getSoftwareRevision(){ return _softwareRevision; }
+const char *BleGamepadConfiguration::getSerialNumber(){ return _serialNumber; }
+const char *BleGamepadConfiguration::getFirmwareRevision(){ return _firmwareRevision; }
+const char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevision; }
 bool BleGamepadConfiguration::getEnableOutputReport(){ return _enableOutputReport; }
 bool BleGamepadConfiguration::getEnableNordicUARTService(){ return _enableNordicUARTService; }
 uint16_t BleGamepadConfiguration::getOutputReportLength(){ return _outputReportLength; }
