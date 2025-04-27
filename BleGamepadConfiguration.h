@@ -238,9 +238,11 @@ private:
     char *_firmwareRevision;
     char *_hardwareRevision;
     bool _enableOutputReport;
+    bool _enableFeatureReport;
     bool _enableNordicUARTService;
     uint16_t _outputReportLength;
-	  int8_t _transmitPowerLevel;
+    uint16_t _featureReportLength;
+    int8_t _transmitPowerLevel;
  
 
 public:
@@ -297,9 +299,11 @@ public:
     char *getFirmwareRevision();
     char *getHardwareRevision();
     bool getEnableOutputReport();
+    bool getEnableFeatureReport();
     bool getEnableNordicUARTService();
     uint16_t getOutputReportLength();
-	  int8_t getTXPowerLevel();
+    uint16_t getFeatureReportLength();
+    int8_t getTXPowerLevel();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -347,9 +351,11 @@ public:
     void setFirmwareRevision(char *value);
     void setHardwareRevision(char *value);
     void setEnableOutputReport(bool value);
+    void setEnableFeatureReport(bool value);
     void setEnableNordicUARTService(bool value);
     void setOutputReportLength(uint16_t value);
-	  void setTXPowerLevel(int8_t value);     
+    void setFeatureReportLength(uint16_t value);
+    void setTXPowerLevel(int8_t value);
 };
 
 #endif
