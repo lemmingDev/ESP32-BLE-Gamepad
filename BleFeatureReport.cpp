@@ -28,11 +28,26 @@ void BleFeatureReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECo
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
 
+    if (value.length() <= featureReportLength) {
+        // Check if data has changed
+        if (memcmp(value.c_str(), featureBuffer, value.length()) != 0) {
+            memcpy(featureBuffer, value.c_str(), value.length());
+            // If there's a callback defined, call it
+            //if (_onFeatureReportReceived) {
+            //    _onFeatureReportReceived((const uint8_t*)value.c_str(), value.length());
+            //}
+        }
+    }
+
+    /*
+
     // Store the received data in the buffer
     for (int i = 0; i < std::min(value.length(), (size_t)featureReportLength); i++)
     {
         featureBuffer[i] = (uint8_t)value[i];
     }
+
+    */
 
     // Testing
     // Serial.println("Received data from host:");
