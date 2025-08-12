@@ -27,7 +27,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _enableOutputReport(false),
                                                      _enableNordicUARTService(false),
                                                      _outputReportLength(64),
-													                           _transmitPowerLevel(9)
+                                                     _transmitPowerLevel(9)
 {
 }
 
