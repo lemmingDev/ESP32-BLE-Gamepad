@@ -240,7 +240,7 @@ private:
     bool _enableOutputReport;
     bool _enableNordicUARTService;
     uint16_t _outputReportLength;
-	  int8_t _transmitPowerLevel;
+    int8_t _transmitPowerLevel;
  
 
 public:
@@ -299,7 +299,7 @@ public:
     bool getEnableOutputReport();
     bool getEnableNordicUARTService();
     uint16_t getOutputReportLength();
-	  int8_t getTXPowerLevel();
+    int8_t getTXPowerLevel();
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -341,15 +341,15 @@ public:
     void setSimulationMax(int16_t value);
     void setMotionMin(int16_t value);
     void setMotionMax(int16_t value);
-    void setModelNumber(char *value);
-    void setSoftwareRevision(char *value);
-    void setSerialNumber(char *value);
-    void setFirmwareRevision(char *value);
-    void setHardwareRevision(char *value);
+    void setModelNumber(const char *value);
+    void setSoftwareRevision(const char *value);
+    void setSerialNumber(const char *value);
+    void setFirmwareRevision(const char *value);
+    void setHardwareRevision(const char *value);
     void setEnableOutputReport(bool value);
     void setEnableNordicUARTService(bool value);
     void setOutputReportLength(uint16_t value);
-	  void setTXPowerLevel(int8_t value);     
+    void setTXPowerLevel(int8_t value);
 };
 
 #endif
