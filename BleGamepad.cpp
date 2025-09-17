@@ -1937,6 +1937,30 @@ void BleGamepad::setPowerLevel(uint8_t powerLevel)
   setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
 }
 
+#if BLE_GAMEPAD_DEBUG
+static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
+    if (!Serial) {
+        // Serial not initialized yet, avoid printing
+        return;
+    }
+
+    if (desc == nullptr || size == 0) {
+        Serial.println("[BLEGamepad][ERROR] HID Report Descriptor is null or empty!");
+        return;
+    }
+
+    Serial.printf("[BLEGamepad][INFO] HID Report Descriptor size: %u bytes\n", (unsigned)size);
+
+    for (size_t i = 0; i < size; i++) {
+        if (i % 16 == 0) {
+            Serial.printf("\n%03u: ", (unsigned)i);
+        }
+        Serial.printf("%02X ", desc[i]);
+    }
+    Serial.println("\n[BLEGamepad][INFO] End of HID Report Descriptor");
+}
+#endif
+
 void BleGamepad::beginNUS() 
 {
     if (!this->nusInitialized) 
@@ -2055,6 +2079,11 @@ void BleGamepad::taskServer(void *pvParameter)
   //    Serial.println();
   //}
   //Serial.println("------- HID DESCRIPTOR END -------");
+
+  // Print HidReportDescriptor to Serial
+  #if BLE_GAMEPAD_DEBUG
+    dumpHidReportDescriptor( BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
+  #endif
   
   BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
   BleGamepadInstance->hid->startServices();
