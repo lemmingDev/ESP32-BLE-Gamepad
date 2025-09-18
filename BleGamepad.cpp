@@ -1950,7 +1950,6 @@ static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
     }
 
     Serial.printf("[BLEGamepad][INFO] HID Report Descriptor size: %u bytes\n", (unsigned)size);
-
     for (size_t i = 0; i < size; i++) {
         if (i % 16 == 0) {
             Serial.printf("\n%03u: ", (unsigned)i);
@@ -1958,6 +1957,16 @@ static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
         Serial.printf("%02X ", desc[i]);
     }
     Serial.println("\n[BLEGamepad][INFO] End of HID Report Descriptor");
+
+    Serial.printf("\n\nCopy start under here\n");
+    for (size_t i = 0; i < size; i++) {
+        if (i % 16 == 0) {
+            Serial.printf("\n");
+        }
+        Serial.printf("%02X ", desc[i]);
+    }
+    Serial.println("\nCopy end above here ");
+    Serial.println("\n\nCopy and paste the output above and use a parser such as at https://eleccelerator.com/usbdescreqparser to create a readable HID Report Descriptor\n\n");
 }
 #endif
 
