@@ -40,7 +40,7 @@ static const char *LOG_TAG = "BLEGamepad";
 #define POWER_STATE_CHARGING        3 // 0b11
 #define POWER_STATE_CRITICAL        3 // 0b11
 
-#ifdef BLE_GAMEPAD_DEBUG
+#if BLE_GAMEPAD_DEBUG == 1
 static void dumpHIDReport(const uint8_t* report, size_t len);
 #endif
 
@@ -1042,7 +1042,7 @@ void BleGamepad::sendReport(void)
       }
     }
   
-    #ifdef BLE_GAMEPAD_DEBUG
+    #if BLE_GAMEPAD_DEBUG == 1
       dumpHIDReport(m, sizeof(m));
     #endif
 
@@ -1937,7 +1937,7 @@ void BleGamepad::setPowerLevel(uint8_t powerLevel)
   setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
 }
 
-#if BLE_GAMEPAD_DEBUG
+#if BLE_GAMEPAD_DEBUG == 1
 static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
     if (!Serial) {
         // Serial not initialized yet, avoid printing
@@ -2098,9 +2098,8 @@ void BleGamepad::taskServer(void *pvParameter)
   uint8_t *customHidReportDescriptor = new uint8_t[BleGamepadInstance->hidReportDescriptorSize];
   memcpy(customHidReportDescriptor, BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
 
-
-  // Print HidReportDescriptor to Serial
-  #if BLE_GAMEPAD_DEBUG
+  #if BLE_GAMEPAD_DEBUG == 1
+    // Print HidReportDescriptor to Serial
     dumpHidReportDescriptor( BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
   #endif
   
