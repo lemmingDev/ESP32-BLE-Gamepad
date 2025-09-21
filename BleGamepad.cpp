@@ -1038,16 +1038,12 @@ void BleGamepad::sendReport(void)
       }
     }
   
+    #ifdef BLEGAMEPAD_DEBUG
+      dumpHIDReport(m, sizeof(m));
+    #endif
+
     this->inputGamepad->setValue(m, sizeof(m));
     this->inputGamepad->notify();
-    
-    // Testing
-    //Serial.println("HID Report");
-    //for (int i = 0; i < sizeof(m); i++)
-    //{
-    //    Serial.printf("%02x", m[i]);
-    //    Serial.println();
-    //}
   }
 }
 
@@ -1968,6 +1964,21 @@ static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
     Serial.println("\nCopy end above here ");
     Serial.println("\n\nCopy and paste the output above and use a parser such as at https://eleccelerator.com/usbdescreqparser to create a readable HID Report Descriptor\n\n");
 }
+
+static void dumpHIDReport(const uint8_t* report, size_t len)
+{
+    if (!Serial) return;   // Serial not initialized
+
+    Serial.println("=== HID Report Dump ===");
+    for (size_t i = 0; i < len; i++)
+    {
+        Serial.printf("%02X ", report[i]);
+        // Optional: break line every 16 bytes
+        if ((i + 1) % 16 == 0) Serial.println();
+    }
+    Serial.println();
+    Serial.println("======================");
+}
 #endif
 
 void BleGamepad::beginNUS() 
@@ -2080,14 +2091,6 @@ void BleGamepad::taskServer(void *pvParameter)
   uint8_t *customHidReportDescriptor = new uint8_t[BleGamepadInstance->hidReportDescriptorSize];
   memcpy(customHidReportDescriptor, BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
 
-  // Testing - Ask ChatGPT to convert it into a commented HID descriptor
-  //Serial.println("------- HID DESCRIPTOR START -------");
-  //for (int i = 0; i < BleGamepadInstance->hidReportDescriptorSize; i++)
-  //{
-  //    Serial.printf("%02x", customHidReportDescriptor[i]);
-  //    Serial.println();
-  //}
-  //Serial.println("------- HID DESCRIPTOR END -------");
 
   // Print HidReportDescriptor to Serial
   #if BLE_GAMEPAD_DEBUG
