@@ -1,0 +1,47 @@
+---
+name: ESP32-BLE-Gamepad platformio CI
+
+'on':
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]*"
+    branches:
+      - "master"
+      - "ci-builds-*"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # https://docs.github.com/en/actions/examples/using-concurrency-expressions-and-a-test-matrix
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') || github.ref != 'refs/heads/master' }}
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        board: [esp32dev, lolin_c3_mini]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.13
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build Test firmware for ${{ matrix.board }}
+        run: |
+          # pio run -d examples/TestAll/TestAll.ino -e ${{ matrix.board }} -D BLE_GAMEPAD_DEBUG=1 --verbose
+          cd test/ci_build
+          pio run -e ${{ matrix.board }} --verbose

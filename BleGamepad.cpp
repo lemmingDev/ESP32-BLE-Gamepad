@@ -40,6 +40,10 @@ static const char *LOG_TAG = "BLEGamepad";
 #define POWER_STATE_CHARGING        3 // 0b11
 #define POWER_STATE_CRITICAL        3 // 0b11
 
+#if BLE_GAMEPAD_DEBUG == 1
+static void dumpHIDReport(const uint8_t* report, size_t len);
+#endif
+
 BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, uint8_t batteryLevel, bool delayAdvertising) : _buttons(),
   _specialButtons(0),
   _x(0),
@@ -1038,16 +1042,12 @@ void BleGamepad::sendReport(void)
       }
     }
   
+    #if BLE_GAMEPAD_DEBUG == 1
+      dumpHIDReport(m, sizeof(m));
+    #endif
+
     this->inputGamepad->setValue(m, sizeof(m));
     this->inputGamepad->notify();
-    
-    // Testing
-    //Serial.println("HID Report");
-    //for (int i = 0; i < sizeof(m); i++)
-    //{
-    //    Serial.printf("%02x", m[i]);
-    //    Serial.println();
-    //}
   }
 }
 
@@ -1937,6 +1937,57 @@ void BleGamepad::setPowerLevel(uint8_t powerLevel)
   setPowerStateAll(_batteryPowerInformation, _dischargingState, _chargingState, _powerLevel);
 }
 
+#if BLE_GAMEPAD_DEBUG == 1
+static void dumpHidReportDescriptor(const uint8_t* desc, size_t size) {
+    if (!Serial) {
+        // Serial not initialized yet, avoid printing
+        return;
+    }
+
+    if (desc == nullptr || size == 0) {
+        Serial.println("[BLEGamepad][ERROR] HID Report Descriptor is null or empty!");
+        return;
+    }
+
+    Serial.printf("[BLEGamepad][INFO] HID Report Descriptor size: %u bytes\n", (unsigned)size);
+    for (size_t i = 0; i < size; i++) {
+        if (i % 16 == 0) {
+            Serial.printf("\n%03u: ", (unsigned)i);
+        }
+        Serial.printf("%02X ", desc[i]);
+    }
+    Serial.println("\n[BLEGamepad][INFO] End of HID Report Descriptor");
+
+    Serial.printf("\n\nCopy start under here\n");
+    for (size_t i = 0; i < size; i++) {
+        if (i % 16 == 0) {
+            Serial.printf("\n");
+        }
+        Serial.printf("%02X ", desc[i]);
+    }
+    Serial.println("\nCopy end above here ");
+    Serial.println("\n\nCopy and paste the output above and use a parser such as at https://eleccelerator.com/usbdescreqparser to create a readable HID Report Descriptor\n\n");
+}
+
+static void dumpHIDReport(const uint8_t* report, size_t size)
+{
+    if (!Serial) {
+        // Serial not initialized yet, avoid printing
+        return;
+    }
+
+    Serial.printf("[BLEGamepad][INFO] HID Report Dump size: %u bytes\n", (unsigned)size);
+    for (size_t i = 0; i < size; i++)
+    {
+        Serial.printf("%02X ", report[i]);
+        // Optional: break line every 16 bytes
+        if ((i + 1) % 16 == 0) Serial.println();
+    }
+    Serial.println();
+    Serial.println("\n[BLEGamepad][INFO] End of HID Report Dump");
+}
+#endif
+
 void BleGamepad::beginNUS() 
 {
     if (!this->nusInitialized) 
@@ -2047,14 +2098,10 @@ void BleGamepad::taskServer(void *pvParameter)
   uint8_t *customHidReportDescriptor = new uint8_t[BleGamepadInstance->hidReportDescriptorSize];
   memcpy(customHidReportDescriptor, BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
 
-  // Testing - Ask ChatGPT to convert it into a commented HID descriptor
-  //Serial.println("------- HID DESCRIPTOR START -------");
-  //for (int i = 0; i < BleGamepadInstance->hidReportDescriptorSize; i++)
-  //{
-  //    Serial.printf("%02x", customHidReportDescriptor[i]);
-  //    Serial.println();
-  //}
-  //Serial.println("------- HID DESCRIPTOR END -------");
+  #if BLE_GAMEPAD_DEBUG == 1
+    // Print HidReportDescriptor to Serial
+    dumpHidReportDescriptor( BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
+  #endif
   
   BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
   BleGamepadInstance->hid->startServices();

@@ -13,6 +13,11 @@
 #include "BleOutputReceiver.h"
 #include "BleNUS.h"
 
+// Debug enabled, disabled by default
+#ifndef BLE_GAMEPAD_DEBUG
+#define BLE_GAMEPAD_DEBUG 0
+#endif
+
 class BleGamepad
 {
   private:

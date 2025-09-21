@@ -1,0 +1,36 @@
+
+# ========================
+# PlatformIO / Arduino
+# ========================
+
+# Build output
+.pio/
+*.pio
+*.elf
+*.bin
+*.hex
+*.map
+*.d
+*.cpp.o
+*.d.o
+
+# Library dependencies (built by PIO)
+.libdeps/
+
+# VSCode / IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# Mac / Linux / Windows system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~
