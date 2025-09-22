@@ -11,6 +11,11 @@ name: Compile Sketches
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  # https://docs.github.com/en/actions/examples/using-concurrency-expressions-and-a-test-matrix
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') || github.ref != 'refs/heads/master' }}
+
 permissions: {}
 
 jobs:
@@ -19,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # See: https://github.com/arduino/compile-sketches#readme
       - name: Compile sketches
