@@ -1,7 +1,7 @@
 # ESP32-BLE-Gamepad
 
 ![Build](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/main.yml/badge.svg)
-![PlatformIO](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/platform.yml/badge.svg)
+![PlatformIO](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/platformio.yml/badge.svg)
 
 Bluetooth LE Gamepad library for the ESP32
 
