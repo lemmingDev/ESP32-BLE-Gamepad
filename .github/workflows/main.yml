@@ -30,6 +30,7 @@ jobs:
       - name: Compile sketches
         uses: arduino/compile-sketches@v1
         with:
+          enable-deltas-report: true
           fqbn: esp32:esp32:esp32
           sketch-paths: |
             - examples/CharacteristicsConfiguration/CharacteristicsConfiguration.ino
@@ -56,3 +57,8 @@ jobs:
             - name: Keypad
             - name: Bounce2
             - source-path: .
+
+      - name: Sketches report size delta
+        uses: arduino/report-size-deltas@v1
+        # Only run the action when the workflow is triggered by a pull request.
+        if: github.event_name == 'pull_request'
