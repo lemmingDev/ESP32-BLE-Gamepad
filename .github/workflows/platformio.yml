@@ -24,7 +24,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [esp32dev, lolin_c3_mini]
+        board: [esp32dev, lolin_c3_mini, esp32s3]
 
     steps:
       - name: Checkout code
@@ -44,4 +44,4 @@ jobs:
         run: |
           # pio run -d examples/TestAll/TestAll.ino -e ${{ matrix.board }} -D BLE_GAMEPAD_DEBUG=1 --verbose
           cd test/ci_build
-          pio run -e ${{ matrix.board }} --verbose
+          pio run -e ${{ matrix.board }}

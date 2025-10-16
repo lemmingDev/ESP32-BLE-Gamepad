@@ -1,9 +1,9 @@
 # ESP32-BLE-Gamepad
 
 ![Build](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/main.yml/badge.svg)
-![PlatformIO](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/main.yml/platform.svg)
+![PlatformIO](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/platformio.yml/badge.svg)
 
-BLE Bluetooth HID GAMEPAD library for ESP32
+Bluetooth LE Gamepad library for the ESP32
 
 ## License
 Published under the MIT license. Please see license.txt.
@@ -27,9 +27,10 @@ It would be great however if any improvements are fed back into this version.
  - [x] Configurable BLE characteristics (name, manufacturer, model number, software revision, serial number, firmware revision, hardware revision)	
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
- - [x] Output report function
+ - [x] HID Output Report function
+ - [ ] HID Feature Report function
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
- - [x] Nordic UART Service functionality at same time as gamepad. See examples
+ - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
  - [x] Compatible with Android (Android OS maps default buttons / axes / hats slightly differently than Windows) (see notes)
  - [x] Compatible with Linux (limited testing)
