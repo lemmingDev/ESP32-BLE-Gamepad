@@ -243,7 +243,6 @@ private:
     uint16_t _outputReportLength;
     uint16_t _featureReportLength;
     int8_t _transmitPowerLevel;
- 
 
 public:
     BleGamepadConfiguration();
@@ -345,11 +344,11 @@ public:
     void setSimulationMax(int16_t value);
     void setMotionMin(int16_t value);
     void setMotionMax(int16_t value);
-    void setModelNumber(char *value);
-    void setSoftwareRevision(char *value);
-    void setSerialNumber(char *value);
-    void setFirmwareRevision(char *value);
-    void setHardwareRevision(char *value);
+    void setModelNumber(const char *value);
+    void setSoftwareRevision(const char *value);
+    void setSerialNumber(const char *value);
+    void setFirmwareRevision(const char *value);
+    void setHardwareRevision(const char *value);
     void setEnableOutputReport(bool value);
     void setEnableFeatureReport(bool value);
     void setEnableNordicUARTService(bool value);

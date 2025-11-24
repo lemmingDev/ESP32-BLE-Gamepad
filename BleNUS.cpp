@@ -21,7 +21,6 @@ void BleNUS::begin() {
     delay(1000);  // Give some time for other services to complete their business
     
     if (!pServer) {
-        Serial.println("No pServer");
         NIMBLE_LOGD(LOG_TAG, "No existing pServer available");
         return;
     }
@@ -195,3 +194,4 @@ void BleNUS::write(uint8_t byte) {
 void BleNUS::write(const uint8_t *buffer, size_t size) {
     sendData(buffer, size);
 }
+

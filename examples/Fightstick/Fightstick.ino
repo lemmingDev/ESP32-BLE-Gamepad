@@ -124,21 +124,19 @@ void loop()
         bleGamepad.setHats(hatValues[0], hatValues[1], hatValues[2], hatValues[3]);
 
         // Update previous states to current states and send report
-        if ((memcmp((const void *)currentButtonStates, (const void *)previousButtonStates, sizeof(currentButtonStates)) != 0) && (memcmp((const void *)currentHatStates, (const void *)previousHatStates, sizeof(currentHatStates)) != 0))
+        // Uses memcmp and memcpy to efficiently analyze/copy bytes in chunks
+        // readable, but with compiler warning:
+        //  if (currentButtonStates != previousButtonStates || currentHatStates != previousHatStates)
+        //      previousButtonStates = currentButtonStates;
+        //      previousHatStates = currentHatStates;
+        if ((memcmp((const void *)currentButtonStates, (const void *)previousButtonStates, sizeof(currentButtonStates)) != 0) || (memcmp((const void *)currentHatStates, (const void *)previousHatStates, sizeof(currentHatStates)) != 0))
         {
-            for (byte currentIndex = 0; currentIndex < numOfButtons; currentIndex++)
-            {
-                previousButtonStates[currentIndex] = currentButtonStates[currentIndex];
-            }
-
-            for (byte currentIndex = 0; currentIndex < numOfHats * 4; currentIndex++)
-            {
-                previousHatStates[currentIndex] = currentHatStates[currentIndex];
-            }
-
+            memcpy((void *)previousButtonStates, (void *)currentButtonStates, sizeof(currentButtonStates));
+            memcpy((void *)previousHatStates, (void *)currentHatStates, sizeof(currentHatStates));
             bleGamepad.sendReport();	// Send a report if any of the button states or hat directions have changed
         }
 
         delay(10);	// Reduce for less latency
     }
 }
+

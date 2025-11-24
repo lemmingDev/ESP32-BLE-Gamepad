@@ -1,5 +1,10 @@
 # ESP32-BLE-Gamepad
 
+![Build](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/main.yml/badge.svg)
+![PlatformIO](https://github.com/lemmingDev/ESP32-BLE-Gamepad/actions/workflows/main.yml/platform.svg)
+
+BLE Bluetooth HID GAMEPAD library for ESP32
+
 ## License
 Published under the MIT license. Please see license.txt.
 
