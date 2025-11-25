@@ -76,4 +76,3 @@ jobs:
         uses: arduino/report-size-deltas@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-on-pr: true
