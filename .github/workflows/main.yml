@@ -10,6 +10,9 @@ name: Compile Sketches
       - "ci-builds-*"
   pull_request:
   workflow_dispatch:
+  merge_group:
+  schedule:
+    - cron: "30 1 1 * *"    # Scheduled build test 01h30 1st of Month
 
 concurrency:
   # https://docs.github.com/en/actions/examples/using-concurrency-expressions-and-a-test-matrix
@@ -22,15 +25,24 @@ jobs:
   compile-sketches:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read        # needed to fetch base commit
+      pull-requests: write  # needed to post the delta report
+      checks: write         # (optional) if using Checks API instead of PR comment
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0    # required for comparing base vs. head commits
 
       # See: https://github.com/arduino/compile-sketches#readme
       - name: Compile sketches
         uses: arduino/compile-sketches@v1
         with:
+          enable-deltas-report: true
           fqbn: esp32:esp32:esp32
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           sketch-paths: |
             - examples/CharacteristicsConfiguration/CharacteristicsConfiguration.ino
             - examples/DrivingControllerTest/DrivingControllerTest.ino
@@ -56,3 +68,12 @@ jobs:
             - name: Keypad
             - name: Bounce2
             - source-path: .
+
+      - name: Sketches report size delta
+        # Only run the action when the workflow is triggered by a pull request.
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: arduino/report-size-deltas@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-on-pr: true
