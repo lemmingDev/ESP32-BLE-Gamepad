@@ -11,6 +11,7 @@
 #include "NimBLECharacteristic.h"
 #include "BleGamepadConfiguration.h"
 #include "BleOutputReceiver.h"
+#include "BleFeatureReport.h"
 #include "BleNUS.h"
 
 // Debug enabled, disabled by default
@@ -29,6 +30,8 @@ class BleGamepad
     uint8_t numOfButtonBytes;
     bool enableOutputReport;
     uint16_t outputReportLength;
+    bool enableFeatureReport;
+    uint16_t featureReportLength;
     uint8_t _buttons[16]; // 8 bits x 16 bytes = 128 bits --> 128 button max
     uint8_t _specialButtons;
     int16_t _x;
@@ -62,15 +65,18 @@ class BleGamepad
     
     BleConnectionStatus *connectionStatus;
     BleOutputReceiver *outputReceiver;
+    BleFeatureReceiver *featureReceiver;
     NimBLEServer *pServer;
     BleNUS* nus;
     
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
     NimBLECharacteristic *outputGamepad;
+    NimBLECharacteristic *featureGamepad;
     NimBLECharacteristic *pCharacteristic_Power_State;
 
     uint8_t *outputBackupBuffer;
+    uint8_t *featureBackupBuffer;
 
     void rawAction(uint8_t msg[], char msgSize);
     static void taskServer(void *pvParameter);
@@ -148,6 +154,8 @@ class BleGamepad
     bool delayAdvertising;
     bool isOutputReceived();
     uint8_t* getOutputBuffer();
+    bool isFeatureReceived();
+    uint8_t* getFeatureBuffer();
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();

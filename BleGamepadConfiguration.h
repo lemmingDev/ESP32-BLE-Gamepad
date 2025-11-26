@@ -238,10 +238,11 @@ private:
     const char *_firmwareRevision;
     const char *_hardwareRevision;
     bool _enableOutputReport;
+    bool _enableFeatureReport;
     bool _enableNordicUARTService;
     uint16_t _outputReportLength;
+    uint16_t _featureReportLength;
     int8_t _transmitPowerLevel;
- 
 
 public:
     BleGamepadConfiguration();
@@ -297,8 +298,10 @@ public:
     const char *getFirmwareRevision();
     const char *getHardwareRevision();
     bool getEnableOutputReport();
+    bool getEnableFeatureReport();
     bool getEnableNordicUARTService();
     uint16_t getOutputReportLength();
+    uint16_t getFeatureReportLength();
     int8_t getTXPowerLevel();
 
     void setControllerType(uint8_t controllerType);
@@ -347,8 +350,10 @@ public:
     void setFirmwareRevision(const char *value);
     void setHardwareRevision(const char *value);
     void setEnableOutputReport(bool value);
+    void setEnableFeatureReport(bool value);
     void setEnableNordicUARTService(bool value);
     void setOutputReportLength(uint16_t value);
+    void setFeatureReportLength(uint16_t value);
     void setTXPowerLevel(int8_t value);
 };
 
