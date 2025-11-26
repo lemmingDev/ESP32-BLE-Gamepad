@@ -38,6 +38,7 @@ jobs:
 
       # See: https://github.com/arduino/compile-sketches#readme
       - name: Compile sketches
+        id: compile
         uses: arduino/compile-sketches@v1
         with:
           enable-deltas-report: true
@@ -69,11 +70,8 @@ jobs:
             - name: Bounce2
             - source-path: .
 
-      - name: Sketches report size delta
-        # Only run the action when the workflow is triggered by a pull request.
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        uses: arduino/report-size-deltas@v1
+      - name: Upload report size data
+        uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-on-pr: true
+          name: report-size-data
+          path: ${{ steps.compile.outputs.sizes-json-path }}
