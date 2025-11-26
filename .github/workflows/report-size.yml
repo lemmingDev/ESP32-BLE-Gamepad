@@ -12,19 +12,24 @@ jobs:
   report:
     # Only run when the triggering workflow was a pull_request build
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.pull_requests[0]
 
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       pull-requests: write
 
     steps:
-      - name: Download size data
-        uses: actions/download-artifact@v6
-        with:
-          name: report-size-data
+      - name: Check if PR exists
+        run: |
+          if [ "${{ github.event.workflow_run.pull_requests[0] }}" = "" ]; then
+            echo "No PR detected — this was triggered by PUSH";
+          else
+            echo "PR detected:";
+            echo "${{ toJson(github.event.workflow_run.pull_requests[0]) }}";
+          fi
 
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -32,10 +37,15 @@ jobs:
           # If you rely on full history or special refs, include fetch-depth: 0
           fetch-depth: 0
 
-      - name: Post size deltas
+      - name: Download report size data - action
+        uses: actions/download-artifact@v6
+        with:
+          name: report-size-data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: report-size-data
+
+      - name: Post report size deltas
         uses: arduino/report-size-deltas@v1
         with:
-          base-sha: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
-          head-sha: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
-          sizes-json-path: sizes.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sketches-reports-source: report-size-data
