@@ -1,0 +1,41 @@
+---
+name: Report size deltas
+
+'on':
+  workflow_run:
+    workflows: ["Compile Sketches"]
+    types: [ completed ]
+
+permissions: {}
+
+jobs:
+  report:
+    # Only run when the triggering workflow was a pull_request build
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Download size data
+        uses: actions/download-artifact@v6
+        with:
+          name: report-size-data
+
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          # If you rely on full history or special refs, include fetch-depth: 0
+          fetch-depth: 0
+
+      - name: Post size deltas
+        uses: arduino/report-size-deltas@v1
+        with:
+          base-sha: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+          head-sha: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
+          sizes-json-path: sizes.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
