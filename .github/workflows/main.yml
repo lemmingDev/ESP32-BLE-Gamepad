@@ -70,7 +70,7 @@ jobs:
             - source-path: .
 
       - name: Upload report size data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: report-size-data
           path: sketches-reports
