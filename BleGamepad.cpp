@@ -54,6 +54,7 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _rZ(0),
   _slider1(0),
   _slider2(0),
+  _dial(0),
   _rudder(0),
   _throttle(0),
   _accelerator(0),
@@ -430,6 +431,13 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
       // USAGE (Slider)
       tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
       tempHidReportDescriptor[hidReportDescriptorSize++] = 0x36;
+    }
+
+    if (configuration.getIncludeDial())
+    {
+      // USAGE (Dial)
+      tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+      tempHidReportDescriptor[hidReportDescriptorSize++] = 0x37;
     }
 
     // INPUT (Data,Var,Abs)
@@ -981,6 +989,12 @@ void BleGamepad::sendReport(void)
       m[currentReportIndex++] = (_slider2 >> 8);
     }
 
+    if (configuration.getIncludeDial())
+    {
+      m[currentReportIndex++] = _dial;
+      m[currentReportIndex++] = (_dial >> 8);
+    }
+
     if (configuration.getIncludeRudder())
     {
       m[currentReportIndex++] = _rudder;
@@ -1509,6 +1523,21 @@ void BleGamepad::setSlider2(int16_t slider2)
   }
 
   _slider2 = slider2;
+
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setDial(int16_t dial)
+{
+  if (dial == -32768)
+  {
+    dial = -32767;
+  }
+
+  _dial = dial;
 
   if (configuration.getAutoReport())
   {

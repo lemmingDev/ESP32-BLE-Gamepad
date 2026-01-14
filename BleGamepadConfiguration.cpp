@@ -8,6 +8,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _whichSpecialButtons{false, false, false, false, false, false, false, false},
                                                      _whichAxes{true, true, true, true, true, true, true, true},
                                                      _whichSimulationControls{false, false, false, false, false},
+                                                     _includeDial(false),
                                                      _includeGyroscope(false),
                                                      _includeAccelerometer(false),
                                                      _vid(0xe502),
@@ -117,6 +118,7 @@ bool BleGamepadConfiguration::getIncludeRyAxis() { return _whichAxes[RY_AXIS]; }
 bool BleGamepadConfiguration::getIncludeRzAxis() { return _whichAxes[RZ_AXIS]; }
 bool BleGamepadConfiguration::getIncludeSlider1() { return _whichAxes[SLIDER1]; }
 bool BleGamepadConfiguration::getIncludeSlider2() { return _whichAxes[SLIDER2]; }
+bool BleGamepadConfiguration::getIncludeDial() { return _includeDial; }
 const bool *BleGamepadConfiguration::getWhichAxes() const { return _whichAxes; }
 bool BleGamepadConfiguration::getIncludeRudder() { return _whichSimulationControls[RUDDER]; }
 bool BleGamepadConfiguration::getIncludeThrottle() { return _whichSimulationControls[THROTTLE]; }
@@ -190,6 +192,7 @@ void BleGamepadConfiguration::setIncludeRxAxis(bool value) { _whichAxes[RX_AXIS]
 void BleGamepadConfiguration::setIncludeRyAxis(bool value) { _whichAxes[RY_AXIS] = value; }
 void BleGamepadConfiguration::setIncludeSlider1(bool value) { _whichAxes[SLIDER1] = value; }
 void BleGamepadConfiguration::setIncludeSlider2(bool value) { _whichAxes[SLIDER2] = value; }
+void BleGamepadConfiguration::setIncludeDial(bool value) { _includeDial = value; }
 void BleGamepadConfiguration::setIncludeRudder(bool value) { _whichSimulationControls[RUDDER] = value; }
 void BleGamepadConfiguration::setIncludeThrottle(bool value) { _whichSimulationControls[THROTTLE] = value; }
 void BleGamepadConfiguration::setIncludeAccelerator(bool value) { _whichSimulationControls[ACCELERATOR] = value; }

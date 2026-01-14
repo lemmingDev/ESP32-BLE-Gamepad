@@ -39,6 +39,7 @@ class BleGamepad
     int16_t _rZ;
     int16_t _slider1;
     int16_t _slider2;
+    int16_t _dial;
     int16_t _rudder;
     int16_t _throttle;
     int16_t _accelerator;
@@ -126,6 +127,7 @@ class BleGamepad
     void setSlider(int16_t slider = 0);
     void setSlider1(int16_t slider1 = 0);
     void setSlider2(int16_t slider2 = 0);
+    void setDial(int16_t dial = 0);
     void setRudder(int16_t rudder = 0);
     void setThrottle(int16_t throttle = 0);
     void setAccelerator(int16_t accelerator = 0);
