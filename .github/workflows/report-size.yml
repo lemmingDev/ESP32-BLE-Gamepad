@@ -38,7 +38,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download report size data - action
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: report-size-data
           run-id: ${{ github.event.workflow_run.id }}
