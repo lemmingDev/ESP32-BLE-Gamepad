@@ -32,7 +32,7 @@ jobs:
           fi
 
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # If you rely on full history or special refs, include fetch-depth: 0
           fetch-depth: 0
