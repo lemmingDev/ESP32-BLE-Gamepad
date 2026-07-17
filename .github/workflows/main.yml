@@ -45,6 +45,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sketch-paths: |
             - examples/CharacteristicsConfiguration/CharacteristicsConfiguration.ino
+            - examples/Diagnostics/Diagnostics.ino
             - examples/DrivingControllerTest/DrivingControllerTest.ino
             - examples/Fightstick/Fightstick.ino
             - examples/FlightControllerTest/FlightControllerTest.ino
