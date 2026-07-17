@@ -37,6 +37,7 @@ void BleNUS::begin() {
     pRxCharacteristic = pService->createCharacteristic(NUS_RX_CHARACTERISTIC_UUID, NIMBLE_PROPERTY::WRITE);
     NIMBLE_LOGD(LOG_TAG, "Registering Nordic UART Service callbacks");
     pRxCharacteristic->setCallbacks(this);
+    pTxCharacteristic->setCallbacks(this); // Logs which peer subscribes to the NUS profile
     
     NIMBLE_LOGD(LOG_TAG, "Starting Nordic UART Service");
     pService->start();
@@ -81,6 +82,12 @@ void BleNUS::onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& conn
         buffer += value; // Append to internal buffer
         dataReceivedCallback((const uint8_t*)value.data(), value.length());
     }
+}
+
+void BleNUS::onSubscribe(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo, uint16_t subValue) {
+    const char *action = subValue == 0 ? "unsubscribed from" : "subscribed to";
+    Serial.printf("[BLE] %s %s the Nordic UART Service (profile: NUS)\n",
+                  std::string(connInfo.getAddress()).c_str(), action);
 }
 
 size_t BleNUS::available() {
