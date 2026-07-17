@@ -19,6 +19,20 @@
 #define BLE_GAMEPAD_DEBUG 0
 #endif
 
+// Input capabilities
+#define BLE_CAP_BUTTONS    (1 << 0)
+#define BLE_CAP_AXES       (1 << 1)
+#define BLE_CAP_HAT        (1 << 2)
+
+// Feedback capabilities
+#define BLE_CAP_RUMBLE     (1 << 0)
+#define BLE_CAP_PLAYERLED  (1 << 1)
+#define BLE_CAP_RGBLED     (1 << 2)
+
+// Sensor capabilities
+#define BLE_CAP_GYRO       (1 << 0)
+#define BLE_CAP_ACCEL      (1 << 1)
+
 class BleGamepad
 {
   private:

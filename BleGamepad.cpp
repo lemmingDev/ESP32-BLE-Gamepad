@@ -750,6 +750,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
   if (configuration.getEnableFeatureReport())
   {
+    // Vendor blob feature report
     // Usage Page (Vendor Defined 0xFF00)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
@@ -2126,7 +2127,7 @@ void BleGamepad::taskServer(void *pvParameter)
   if (BleGamepadInstance->enableFeatureReport)
   {
     BleGamepadInstance->featureGamepad = BleGamepadInstance->hid->getFeatureReport(BleGamepadInstance->configuration.getHidReportId());
-    BleGamepadInstance->featureReceiver = new BleFeatureReceiver(BleGamepadInstance->featureReportLength);
+    BleGamepadInstance->featureReceiver = new BleFeatureReceiver(BleGamepadInstance->featureReportLength, &BleGamepadInstance->configuration);
     BleGamepadInstance->featureBackupBuffer = new uint8_t[BleGamepadInstance->featureReportLength];
     BleGamepadInstance->featureGamepad->setCallbacks(BleGamepadInstance->featureReceiver);
   }
