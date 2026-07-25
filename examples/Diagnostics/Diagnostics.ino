@@ -115,57 +115,63 @@ void loop()
         digitalWrite(LED_BUILTIN, ledState);
     }
 
+    // A NUS-only client (e.g. a terminal app that connects and subscribes without ever
+    // bonding, since NUS doesn't require the encryption the HID profile does) can be fully
+    // reachable over NUS while bleGamepad.isConnected() (gamepad HID authentication) is still
+    // false. So NUS input/output below must not be gated on `connected` - only the gamepad-
+    // specific behaviours (button auto-press, battery reporting) are.
+    BleNUS *nus = bleGamepad.getNUS();
+
     if (!connected)
     {
         buttonHeld = false;
         button4Held = false;
-        return;
     }
-
-    BleNUS *nus = bleGamepad.getNUS();
-
-    // --- Auto-press BUTTON_3 every 10s, releasing it 0.5s later ---
-    if (!buttonHeld && millis() - lastButtonPressTime >= BUTTON_PRESS_INTERVAL_MS)
+    else
     {
-        lastButtonPressTime = millis();
-        buttonPressStartTime = lastButtonPressTime;
-        buttonHeld = true;
-        bleGamepad.press(BUTTON_3);
-    }
-    else if (buttonHeld && millis() - buttonPressStartTime >= BUTTON_HOLD_MS)
-    {
-        buttonHeld = false;
-        bleGamepad.release(BUTTON_3);
-    }
-
-    // --- Release BUTTON_4 once its 5s NUS-triggered hold has elapsed ---
-    if (button4Held && millis() - button4PressStartTime >= BUTTON4_HOLD_MS)
-    {
-        button4Held = false;
-        bleGamepad.release(BUTTON_4);
-        if (nus)
+        // --- Auto-press BUTTON_3 every 10s, releasing it 0.5s later ---
+        if (!buttonHeld && millis() - lastButtonPressTime >= BUTTON_PRESS_INTERVAL_MS)
         {
-            nus->println("BUTTON_4 released after 5s hold.");
+            lastButtonPressTime = millis();
+            buttonPressStartTime = lastButtonPressTime;
+            buttonHeld = true;
+            bleGamepad.press(BUTTON_3);
         }
-    }
-
-    // --- Ramp the reported battery level up and down between 25% and 95% ---
-    if (millis() - lastBatteryStepTime >= BATTERY_STEP_INTERVAL_MS)
-    {
-        lastBatteryStepTime = millis();
-
-        batteryLevel += batteryStep;
-        if (batteryLevel >= BATTERY_MAX)
+        else if (buttonHeld && millis() - buttonPressStartTime >= BUTTON_HOLD_MS)
         {
-            batteryLevel = BATTERY_MAX;
-            batteryStep = -1;
+            buttonHeld = false;
+            bleGamepad.release(BUTTON_3);
         }
-        else if (batteryLevel <= BATTERY_MIN)
+
+        // --- Release BUTTON_4 once its 5s NUS-triggered hold has elapsed ---
+        if (button4Held && millis() - button4PressStartTime >= BUTTON4_HOLD_MS)
         {
-            batteryLevel = BATTERY_MIN;
-            batteryStep = 1;
+            button4Held = false;
+            bleGamepad.release(BUTTON_4);
+            if (nus)
+            {
+                nus->println("BUTTON_4 released after 5s hold.");
+            }
         }
-        bleGamepad.setBatteryLevel(batteryLevel);
+
+        // --- Ramp the reported battery level up and down between 25% and 95% ---
+        if (millis() - lastBatteryStepTime >= BATTERY_STEP_INTERVAL_MS)
+        {
+            lastBatteryStepTime = millis();
+
+            batteryLevel += batteryStep;
+            if (batteryLevel >= BATTERY_MAX)
+            {
+                batteryLevel = BATTERY_MAX;
+                batteryStep = -1;
+            }
+            else if (batteryLevel <= BATTERY_MIN)
+            {
+                batteryLevel = BATTERY_MIN;
+                batteryStep = 1;
+            }
+            bleGamepad.setBatteryLevel(batteryLevel);
+        }
     }
 
     if (!nus)
@@ -219,6 +225,8 @@ void loop()
         lastStatusTime = millis();
 
         String status = "uptime_ms=" + String(millis()) +
+                         " gamepad_connected=" + (bleGamepad.isConnected() ? "yes" : "no") +
+                         " host_mac=" + String(bleGamepad.getAddress().toString().c_str()) +
                          " button3=" + (buttonHeld ? "PRESSED" : "released") +
                          " button4=" + (button4Held ? "PRESSED" : "released") +
                          " battery=" + String(batteryLevel) +
