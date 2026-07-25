@@ -90,9 +90,13 @@ void BleNUS::setSubscribeCallback(void (*callback)(bool subscribed, const std::s
 }
 
 void BleNUS::onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) {
+    // Buffering must not depend on dataReceivedCallback being set - main.cpp uses the
+    // polling available()/read() API instead, and never registers a callback, so gating
+    // this on dataReceivedCallback silently dropped every incoming write.
+    std::string value = pCharacteristic->getValue();
+    buffer += value; // Append to internal buffer
+
     if (dataReceivedCallback) {
-        std::string value = pCharacteristic->getValue();
-        buffer += value; // Append to internal buffer
         dataReceivedCallback((const uint8_t*)value.data(), value.length());
     }
 }
@@ -222,7 +226,6 @@ void BleNUS::println(double d, int digits) {
 void BleNUS::println(char c) {
     char buf[3] = {c, '\n', '\0'};
     sendData((const uint8_t*)buf, 2);
-    print("\n");
 }
 
 void BleNUS::write(uint8_t byte) {
