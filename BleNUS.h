@@ -19,6 +19,7 @@ public:
     void sendData(const uint8_t* data, size_t length);
     
     void setDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length));
+    void setSubscribeCallback(void (*callback)(bool subscribed, const std::string& address));
     
     size_t available();
     int read();
@@ -56,6 +57,7 @@ private:
     NimBLECharacteristic* pRxCharacteristic;
     
     void (*dataReceivedCallback)(const uint8_t* data, size_t length);
+    void (*subscribeCallback)(bool subscribed, const std::string& address);
     std::string buffer; // For storing received data
 };
 
