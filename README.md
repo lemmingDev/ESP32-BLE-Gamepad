@@ -150,6 +150,9 @@ Update sent on next gamepad update if auto reporting is not enabled
 ## Troubleshooting Guide
 Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](TroubleshootingGuide.md)
 
+## Testing on Linux
+For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
+
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
 

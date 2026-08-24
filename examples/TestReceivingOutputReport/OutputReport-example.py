@@ -1,8 +1,8 @@
 """
-Host-side companion for TestFeatureReports.ino.
+Host-side companion for TestReceivingOutputReport.ino.
 
-Reads the device's Feature Report, writes new bytes to it, then reads it back
-to confirm the device applied the write. Requires: pip install bleak
+Writes bytes to the device's Output Report and reads it back to confirm the
+device applied the write. Requires: pip install bleak
 
 Note: on macOS, if this device has been paired as a system Bluetooth HID
 device (System Settings > Bluetooth), macOS's own HID stack will hold the
@@ -16,10 +16,10 @@ from bleak import BleakClient, BleakScanner
 DEVICE_NAME = "ESP32 BLE Gamepad"  # BleGamepad's default device name
 REPORT_CHAR_UUID = "00002a4d-0000-1000-8000-00805f9b34fb"  # HID "Report" characteristic
 REPORT_REF_DESC_UUID = "00002908-0000-1000-8000-00805f9b34fb"  # Report Reference descriptor
-REPORT_TYPE_FEATURE = 3  # per the Report Reference descriptor spec (1=Input, 2=Output, 3=Feature)
+REPORT_TYPE_OUTPUT = 2  # per the Report Reference descriptor spec (1=Input, 2=Output, 3=Feature)
 
 
-async def find_feature_characteristic(client):
+async def find_output_characteristic(client):
     """A HID device can expose several 'Report' characteristics sharing the
     same UUID (Input/Output/Feature); the Report Reference descriptor on each
     one says which is which, so look it up rather than hardcoding a handle."""
@@ -31,7 +31,7 @@ async def find_feature_characteristic(client):
                 if desc.uuid != REPORT_REF_DESC_UUID:
                     continue
                 report_id, report_type = await client.read_gatt_descriptor(desc.handle)
-                if report_type == REPORT_TYPE_FEATURE:
+                if report_type == REPORT_TYPE_OUTPUT:
                     return char
     return None
 
@@ -47,22 +47,18 @@ async def main():
 
     print(f"Connecting to {device.address}...")
     async with BleakClient(device) as client:
-        feature_char = await find_feature_characteristic(client)
-        if not feature_char:
-            print("Feature Report characteristic not found.")
+        output_char = await find_output_characteristic(client)
+        if not output_char:
+            print("Output Report characteristic not found.")
             return
 
-        print("Reading feature report...")
-        data = await client.read_gatt_char(feature_char)
-        print("Initial Feature Report:", list(data))
+        print("Writing output report...")
+        new_values = bytes([0x10, 0x20, 0x30])
+        await client.write_gatt_char(output_char, new_values, response=True)
 
-        print("Writing new feature report...")
-        new_values = bytes([0xAA, 0xBB, 0xCC])
-        await client.write_gatt_char(feature_char, new_values, response=True)
-
-        print("Reading feature report again...")
-        data2 = await client.read_gatt_char(feature_char)
-        print("Updated Feature Report:", list(data2))
+        print("Reading output report back...")
+        data = await client.read_gatt_char(output_char)
+        print("Output Report after write:", list(data))
 
 
 asyncio.run(main())

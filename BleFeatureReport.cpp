@@ -19,8 +19,6 @@ void BleFeatureReceiver::onRead(NimBLECharacteristic *pCharacteristic, NimBLECon
 {
     // Set data for the host
     pCharacteristic->setValue(featureBuffer, featureReportLength);
-
-    featureFlag = true;
 }
 
 void BleFeatureReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo)
@@ -28,34 +26,21 @@ void BleFeatureReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECo
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
 
-    if (value.length() <= featureReportLength) {
-        // Check if data has changed
-        if (memcmp(value.c_str(), featureBuffer, value.length()) != 0) {
-            memcpy(featureBuffer, value.c_str(), value.length());
-            // If there's a callback defined, call it
-            //if (_onFeatureReportReceived) {
-            //    _onFeatureReportReceived((const uint8_t*)value.c_str(), value.length());
-            //}
-        }
-    }
-
-    /*
-
-    // Store the received data in the buffer
-    for (int i = 0; i < std::min(value.length(), (size_t)featureReportLength); i++)
+    // Some hosts (e.g. macOS's BLE HID bridge) prepend the Report ID byte to
+    // Feature Report writes even though the GATT characteristic (and its Report
+    // Reference descriptor) already identifies the report; strip it if present.
+    const uint8_t* data = (const uint8_t*)value.c_str();
+    size_t length = value.length();
+    if (length == (size_t)featureReportLength + 1)
     {
-        featureBuffer[i] = (uint8_t)value[i];
+        data++;
+        length--;
     }
 
-    */
-
-    // Testing
-    // Serial.println("Received data from host:");
-    // for (size_t i = 0; i < value.length(); i++) {
-    //     Serial.print((uint8_t)value[i], HEX);
-    //     Serial.print(" ");
-    // }
-    // Serial.println();
+    if (length <= featureReportLength && memcmp(data, featureBuffer, length) != 0)
+    {
+        memcpy(featureBuffer, data, length);
+    }
 
     featureFlag = true;
 }

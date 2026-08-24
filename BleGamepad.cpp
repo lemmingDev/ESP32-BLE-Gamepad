@@ -1758,6 +1758,15 @@ uint8_t* BleGamepad::getFeatureBuffer()
   return nullptr;
 }
 
+void BleGamepad::setFeatureBuffer(const uint8_t* data, uint16_t length)
+{
+  if (enableFeatureReport && featureReceiver)
+  {
+    uint16_t copyLength = length < featureReportLength ? length : featureReportLength;
+    memcpy(featureReceiver->featureBuffer, data, copyLength);
+  }
+}
+
 bool BleGamepad::deleteAllBonds(bool resetBoard)
 {
   bool success = false;

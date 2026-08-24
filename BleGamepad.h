@@ -156,6 +156,7 @@ class BleGamepad
     uint8_t* getOutputBuffer();
     bool isFeatureReceived();
     uint8_t* getFeatureBuffer();
+    void setFeatureBuffer(const uint8_t* data, uint16_t length);
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();
