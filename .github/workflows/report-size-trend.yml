@@ -1,0 +1,109 @@
+---
+name: Report size trend
+
+'on':
+  workflow_run:
+    workflows: ["Compile Sketches"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: >-
+          Compile Sketches run ID to pull the size report from. Leave blank
+          to use the latest successful run.
+        required: false
+
+permissions: {}
+
+jobs:
+  trend:
+    # report-size-deltas.yml handles runs that belong to a pull request.
+    # The monthly schedule build has no PR to diff against, so record its
+    # sizes to a running history instead of reporting a delta.
+    # workflow_dispatch is always allowed through, for ad-hoc runs/testing.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'schedule')
+
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Resolve source run
+        id: source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID_INPUT: ${{ inputs.run_id }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "$RUN_ID_INPUT" ]; then
+              run_id="$RUN_ID_INPUT"
+            else
+              run_id=$(gh api "repos/${{ github.repository }}/actions/workflows/main.yml/runs?status=success&per_page=1" \
+                --jq '.workflow_runs[0].id')
+              if [ -z "$run_id" ]; then
+                echo "::error::No successful 'Compile Sketches' run found to pull a report from."
+                exit 1
+              fi
+            fi
+          else
+            run_id="${{ github.event.workflow_run.id }}"
+          fi
+
+          echo "Using Compile Sketches run $run_id"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download this run's size report
+        uses: actions/download-artifact@v8
+        with:
+          name: report-size-data
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: report-size-data
+
+      - name: Find previous size history artifact
+        id: find-history
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          artifact_id=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=size-history-data&per_page=100" \
+            --jq '[.artifacts[] | select(.expired == false)] | sort_by(.created_at) | last | .id // empty')
+
+          if [ -z "$artifact_id" ]; then
+            echo "No previous size-history-data artifact found - starting a new history."
+          else
+            echo "Found previous size history artifact $artifact_id"
+          fi
+
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download previous size history
+        if: steps.find-history.outputs.artifact_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p size-history
+          gh api "repos/${{ github.repository }}/actions/artifacts/${{ steps.find-history.outputs.artifact_id }}/zip" > size-history.zip
+          unzip -o size-history.zip -d size-history
+          rm size-history.zip
+
+      - name: Update size history and summary
+        run: |
+          python3 .github/scripts/report_size_trend.py \
+            --reports-dir report-size-data \
+            --history-csv size-history/size-history.csv \
+            --summary-file "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload updated size history
+        uses: actions/upload-artifact@v7
+        with:
+          name: size-history-data
+          path: size-history/size-history.csv
+          # Must comfortably outlive the ~1 month gap between scheduled
+          # runs so the next run can always find this one to chain from.
+          retention-days: 90
