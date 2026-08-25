@@ -28,7 +28,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] HID Output Report function
- - [ ] HID Feature Report function
+ - [x] HID Feature Report function
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
