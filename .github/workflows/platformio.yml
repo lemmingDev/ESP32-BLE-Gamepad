@@ -26,7 +26,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [esp32dev, lolin_c3_mini, esp32s3, esp32c6]
+        board: [esp32dev, esp32s3, esp32c3, esp32c6]
 
     steps:
       - name: Checkout code
