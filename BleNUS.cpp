@@ -10,8 +10,8 @@
 static const char *LOG_TAG = "BleNUS";
 #endif
 
-BleNUS::BleNUS(NimBLEServer* existingServer) 
-    : pServer(existingServer), pService(nullptr), pTxCharacteristic(nullptr), pRxCharacteristic(nullptr), dataReceivedCallback(nullptr) {}
+BleNUS::BleNUS(NimBLEServer* existingServer)
+    : pServer(existingServer), pService(nullptr), pTxCharacteristic(nullptr), pRxCharacteristic(nullptr), dataReceivedCallback(nullptr), subscribeCallback(nullptr) {}
 
 BleNUS::~BleNUS() {
     end();
@@ -37,6 +37,7 @@ void BleNUS::begin() {
     pRxCharacteristic = pService->createCharacteristic(NUS_RX_CHARACTERISTIC_UUID, NIMBLE_PROPERTY::WRITE);
     NIMBLE_LOGD(LOG_TAG, "Registering Nordic UART Service callbacks");
     pRxCharacteristic->setCallbacks(this);
+    pTxCharacteristic->setCallbacks(this); // Logs which peer subscribes to the NUS profile
     
     NIMBLE_LOGD(LOG_TAG, "Starting Nordic UART Service");
     pService->start();
@@ -65,21 +66,48 @@ void BleNUS::end() {
 }
 
 void BleNUS::sendData(const uint8_t* data, size_t length) {
-    if (pTxCharacteristic && pServer->getConnectedCount() > 0) {
-        pTxCharacteristic->setValue(data, length);
-        pTxCharacteristic->notify();
+    if (!pTxCharacteristic) {
+        Serial.println("[NUS] sendData: no TX characteristic yet - dropped");
+        return;
     }
+    if (pServer->getConnectedCount() == 0) {
+        Serial.println("[NUS] sendData: no BLE peer connected - dropped");
+        return;
+    }
+
+    pTxCharacteristic->setValue(data, length);
+    bool ok = pTxCharacteristic->notify();
+    Serial.printf("[NUS] sendData: notify(%u bytes) -> %s: \"%.*s\"\n",
+                  (unsigned)length, ok ? "ok" : "FAILED", (int)length, (const char*)data);
 }
 
 void BleNUS::setDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length)) {
     dataReceivedCallback = callback;
 }
 
+void BleNUS::setSubscribeCallback(void (*callback)(bool subscribed, const std::string& address)) {
+    subscribeCallback = callback;
+}
+
 void BleNUS::onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) {
+    // Buffering must not depend on dataReceivedCallback being set - main.cpp uses the
+    // polling available()/read() API instead, and never registers a callback, so gating
+    // this on dataReceivedCallback silently dropped every incoming write.
+    std::string value = pCharacteristic->getValue();
+    buffer += value; // Append to internal buffer
+
     if (dataReceivedCallback) {
-        std::string value = pCharacteristic->getValue();
-        buffer += value; // Append to internal buffer
         dataReceivedCallback((const uint8_t*)value.data(), value.length());
+    }
+}
+
+void BleNUS::onSubscribe(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo, uint16_t subValue) {
+    const char *action = subValue == 0 ? "unsubscribed from" : "subscribed to";
+    std::string address = std::string(connInfo.getAddress());
+    Serial.printf("[BLE] %s %s the Nordic UART Service (profile: NUS)\n", address.c_str(), action);
+
+    if (subscribeCallback) {
+        subscribeCallback(subValue != 0, address);
     }
 }
 
@@ -148,9 +176,15 @@ void BleNUS::print(char c) {
     print(buf);
 }
 
+// Each println() sends exactly one notification containing the text plus its trailing
+// newline. Sending the newline as a second, separate notify() (as print(str); print("\n");
+// would) means BLE clients that only surface the latest notification value - e.g. LightBlue's
+// characteristic view - only ever show a lone 0x0A, since it overwrites the real text an
+// instant later.
 void BleNUS::println(const char* str) {
-    print(str);
-    print("\n");
+    std::string message(str);
+    message += "\n";
+    sendData((const uint8_t*)message.data(), message.length());
 }
 
 void BleNUS::println(const String& str) {
@@ -158,33 +192,40 @@ void BleNUS::println(const String& str) {
 }
 
 void BleNUS::println(int i) {
-    print(i);
-    print("\n");
+    char buf[33];
+    itoa(i, buf, 10);
+    strcat(buf, "\n");
+    sendData((const uint8_t*)buf, strlen(buf));
 }
 
 void BleNUS::println(long l) {
-    print(l);
-    print("\n");
+    char buf[33];
+    ltoa(l, buf, 10);
+    strcat(buf, "\n");
+    sendData((const uint8_t*)buf, strlen(buf));
 }
 
 void BleNUS::println(unsigned long ul) {
-    print(ul);
-    print("\n");
+    char buf[33];
+    ultoa(ul, buf, 10);
+    strcat(buf, "\n");
+    sendData((const uint8_t*)buf, strlen(buf));
 }
 
 void BleNUS::println(float f, int digits) {
-    print(f, digits);
-    print("\n");
+    char buf[33];
+    dtostrf(f, 6, digits, buf);
+    strcat(buf, "\n");
+    sendData((const uint8_t*)buf, strlen(buf));
 }
 
 void BleNUS::println(double d, int digits) {
-    print(d, digits);
-    print("\n");
+    println((float)d, digits);
 }
 
 void BleNUS::println(char c) {
-    print(c);
-    print("\n");
+    char buf[3] = {c, '\n', '\0'};
+    sendData((const uint8_t*)buf, 2);
 }
 
 void BleNUS::write(uint8_t byte) {
