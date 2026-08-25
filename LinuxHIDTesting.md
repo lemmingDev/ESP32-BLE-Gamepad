@@ -109,15 +109,50 @@ attached), and the `/proc/bus/input/devices` entry should list both an
 recognizes it as a real gamepad.
 
 `/dev/hidraw*` nodes are root-only by default. Either run the steps below
-with `sudo`, or add a udev rule to grant your user access, e.g.:
+with `sudo`, or add a udev rule to grant your user access.
+
+`ATTRS{idVendor}`/`ATTRS{idProduct}` are **USB** sysfs attributes, so a rule
+matching on them only works for a device connected over USB. This library is
+BLE-only: the kernel's `uhid` bridge creates the `hidraw` node with a
+Bluetooth `hid` bus device as its parent instead of a USB one, and that
+parent has no `idVendor`/`idProduct` attributes at all — which is why the
+rule above doesn't match anything (and any process opening the raw node
+still requires `root`). Match on the parent's kernel name instead, which
+encodes bus/vendor/product the same way for any transport
+(`0005` = `BUS_BLUETOOTH`; use `KERNELS`, since it walks the device's
+ancestors while `ATTRS` does not for this bus):
 
 ```bash
 # /etc/udev/rules.d/99-esp32-gamepad.rules
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="e502", ATTRS{idProduct}=="bbab", MODE="0660", GROUP="plugdev"
+SUBSYSTEM=="hidraw", KERNELS=="0005:E502:BBAB.*", MODE="0660", GROUP="plugdev"
 ```
 
-(then `sudo udevadm control --reload-rules && sudo udevadm trigger`, and make
-sure your user is in the `plugdev` group)
+(adjust `E502`/`BBAB` if you changed the VID/PID via `setVid`/`setPid`; then
+`sudo udevadm control --reload-rules && sudo udevadm trigger`, and make sure
+your user is in the `plugdev` group)
+
+You can confirm the exact kernel name to match on after connecting:
+
+```bash
+ls /sys/bus/hid/devices/ | grep -i e502
+# 0005:E502:BBAB.0003
+```
+
+Check whether your user is already in `plugdev`:
+
+```bash
+getent group plugdev | grep -i "$USER"
+```
+
+If that prints nothing, add yourself to the group:
+
+```bash
+sudo gpasswd -a "$USER" plugdev
+```
+
+Group membership is only read when a login session starts, so this won't
+take effect in your current shell (or any shell already open) — log out and
+back in (or reboot) before retrying.
 
 ## 5. Quick sanity check: Input Reports (no code needed)
 
@@ -129,6 +164,37 @@ Trigger a button press from your sketch (or just watch the axes/buttons if
 your sketch reports live input) — you should see the corresponding
 `Buttons:`/`Axes:` fields update in real time. This alone confirms the
 device's Input Report is being parsed correctly by the kernel.
+
+### Using `evtest` over SSH (no `sudo`)
+
+`evtest /dev/input/eventN` gives a lower-level view of the same input events
+(raw `EV_KEY`/`EV_ABS` codes rather than `jstest`'s parsed buttons/axes).
+Like `/dev/hidraw*`, `/dev/input/event*` nodes are owned by `root:input`,
+`MODE=0660` by default, so the fix is the same shape as the `plugdev` one
+above — add yourself to the `input` group instead:
+
+```bash
+getent group input | grep -i "$USER"     # already a member?
+sudo gpasswd -a "$USER" input            # if not
+```
+
+then log out and back in (or reboot) before retrying, same as with
+`plugdev`.
+
+There's a reason this often "just works" at a local desktop login but not
+over SSH even for the same user and the same group rule: most distros also
+tag these device nodes `TAG+="uaccess"`, which makes `systemd-logind` grant
+dynamic access to whoever holds the *active local seat* — a graphical or
+console login gets a seat, an SSH session doesn't. So a user who's only ever
+logged in locally can open `/dev/input/event*` without being in `input` at
+all (the seat ACL is doing the work), while the identical account over SSH
+gets `Permission denied` unless it's also in the `input` group, which is a
+static permission that doesn't depend on having a seat. That's very likely
+what's different between your local testing on cylon and testing over SSH.
+
+```bash
+evtest /dev/input/eventN   # find N via: cat /proc/bus/input/devices
+```
 
 ## 6. Feature / Output / Input Reports via Python (hidapi)
 
