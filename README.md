@@ -5,6 +5,16 @@
 
 Bluetooth LE Gamepad library for the ESP32
 
+## Supported boards
+This library depends only on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino) and has no chip-specific code, so it should work on any Espressif MCU with a BLE radio. The following are currently built and compile-tested in CI (see [main.yml](.github/workflows/main.yml)):
+
+ - ESP32
+ - ESP32-S3
+ - ESP32-C3
+ - ESP32-C6
+
+Other BLE-capable variants (e.g. ESP32-C2, ESP32-H2) are likely to work too, but aren't currently covered by CI. Note that plain ESP32-S2 has no Bluetooth radio at all, so it can't run this library.
+
 ## License
 Published under the MIT license. Please see license.txt.
 
