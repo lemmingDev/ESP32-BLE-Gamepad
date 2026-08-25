@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # The codebase is still catching up (see CONTRIBUTING.md), so this
       # reports issues without blocking merges.
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Style is still catching up across the codebase (see CONTRIBUTING.md),
       # so this check reports issues without blocking merges.
