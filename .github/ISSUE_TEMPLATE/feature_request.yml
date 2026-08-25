@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please search [existing issues](https://github.com/lemmingDev/ESP32-BLE-Gamepad/issues) first in case this has already been requested.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is this related to a problem?
+      description: e.g. "I'm always frustrated when ..." Leave blank if this is just a nice-to-have, not a workaround for a limitation.
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: Other approaches, workarounds, or libraries you've tried.
+
+  - type: checkboxes
+    id: area
+    attributes:
+      label: Which area does this touch?
+      description: Select all that apply.
+      options:
+        - label: Buttons / special buttons
+        - label: Axes / sliders / simulation controls
+        - label: Hats (D-pad)
+        - label: HID descriptor / report configuration
+        - label: Battery level / power state
+        - label: Nordic UART Service (NUS)
+        - label: Pairing / connection management
+        - label: Other
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else — mockups, links to similar features in other libraries, target host OS/platform, etc.

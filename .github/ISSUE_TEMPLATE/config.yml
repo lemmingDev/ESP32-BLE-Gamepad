@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Troubleshooting Guide
+    url: https://github.com/lemmingDev/ESP32-BLE-Gamepad/blob/master/TroubleshootingGuide.md
+    about: Check here first for common connection/pairing/OS-specific issues.
