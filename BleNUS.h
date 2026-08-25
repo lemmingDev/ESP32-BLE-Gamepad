@@ -1,6 +1,7 @@
 #ifndef BleNUS_h
 #define BleNUS_h
 
+#include <Arduino.h>
 #include <NimBLEDevice.h>
 
 #define NUS_SERVICE_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
@@ -18,6 +19,7 @@ public:
     void sendData(const uint8_t* data, size_t length);
     
     void setDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length));
+    void setSubscribeCallback(void (*callback)(bool subscribed, const std::string& address));
     
     size_t available();
     int read();
@@ -46,6 +48,7 @@ public:
     void write(const uint8_t *buffer, size_t size);
     
     void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override;
+    void onSubscribe(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo, uint16_t subValue) override;
 
 private:
     NimBLEServer* pServer;
@@ -54,6 +57,7 @@ private:
     NimBLECharacteristic* pRxCharacteristic;
     
     void (*dataReceivedCallback)(const uint8_t* data, size_t length);
+    void (*subscribeCallback)(bool subscribed, const std::string& address);
     std::string buffer; // For storing received data
 };
 

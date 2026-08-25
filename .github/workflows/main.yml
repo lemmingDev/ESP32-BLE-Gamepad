@@ -5,6 +5,8 @@ name: Compile Sketches
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]*"
+      # Pre-release tags, e.g. v0.7.7-rc0 - see scripts/release.sh.
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
     branches:
       - "master"
       - "ci-builds-*"
@@ -32,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0    # required for comparing base vs. head commits
 
@@ -53,11 +55,13 @@ jobs:
             - examples/GetPeerInfo/GetPeerInfo.ino
             - examples/IndividualAxes/IndividualAxes.ino
             - examples/Keypad4x4/Keypad4x4.ino
+            - examples/MotionController/MotionController.ino
             - examples/MultipleButtons/MultipleButtons.ino
             - examples/MultipleButtonsAndHats/MultipleButtonsAndHats.ino
             - examples/MultipleButtonsDebounce/MultipleButtonsDebounce.ino
             - examples/PotAsAxis/PotAsAxis.ino
             - examples/SetBatteryLevel/SetBatteryLevel.ino
+            - examples/SetBatteryPowerState/SetBatteryPowerState.ino
             - examples/SingleButton/SingleButton.ino
             - examples/SingleButtonDebounce/SingleButtonDebounce.ino
             - examples/SpecialButtons/SpecialButtons.ino

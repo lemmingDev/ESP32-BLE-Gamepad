@@ -1,0 +1,170 @@
+---
+name: Release
+
+'on':
+  workflow_run:
+    workflows: ["ESP32-BLE-Gamepad platformio CI"]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  release:
+    # Only act on tag pushes (branch pushes never start with "v") that
+    # passed the full platformio.yml build matrix.
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Verify version matches tag
+        id: version
+        run: |
+          tag="${{ github.event.workflow_run.head_branch }}"
+          tag_version="${tag#v}"
+
+          props_version=$(grep -m1 '^version=' library.properties | cut -d= -f2)
+          json_version=$(python3 -c "import json; print(json.load(open('library.json'))['version'])")
+
+          echo "Tag: $tag (version $tag_version)"
+          echo "library.properties version: $props_version"
+          echo "library.json version:       $json_version"
+
+          if [ "$tag_version" != "$props_version" ] || [ "$tag_version" != "$json_version" ]; then
+            echo "::error::Version mismatch. Tag $tag implies version $tag_version, but library.properties has $props_version and library.json has $json_version. Bump both files to $tag_version, commit, then re-tag."
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          # A semver pre-release suffix (e.g. v0.7.7-rc0) marks the GitHub
+          # Release as a prerelease, so it doesn't show as "Latest release".
+          case "$tag_version" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${{ steps.version.outputs.tag }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release ${{ steps.version.outputs.tag }} already exists, skipping creation."
+          else
+            prerelease_flag=""
+            if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then
+              prerelease_flag="--prerelease"
+            fi
+
+            gh release create "${{ steps.version.outputs.tag }}" \
+              --repo "${{ github.repository }}" \
+              --title "${{ steps.version.outputs.tag }}" \
+              --generate-notes \
+              $prerelease_flag
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: 3.13
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Resolve PlatformIO package identity
+        id: pio-package
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          PIO_PACKAGE_OWNER: ${{ vars.PLATFORMIO_PACKAGE_OWNER }}
+          PIO_PACKAGE_NAME: ${{ vars.PLATFORMIO_PACKAGE_NAME }}
+        run: |
+          # library.json is committed with the canonical upstream identity
+          # (package name "ESP32-BLE-Gamepad", owned by lemmingdev on the
+          # PlatformIO registry). A fork can't publish under that name - it
+          # doesn't own it - so publishing for any other repository owner is
+          # opt-in: it requires both the PLATFORMIO_PACKAGE_OWNER and
+          # PLATFORMIO_PACKAGE_NAME repo variables (Settings -> Secrets and
+          # variables -> Actions -> Variables) to be set, and is skipped
+          # otherwise. This keeps a PR carrying these CI files back to
+          # upstream mergeable as-is - it publishes as the canonical package
+          # there with no edits needed - while never surprise-publishing an
+          # unconfigured fork under a name nobody asked for.
+          #
+          # Manifest edits below only touch the working copy for this run;
+          # the committed library.json is untouched.
+          python3 - <<'PYEOF'
+          import json
+          import os
+
+          CANONICAL_OWNER = "lemmingdev"
+          CANONICAL_PACKAGE = "ESP32-BLE-Gamepad"
+
+          repo_owner = os.environ["REPO_OWNER"]
+          pio_owner = os.environ.get("PIO_PACKAGE_OWNER", "").strip()
+          pio_name = os.environ.get("PIO_PACKAGE_NAME", "").strip()
+
+          if repo_owner.lower() == CANONICAL_OWNER:
+              should_publish = True
+              package_owner = CANONICAL_OWNER
+              package_name = CANONICAL_PACKAGE
+              print(f"Canonical repository owner ({repo_owner}) - publishing as the upstream '{CANONICAL_PACKAGE}' package.")
+          elif pio_owner and pio_name:
+              should_publish = True
+              package_owner = pio_owner
+              package_name = pio_name
+              with open("library.json") as f:
+                  data = json.load(f)
+              data["name"] = package_name
+              data["repository"]["url"] = os.environ["REPO_URL"]
+              with open("library.json", "w") as f:
+                  json.dump(data, f, indent=2)
+                  f.write("\n")
+              print(f"Fork with PLATFORMIO_PACKAGE_OWNER/PLATFORMIO_PACKAGE_NAME set - publishing as '{package_owner}/{package_name}'.")
+          else:
+              should_publish = False
+              package_owner = ""
+              package_name = ""
+              print("::warning::Fork repository with no PLATFORMIO_PACKAGE_OWNER/PLATFORMIO_PACKAGE_NAME repo variables set - skipping PlatformIO publish. See RELEASE.md.")
+
+          package_url = f"https://registry.platformio.org/libraries/{package_owner}/{package_name}" if should_publish else ""
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"should_publish={'true' if should_publish else 'false'}\n")
+              f.write(f"package_owner={package_owner}\n")
+              f.write(f"package_name={package_name}\n")
+              f.write(f"package_url={package_url}\n")
+          PYEOF
+
+      - name: Publish to PlatformIO registry
+        if: steps.pio-package.outputs.should_publish == 'true'
+        env:
+          PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
+          PACKAGE_OWNER: ${{ steps.pio-package.outputs.package_owner }}
+          PACKAGE_NAME: ${{ steps.pio-package.outputs.package_name }}
+          PACKAGE_URL: ${{ steps.pio-package.outputs.package_url }}
+        run: |
+          if [ -z "$PLATFORMIO_AUTH_TOKEN" ]; then
+            echo "::warning::PLATFORMIO_AUTH_TOKEN secret is not set - skipping 'pio pkg publish'. See RELEASE.md for setup."
+            exit 0
+          fi
+
+          pio pkg publish --no-interactive --owner "$PACKAGE_OWNER"
+
+          echo "Published $PACKAGE_OWNER/$PACKAGE_NAME: $PACKAGE_URL"
+          {
+            echo "### PlatformIO package"
+            echo "[$PACKAGE_OWNER/$PACKAGE_NAME]($PACKAGE_URL)"
+          } >> "$GITHUB_STEP_SUMMARY"
