@@ -2160,6 +2160,7 @@ void BleGamepad::taskServer(void *pvParameter)
 
   BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->getInputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
   BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
+  BleGamepadInstance->inputGamepad->setCallbacks(BleGamepadInstance->connectionStatus); // Logs which peer subscribes to the gamepad profile
 
   if (BleGamepadInstance->enableOutputReport) 
   {

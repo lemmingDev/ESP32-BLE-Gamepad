@@ -1,0 +1,31 @@
+---
+name: Report size deltas
+
+'on':
+  schedule:
+    # A scheduled trigger (rather than workflow_run/pull_request) is what
+    # gives this job write permissions to comment on PRs submitted from
+    # forks - see https://github.com/arduino/report-size-deltas#usage.
+    - cron: "0 3 * * 1"  # Weekly, Monday 03:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: read
+
+    steps:
+      - name: Report size deltas
+        uses: arduino/report-size-deltas@v1
+        with:
+          # Matches the artifact name uploaded by the "Compile Sketches"
+          # workflow (.github/workflows/main.yml). The action searches
+          # recent workflow runs for artifacts matching this name and
+          # posts a comment on any open PR it can diff a base vs. head
+          # report for; runs with nothing to compare (pushes, the monthly
+          # schedule build) are skipped automatically.
+          sketches-reports-source: report-size-data
