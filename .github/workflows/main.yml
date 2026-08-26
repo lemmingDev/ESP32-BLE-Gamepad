@@ -57,37 +57,79 @@ jobs:
         env:
           # Sketches known to fail compilation; excluded until fixed.
           EXCLUDE_SKETCHES: "Diagnostics"
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          # arduino/compile-sketches' deltas report recompiles each sketch at
+          # the base ref to diff against; a sketch that doesn't exist there
+          # yet (newly added in this branch/PR) makes that recompile fail and
+          # logs an ::error:: annotation even though the run otherwise
+          # succeeds. Split sketches into "existing at the base ref" (safe to
+          # diff) and "new" (compiled below without deltas) to avoid that.
+          # Mirrors compile-sketches' own base ref logic: PR base branch for
+          # pull_request events, immediate parent commit otherwise.
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            base_ref="${PR_BASE_SHA}"
+          else
+            base_ref="$(git rev-parse HEAD^)"
+          fi
+
+          existing=()
+          new=()
+          for dir in examples/*/; do
+            name="$(basename "$dir")"
+            skip=false
+            for excluded in $EXCLUDE_SKETCHES; do
+              if [[ "$name" == "$excluded" ]]; then
+                skip=true
+                break
+              fi
+            done
+            [[ "$skip" == true ]] && continue
+            [[ -f "${dir}${name}.ino" ]] || continue
+            if git cat-file -e "${base_ref}:${dir%/}" 2>/dev/null; then
+              existing+=("- ${dir%/}")
+            else
+              new+=("- ${dir%/}")
+            fi
+          done
+
           {
             echo 'sketch-paths<<EOF'
-            for dir in examples/*/; do
-              name="$(basename "$dir")"
-              skip=false
-              for excluded in $EXCLUDE_SKETCHES; do
-                if [[ "$name" == "$excluded" ]]; then
-                  skip=true
-                  break
-                fi
-              done
-              [[ "$skip" == true ]] && continue
-              [[ -f "${dir}${name}.ino" ]] && echo "- ${dir%/}"
-            done
+            printf '%s\n' "${existing[@]}"
+            echo EOF
+            echo 'new-sketch-paths<<EOF'
+            printf '%s\n' "${new[@]}"
             echo EOF
           } >> "$GITHUB_OUTPUT"
 
       # See: https://github.com/arduino/compile-sketches#readme
       - name: Compile sketches
+        if: steps.find-sketches.outputs.sketch-paths != ''
         uses: arduino/compile-sketches@v1
         with:
           enable-deltas-report: true
           fqbn: ${{ matrix.fqbn }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           sketch-paths: ${{ steps.find-sketches.outputs.sketch-paths }}
-          libraries: |
+          libraries: &compile-sketches-libraries |
             - name: NimBLE-Arduino
             - name: Keypad
             - name: Bounce2
             - source-path: .
+
+      # Sketches with no previous version to diff against (just added in this
+      # branch/PR) -- compiled without deltas-report so there's nothing to
+      # fail the recompile-at-base-ref step and log a spurious ::error::.
+      - name: Compile new sketches
+        if: steps.find-sketches.outputs.new-sketch-paths != ''
+        uses: arduino/compile-sketches@v1
+        with:
+          enable-deltas-report: false
+          fqbn: ${{ matrix.fqbn }}
+          sketches-report-path: sketches-reports-new
+          sketch-paths: ${{ steps.find-sketches.outputs.new-sketch-paths }}
+          libraries: *compile-sketches-libraries
 
       - name: Summarize memory usage
         if: always()
@@ -95,9 +137,14 @@ jobs:
           python3 .github/scripts/report_size_summary.py \
             --reports-dir sketches-reports \
             --summary-file "$GITHUB_STEP_SUMMARY"
+          python3 .github/scripts/report_size_summary.py \
+            --reports-dir sketches-reports-new \
+            --summary-file "$GITHUB_STEP_SUMMARY"
 
       - name: Upload report size data
         uses: actions/upload-artifact@v7
         with:
           name: report-size-data-${{ matrix.board }}
-          path: sketches-reports
+          path: |
+            sketches-reports
+            sketches-reports-new
