@@ -17,6 +17,10 @@ SIZE_NAMES = [
     ("RAM for global variables", "RAM"),
 ]
 
+# What arduino/compile-sketches puts in place of a number it couldn't
+# determine, e.g. a delta against a sketch that doesn't exist at the base ref.
+NOT_APPLICABLE = "N/A"
+
 
 def size_entry(sizes, name):
     for size in sizes:
@@ -33,7 +37,11 @@ def fmt_current(size):
     if size is None:
         return "n/a"
     current = size["current"]
-    return f"{fmt_bytes(current['absolute'])} B ({current['relative']:.1f}%)"
+    absolute = current["absolute"]
+    relative = current["relative"]
+    if absolute == NOT_APPLICABLE or relative == NOT_APPLICABLE:
+        return "n/a"
+    return f"{fmt_bytes(absolute)} B ({relative:.1f}%)"
 
 
 def fmt_delta(size):
@@ -41,6 +49,8 @@ def fmt_delta(size):
         return ""
     absolute = size["delta"]["absolute"]
     relative = size["delta"]["relative"]
+    if absolute == NOT_APPLICABLE or relative == NOT_APPLICABLE:
+        return "n/a"
     if absolute > 0:
         return f"+{fmt_bytes(absolute)} B (+{relative:.1f}%) :small_red_triangle:"
     if absolute < 0:
