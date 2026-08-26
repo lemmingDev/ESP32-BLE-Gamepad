@@ -38,7 +38,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] HID Output Report function
- - [ ] HID Feature Report function
+ - [x] HID Feature Report function
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
@@ -159,6 +159,9 @@ Update sent on next gamepad update if auto reporting is not enabled
 
 ## Troubleshooting Guide
 Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](TroubleshootingGuide.md)
+
+## Testing on Linux
+For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
 
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
