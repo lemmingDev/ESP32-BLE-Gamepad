@@ -1,0 +1,81 @@
+/*
+ * A basic SInput (https://github.com/HandHeldLegend/SInput-HID) device, using the
+ * onboard LED most ESP32 dev boards expose on LED_BUILTIN to show the Player LED
+ * index a real SInput host (an SDL3 app with SDL_HINT_JOYSTICK_HIDAPI_SINPUT
+ * enabled) assigns to this controller via SDL_SetGamepadPlayerIndex().
+ *
+ * setEnableSInput(true) replaces this library's usual configurable HID report with
+ * SInput's fixed one -- see GattVsHid.md for why SInput needs its own report
+ * layout, and why it can't be combined with setEnableOutputReport()/
+ * setEnableFeatureReport(). It also switches the advertised VID/PID to
+ * SINPUT_USB_VID/SINPUT_USB_PID_GENERIC, since SDL only recognizes SInput devices
+ * with that exact pair (see BleGamepadConfiguration.h).
+ *
+ * Buttons 1-6 and hat 1 (the D-pad) are wired into SInput's fixed button layout
+ * automatically -- press/release/setHat1 etc. all work as usual. This example
+ * presses BUTTON_1 on a timer just so there's some visible Input Report traffic
+ * (watch it in jstest/evtest, same as TestFeatureReports.ino).
+ *
+ * This library only implements the Player LED command today -- see
+ * BleSInputReceiver::onWrite() in BleSInput.cpp -- so rumble (haptics) and RGB
+ * commands are accepted but otherwise ignored.
+ */
+
+#include <BleGamepad.h>
+
+#ifndef LED_BUILTIN
+#define LED_BUILTIN 2 // Fall back to GPIO2 (common onboard LED pin) if the board package doesn't define one
+#endif
+
+#define BUTTON_TOGGLE_INTERVAL_MS 1000
+
+BleGamepad bleGamepad;
+BleGamepadConfiguration bleGamepadConfig;
+
+void setup()
+{
+  Serial.begin(115200);
+  Serial.println("Starting BLE work!");
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
+  bleGamepadConfig.setAutoReport(false); // We'll call sendReport() ourselves on the button timer below
+  bleGamepadConfig.setEnableSInput(true); // (Necessary) Also sets VID/PID to SInput's required values. Default is false.
+
+  bleGamepad.begin(&bleGamepadConfig);
+
+  // Changing bleGamepadConfig after the begin function has no effect, unless you call the begin function again
+}
+
+void loop()
+{
+  if (bleGamepad.isConnected())
+  {
+    // Poll for a Player LED command from the host
+    if (bleGamepad.isPlayerLedReceived())
+    {
+      uint8_t playerLedIndex = bleGamepad.getPlayerLedIndex();
+
+      // 0 means "no player assigned" -- a real device with more than one LED
+      // would decode playerLedIndex into a specific pattern (e.g. light LED
+      // N-1). With a single onboard LED, this just lights it for any
+      // non-zero index.
+      digitalWrite(LED_BUILTIN, playerLedIndex != 0 ? HIGH : LOW);
+
+      Serial.print("Player LED index: ");
+      Serial.println(playerLedIndex);
+    }
+
+    // Toggle BUTTON_1 on a repeating timer, just to demonstrate the Input Report
+    static bool button1Pressed = false;
+    static unsigned long lastButtonToggleTime = 0;
+    if (millis() - lastButtonToggleTime >= BUTTON_TOGGLE_INTERVAL_MS)
+    {
+      lastButtonToggleTime = millis();
+      button1Pressed = !button1Pressed;
+      button1Pressed ? bleGamepad.press(BUTTON_1) : bleGamepad.release(BUTTON_1);
+      bleGamepad.sendReport();
+    }
+  }
+}

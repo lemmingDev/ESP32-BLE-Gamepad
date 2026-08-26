@@ -7,8 +7,8 @@ see the LED/rumble feature I added":
 1. **HID-over-GATT (HOGP)** — the standard Bluetooth SIG profile that makes
    this device look like a real gamepad/joystick to the OS. This is what
    `BleGamepad`'s buttons/axes (Input Report), `setFeatureBuffer()`/
-   `getFeatureBuffer()` (Feature Report), and `getOutputBuffer()` (Output
-   Report) ride on.
+   `getFeatureBuffer()` (Feature Report), `getOutputBuffer()` (Output
+   Report), and SInput mode (`setEnableSInput()`) all ride on.
 2. **A private GATT service (NUS)** — a plain custom BLE service with no HID
    semantics at all, for arbitrary bytes to/from a companion app. This is
    `beginNUS()`/`sendDataOverNUS()`.
@@ -89,10 +89,9 @@ for free: the kernel will happily carry the bytes, but nothing translates
 "set player LED 2" into a `SDL_GameControllerSetLED()` call unless a driver
 was written that knows this device's report format specifically. This is
 precisely the gap community protocols like [SInput](https://github.com/HandHeldLegend/SInput-HID)
-are trying to close — define a well-known vendor Feature/Output Report
-layout (capability bitmask, LED/rumble command bytes) so a **userspace**
-layer (a custom SDL `hidapi` driver, or an app talking `hidraw` directly,
-the same way
+are trying to close — define a well-known report layout (capability bitmask,
+LED/rumble command bytes) so a **userspace** layer (a custom SDL `hidapi`
+driver, or an app talking `hidraw` directly, the same way
 [LinuxHIDTesting.md](LinuxHIDTesting.md#6-feature--output--input-reports-via-python-hidapi)'s
 Python example does) can drive it, instead of waiting on kernel driver
 support per device. SDL's own `hidapi` driver for it landed as
@@ -101,33 +100,77 @@ is what turns a SInput-shaped device into a normal
 `SDL_GameController` with rumble/LED support, no per-VID/PID driver of our
 own required — see the [References](#references) section below.
 
-## Extending capabilities: two paths, different reachability
+One easy assumption to get wrong here (this library did, briefly, in an
+earlier prototype on this branch): SInput does **not** use the BLE HID
+Feature Report at all. Its reference driver (`SDL_hidapi_sinput.c`)
+never calls `hid_get_feature_report()`/`hid_send_feature_report()` — it
+multiplexes everything through Input and Output Reports only, split by
+Report ID: Input Report `0x01` (regular gamepad state), Input Report `0x02`
+(a command/feature-response report, reusing the *Input* report type), and
+Output Report `0x03` (every host → device command — haptics, a "send me your
+features" request, Player LED, RGB — dispatched by a sub-command byte). If
+you're extending this yourself against the real spec, byte-match the
+reference driver, not just the capability-bitmask doc page — see
+[References](#references).
 
-This library already has two mechanisms for anything beyond plain
-buttons/axes — they are not interchangeable, because they're reachable from
-different software on the host:
+## Extending capabilities: three paths, different reachability
 
-### A. Inside HID-over-GATT (Output/Feature Report bytes)
+This library has three mechanisms for anything beyond plain buttons/axes —
+they are not interchangeable, because they're reachable from different
+software on the host, and (for the first two) because they claim the same
+Report IDs and can't run at the same time.
 
-Add more bytes to the existing Output Report (host → device: rumble motor
-strength, player LED index, RGB values) and/or Feature Report (bidirectional:
-device advertises which of those it supports). `BleFeatureReceiver::
-buildFeatureReport()` in [BleFeatureReport.cpp](BleFeatureReport.cpp) already
-does this for a capability bitmask (`FEAT_CAP_RUMBLE`, `FEAT_CAP_PLAYERLED`,
-etc., modeled on [SInput](https://github.com/HandHeldLegend/SInput-HID)'s
-["Features" 0x02 report](https://docs.handheldlegend.com/s/sinput/doc/features-response-bytes-1lMp7WL7bq))
-— the same idea extends naturally to actual LED/rumble *command* bytes in
-the Output Report, per the
-[SInput HID protocol spec](https://docs.handheldlegend.com/s/sinput/doc/sinput-hid-protocol-TkPYWlDMAg).
+### A. SInput mode (`setEnableSInput(true)`)
+
+`configuration.setEnableSInput(true)` — see [BleSInput.h](BleSInput.h)/[BleSInput.cpp](BleSInput.cpp) —
+replaces this library's usual Input Report entirely with SInput's fixed
+Input `0x01`/`0x02` + Output `0x03` layout described above, and switches the
+advertised VID/PID to the exact pair (`0x2E8A`/`0x10C6`) SDL's hardcoded
+SInput allowlist requires. It's mutually exclusive with
+`setEnableOutputReport()`/`setEnableFeatureReport()` (SInput owns those
+Report IDs outright — `begin()` just doesn't build the classic descriptor
+when SInput is on).
+
+This library's SInput support today implements: real buttons/axes on Input
+Report `0x01` (mapped from the buttons/axes you already configure), a
+correct Features response on `0x02`, and Player LED handling on Output
+`0x03` — poll it with `bleGamepad.isPlayerLedReceived()` /
+`bleGamepad.getPlayerLedIndex()`, demonstrated in
+[examples/SInputPlayerLED](examples/SInputPlayerLED/SInputPlayerLED.ino).
+Haptics and RGB commands are accepted (the write succeeds) but not acted on
+— there's no rumble motor or RGB LED driven yet; see
+`BleSInputReceiver::onWrite()` for where to add one.
+
+- Reachable from: any real SInput host — an SDL3 app with
+  `SDL_HINT_JOYSTICK_HIDAPI_SINPUT` enabled, or an app talking `hidraw`/
+  `hidapi` directly using the same report layout (see
+  [LinuxHIDTesting.md](LinuxHIDTesting.md#6-feature--output--input-reports-via-python-hidapi)
+  for the general pattern). No second connection, no extra pairing.
+- Not reachable from: SDL's generic `evdev`/`IOHIDManager`-only path without
+  the SInput hint, or any plain OS joystick API that only surfaces
+  axes/buttons — those never see the command/feature-response report.
+
+### B. Extending the classic Output/Feature Report yourself
+
+If you're not targeting SInput specifically, the library's older, more
+generic mechanism still exists independently of SInput mode: add bytes to
+the configurable Output Report (host → device) and/or Feature Report
+(bidirectional) via `setEnableOutputReport()`/`setEnableFeatureReport()`.
+`BleFeatureReceiver::buildFeatureReport()` in
+[BleFeatureReport.cpp](BleFeatureReport.cpp) already does this for a
+capability bitmask happening to reuse SInput's bit layout — but to be clear,
+**this is a different, non-SInput mechanism**: it rides on the GATT Feature
+Report characteristic, which SDL's SInput driver never reads (see the note
+above). It's still useful for a custom app that talks `hidraw`/`hidapi`
+directly against its own protocol, just not for SDL's SInput recognition.
 
 - Reachable from: any app already reading this device's Input Report via
-  `hidraw`/`hidapi` — i.e. exactly the kind of code a game or an SDL
+  `hidraw`/`hidapi` — i.e. exactly the kind of code a game or a custom
   `hidapi` driver runs. No second connection, no extra pairing.
 - Not reachable from: SDL's generic `evdev`/`IOHIDManager`-only path, or any
   plain OS joystick API that only surfaces axes/buttons — those never
   expose Feature Reports at all. The app has to drop to `hidapi`/`hidraw`
-  directly (or SDL needs a driver purpose-built for this VID/PID) to reach
-  it.
+  directly to reach it.
 - Linux specifics: there is no generic "set gamepad LED color" kernel API
   for an arbitrary `hid-generic` device — the `/sys/class/leds/...` entries
   you may have seen for a DualShock 4 exist because `hid-playstation` is a
@@ -140,7 +183,7 @@ the Output Report, per the
   Report bytes; without one, `hid-generic` won't expose an `EV_FF` capable
   `/dev/input/eventN` at all.
 
-### B. Outside HID entirely (NUS)
+### C. Outside HID entirely (NUS)
 
 `beginNUS()` opens a second, ordinary GATT service with no HID semantics —
 free-form bytes, no Report Descriptor, no Report ID framing.
@@ -159,26 +202,26 @@ free-form bytes, no Report Descriptor, no Report ID framing.
 
 ### Picking one
 
-If RGB/player LEDs or rumble need to be driven **from the same app that
-already reads input** (a game calling `SDL_GameControllerSetLED()`, or a
-custom `hidapi` driver) — extend the Output/Feature Report (path A). That's
-the only path visible from that code.
+If you want an existing SDL3 game to recognize this device natively —
+buttons/axes, and Player LED today — use SInput mode (path A). It's the only
+path a stock SDL build (with the SInput hint enabled) understands without
+you writing any host-side code at all.
+
+If you're shipping your own host-side app anyway and don't need SDL's
+native recognition, extending the classic Output/Feature Report yourself
+(path B) works the same way, minus the VID/PID and Report ID constraints
+SInput imposes.
 
 If it's configuration/telemetry meant for a **separate companion app**
 (calibration, firmware info, arbitrary logging) that doesn't need to be
-synchronized with game input timing — NUS (path B) is simpler, since it has
+synchronized with game input timing — NUS (path C) is simpler, since it has
 no report-length/ID constraints and doesn't require touching the HID Report
-Descriptor at all.
-
-Nothing stops using both for different features simultaneously — e.g.
-rumble/player-LED-index as Output Report bytes (so games can drive them),
-while a companion app uses NUS for one-time RGB color calibration or
-firmware updates.
+Descriptor at all, and it can run alongside either A or B.
 
 ## Architecture summary
 
 ```
-Game / App
+Game / App (SDL3, SInput hint on)
      |
      |  SDL_GameController*() / SDL_Joystick*()
      v
@@ -188,9 +231,10 @@ Game / App
      |  claims this on connect, standard HOGP behavior
      v
  HID Service (0x1812)  <-----------------  BLE  <-----  ESP32 (BleGamepad)
- Input / Output / Feature Report
- (buttons, axes, rumble bytes,
-  LED bytes, capability bitmask)
+ EITHER (mutually exclusive, chosen by setEnableSInput()):
+   SInput: Input 0x01/0x02 + Output 0x03      (BleSInput.h/.cpp)
+   OR the classic report:  Input/Output/Feature, one shared Report ID
+                                                (BleFeatureReport.cpp etc.)
 
 
  Companion / config app
@@ -198,13 +242,13 @@ Game / App
      |  general-purpose GATT client (bleak, custom app)
      v
  NUS Service (custom UUID)  <-------------  BLE  <-----  ESP32 (BleNUS)
- free-form bytes, no HID framing
+ free-form bytes, no HID framing -- can run alongside either option above
 ```
 
-The top path is what any existing game/SDL code already reaches without
-modification once a report layout is defined for it. The bottom path
-requires a purpose-built companion app, but has none of the HID
-Report Descriptor's constraints.
+The top path is what an SInput-aware game already reaches without any
+device-specific code, once SInput mode is enabled. The bottom path requires
+a purpose-built companion app, but has none of the HID Report Descriptor's
+constraints.
 
 ## References
 
@@ -221,3 +265,8 @@ Report Descriptor's constraints.
   per-VID/PID driver.
 - [lemmingDev/ESP32-BLE-Gamepad#288](https://github.com/lemmingDev/ESP32-BLE-Gamepad/issues/288) —
   the feature request that started this library's SInput work.
+- [BleSInput.h](BleSInput.h)/[BleSInput.cpp](BleSInput.cpp) — this library's
+  SInput implementation, with every report offset documented against the
+  reference driver's (ID-prefixed) indices.
+- [examples/SInputPlayerLED](examples/SInputPlayerLED/SInputPlayerLED.ino) —
+  a basic SInput sketch using the onboard LED to show the Player LED index.

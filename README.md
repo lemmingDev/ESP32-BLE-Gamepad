@@ -29,6 +29,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Uses efficient NimBLE bluetooth library
  - [x] HID Output Report function
  - [x] HID Feature Report function
+ - [x] SInput (https://github.com/HandHeldLegend/SInput-HID) support for native SDL3 recognition -- buttons/axes and Player LED today. See [GattVsHid.md](GattVsHid.md) and the SInputPlayerLED example
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows

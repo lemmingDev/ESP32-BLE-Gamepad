@@ -210,6 +210,13 @@
 #define POWER_STATE_CHARGING        3 // 0b11
 #define POWER_STATE_CRITICAL        3 // 0b11
 
+// SDL's hidapi driver only recognizes SInput (https://github.com/HandHeldLegend/SInput-HID)
+// devices advertising this exact VID/PID pair (hardcoded allowlist, not negotiated) -- see
+// GattVsHid.md. setEnableSInput(true) sets these automatically; call setVid()/setPid()
+// afterwards if you need to override them.
+#define SINPUT_USB_VID         0x2E8A
+#define SINPUT_USB_PID_GENERIC 0x10C6
+
 class BleGamepadConfiguration
 {
 private:
@@ -242,6 +249,7 @@ private:
     bool _enableNordicUARTService;
     bool _enableRumble;
     bool _enablePlayerLED;
+    bool _enableSInput;
     uint16_t _outputReportLength;
     uint16_t _featureReportLength;
     int8_t _transmitPowerLevel;
@@ -304,6 +312,7 @@ public:
     bool getEnableNordicUARTService();
     bool getEnableRumble();
     bool getEnablePlayerLED();
+    bool getEnableSInput();
     uint16_t getOutputReportLength();
     uint16_t getFeatureReportLength();
     int8_t getTXPowerLevel();
@@ -358,6 +367,7 @@ public:
     void setEnableNordicUARTService(bool value);
     void setEnableRumble(bool value);
     void setEnablePlayerLED(bool value);
+    void setEnableSInput(bool value);
     void setOutputReportLength(uint16_t value);
     void setFeatureReportLength(uint16_t value);
     void setTXPowerLevel(int8_t value);

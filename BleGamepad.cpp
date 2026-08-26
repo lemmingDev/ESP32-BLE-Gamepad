@@ -111,6 +111,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   outputReportLength = configuration.getOutputReportLength();
   enableFeatureReport = configuration.getEnableFeatureReport();
   featureReportLength = configuration.getFeatureReportLength();
+  enableSInput = configuration.getEnableSInput();
 
   uint8_t buttonPaddingBits = 8 - (configuration.getButtonCount() % 8);
   if (buttonPaddingBits == 8)
@@ -149,6 +150,73 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   }
 
   hidReportSize = numOfButtonBytes + numOfSpecialButtonBytes + numOfAxisBytes + numOfSimulationBytes + numOfMotionBytes + configuration.getHatSwitchCount();
+
+  if (enableSInput)
+  {
+    // SInput owns Report IDs 0x01-0x03 outright (see BleSInput.h) -- it doesn't
+    // layer on top of the configurable report below, it replaces it. One Vendor
+    // Defined collection with three fixed-size reports: Input 0x01 (regular
+    // gamepad state), Input 0x02 (command/feature response), Output 0x03 (host ->
+    // device commands). SDL's SInput driver reads/writes these by fixed byte
+    // offset and doesn't parse this descriptor's contents at all -- see
+    // GattVsHid.md -- so it only needs to be valid enough for the OS's HID
+    // bridge to size and route each report correctly.
+
+    // USAGE_PAGE (Vendor Defined 0xFF00)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+
+    // USAGE (Vendor Usage 0x01)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+    // COLLECTION (Application)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+    // LOGICAL_MINIMUM (0)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+
+    // LOGICAL_MAXIMUM (255)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+
+    // REPORT_SIZE (8 bits)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
+
+    // Input Report 0x01 (regular gamepad state)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // Input Report 0x02 (command/feature response)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT_CMDDAT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // Output Report 0x03 (host -> device commands)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_OUTPUT_CMDDAT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_OUTPUT;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x91; // OUTPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // END_COLLECTION (Application)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+  }
+  else
+  {
 
   // USAGE_PAGE (Generic Desktop)
   tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
@@ -830,6 +898,8 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   // END_COLLECTION (Application)
   tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
 
+  } // enableSInput
+
   // Set task priority from 5 to 1 in order to get ESP32-C3 working
   xTaskCreate(this->taskServer, "server", 20000, (void *)this, 1, NULL);
 }
@@ -1008,6 +1078,66 @@ void BleGamepad::setSliders(int16_t slider1, int16_t slider2)
 
 void BleGamepad::sendReport(void)
 {
+  if (this->isConnected() && enableSInput)
+  {
+    uint8_t m[SINPUT_REPORT_LEN_INPUT];
+    memset(m, 0, sizeof(m));
+
+    m[SINPUT_IN_IDX_PLUG_STATUS] = 0;  // 0 = "Wired/No Battery Supported" -- this library
+    m[SINPUT_IN_IDX_CHARGE_LEVEL] = 0; // doesn't report battery state through SInput yet
+
+    uint8_t buttons0 = 0;
+    if (configuration.getButtonCount() >= 1 && isPressed(BUTTON_1)) buttons0 |= SINPUT_BTN0_SOUTH;
+    if (configuration.getButtonCount() >= 2 && isPressed(BUTTON_2)) buttons0 |= SINPUT_BTN0_EAST;
+    if (configuration.getButtonCount() >= 3 && isPressed(BUTTON_3)) buttons0 |= SINPUT_BTN0_WEST;
+    if (configuration.getButtonCount() >= 4 && isPressed(BUTTON_4)) buttons0 |= SINPUT_BTN0_NORTH;
+    if (configuration.getHatSwitchCount() >= 1)
+    {
+      if (_hat1 == HAT_UP || _hat1 == HAT_UP_RIGHT || _hat1 == HAT_UP_LEFT) buttons0 |= SINPUT_BTN0_DUP;
+      if (_hat1 == HAT_DOWN_RIGHT || _hat1 == HAT_DOWN || _hat1 == HAT_DOWN_LEFT) buttons0 |= SINPUT_BTN0_DDOWN;
+      if (_hat1 == HAT_DOWN_LEFT || _hat1 == HAT_LEFT || _hat1 == HAT_UP_LEFT) buttons0 |= SINPUT_BTN0_DLEFT;
+      if (_hat1 == HAT_UP_RIGHT || _hat1 == HAT_RIGHT || _hat1 == HAT_DOWN_RIGHT) buttons0 |= SINPUT_BTN0_DRIGHT;
+    }
+    m[SINPUT_IN_IDX_BUTTONS_0] = buttons0;
+
+    uint8_t buttons1 = 0;
+    if (configuration.getButtonCount() >= 5 && isPressed(BUTTON_5)) buttons1 |= SINPUT_BTN1_LSHOULDER;
+    if (configuration.getButtonCount() >= 6 && isPressed(BUTTON_6)) buttons1 |= SINPUT_BTN1_RSHOULDER;
+    m[SINPUT_IN_IDX_BUTTONS_1] = buttons1;
+    // m[SINPUT_IN_IDX_BUTTONS_2]/_3 (Start/Back/Guide/..., Power/Misc) stay 0 --
+    // see BleSInputReceiver::sendFeaturesResponse() for why.
+
+    if (configuration.getIncludeXAxis() && configuration.getIncludeYAxis())
+    {
+      m[SINPUT_IN_IDX_LEFT_X] = (uint8_t)_x;
+      m[SINPUT_IN_IDX_LEFT_X + 1] = (uint8_t)(_x >> 8);
+      m[SINPUT_IN_IDX_LEFT_Y] = (uint8_t)_y;
+      m[SINPUT_IN_IDX_LEFT_Y + 1] = (uint8_t)(_y >> 8);
+    }
+    if (configuration.getIncludeZAxis() && configuration.getIncludeRzAxis())
+    {
+      m[SINPUT_IN_IDX_RIGHT_X] = (uint8_t)_z;
+      m[SINPUT_IN_IDX_RIGHT_X + 1] = (uint8_t)(_z >> 8);
+      m[SINPUT_IN_IDX_RIGHT_Y] = (uint8_t)_rZ;
+      m[SINPUT_IN_IDX_RIGHT_Y + 1] = (uint8_t)(_rZ >> 8);
+    }
+    if (configuration.getIncludeRxAxis())
+    {
+      m[SINPUT_IN_IDX_LEFT_TRIGGER] = (uint8_t)_rX;
+      m[SINPUT_IN_IDX_LEFT_TRIGGER + 1] = (uint8_t)(_rX >> 8);
+    }
+    if (configuration.getIncludeRyAxis())
+    {
+      m[SINPUT_IN_IDX_RIGHT_TRIGGER] = (uint8_t)_rY;
+      m[SINPUT_IN_IDX_RIGHT_TRIGGER + 1] = (uint8_t)(_rY >> 8);
+    }
+    // Bytes past here (IMU, touchpads, reserved) stay 0 -- see BleSInput.h.
+
+    this->sInputGamepad->setValue(m, sizeof(m));
+    this->sInputGamepad->notify();
+    return;
+  }
+
   if (this->isConnected())
   {
     uint8_t currentReportIndex = 0;
@@ -1768,6 +1898,28 @@ void BleGamepad::setFeatureBuffer(const uint8_t* data, uint16_t length)
   }
 }
 
+bool BleGamepad::isPlayerLedReceived()
+{
+  if (enableSInput && sInputReceiver)
+  {
+    if (this->sInputReceiver->playerLedFlag)
+    {
+      this->sInputReceiver->playerLedFlag = false; // Clear Flag
+      return true;
+    }
+  }
+  return false;
+}
+
+uint8_t BleGamepad::getPlayerLedIndex()
+{
+  if (enableSInput && sInputReceiver)
+  {
+    return sInputReceiver->playerLedIndex;
+  }
+  return 0;
+}
+
 bool BleGamepad::deleteAllBonds(bool resetBoard)
 {
   bool success = false;
@@ -2159,24 +2311,42 @@ void BleGamepad::taskServer(void *pvParameter)
 
   BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
 
-  BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->getInputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
-  BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
-  BleGamepadInstance->inputGamepad->setCallbacks(BleGamepadInstance->connectionStatus); // Logs which peer subscribes to the gamepad profile
-
-  if (BleGamepadInstance->enableOutputReport) 
+  if (BleGamepadInstance->enableSInput)
   {
-    BleGamepadInstance->outputGamepad = BleGamepadInstance->hid->getOutputReport(BleGamepadInstance->configuration.getHidReportId());
-    BleGamepadInstance->outputReceiver = new BleOutputReceiver(BleGamepadInstance->outputReportLength);
-    BleGamepadInstance->outputBackupBuffer = new uint8_t[BleGamepadInstance->outputReportLength];
-    BleGamepadInstance->outputGamepad->setCallbacks(BleGamepadInstance->outputReceiver);
+    // SInput owns Report IDs 0x01-0x03 outright -- see the matching branch in
+    // begin() and BleSInput.h -- so the classic Input/Output/Feature Report
+    // characteristics below aren't created at all in this mode.
+    BleGamepadInstance->sInputGamepad = BleGamepadInstance->hid->getInputReport(SINPUT_REPORT_ID_INPUT);
+    BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->sInputGamepad;
+    BleGamepadInstance->sInputGamepad->setCallbacks(BleGamepadInstance->connectionStatus); // Logs which peer subscribes to the gamepad profile
+
+    BleGamepadInstance->sInputCmdGamepad = BleGamepadInstance->hid->getInputReport(SINPUT_REPORT_ID_INPUT_CMDDAT);
+
+    BleGamepadInstance->sInputReceiver = new BleSInputReceiver(&BleGamepadInstance->configuration, BleGamepadInstance->sInputCmdGamepad);
+    BleGamepadInstance->sInputOutputGamepad = BleGamepadInstance->hid->getOutputReport(SINPUT_REPORT_ID_OUTPUT_CMDDAT);
+    BleGamepadInstance->sInputOutputGamepad->setCallbacks(BleGamepadInstance->sInputReceiver);
   }
-
-  if (BleGamepadInstance->enableFeatureReport)
+  else
   {
-    BleGamepadInstance->featureGamepad = BleGamepadInstance->hid->getFeatureReport(BleGamepadInstance->configuration.getHidReportId());
-    BleGamepadInstance->featureReceiver = new BleFeatureReceiver(BleGamepadInstance->featureReportLength, &BleGamepadInstance->configuration);
-    BleGamepadInstance->featureBackupBuffer = new uint8_t[BleGamepadInstance->featureReportLength];
-    BleGamepadInstance->featureGamepad->setCallbacks(BleGamepadInstance->featureReceiver);
+    BleGamepadInstance->inputGamepad = BleGamepadInstance->hid->getInputReport(BleGamepadInstance->configuration.getHidReportId()); // <-- input REPORTID from report map
+    BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->inputGamepad;
+    BleGamepadInstance->inputGamepad->setCallbacks(BleGamepadInstance->connectionStatus); // Logs which peer subscribes to the gamepad profile
+
+    if (BleGamepadInstance->enableOutputReport)
+    {
+      BleGamepadInstance->outputGamepad = BleGamepadInstance->hid->getOutputReport(BleGamepadInstance->configuration.getHidReportId());
+      BleGamepadInstance->outputReceiver = new BleOutputReceiver(BleGamepadInstance->outputReportLength);
+      BleGamepadInstance->outputBackupBuffer = new uint8_t[BleGamepadInstance->outputReportLength];
+      BleGamepadInstance->outputGamepad->setCallbacks(BleGamepadInstance->outputReceiver);
+    }
+
+    if (BleGamepadInstance->enableFeatureReport)
+    {
+      BleGamepadInstance->featureGamepad = BleGamepadInstance->hid->getFeatureReport(BleGamepadInstance->configuration.getHidReportId());
+      BleGamepadInstance->featureReceiver = new BleFeatureReceiver(BleGamepadInstance->featureReportLength, &BleGamepadInstance->configuration);
+      BleGamepadInstance->featureBackupBuffer = new uint8_t[BleGamepadInstance->featureReportLength];
+      BleGamepadInstance->featureGamepad->setCallbacks(BleGamepadInstance->featureReceiver);
+    }
   }
 
   BleGamepadInstance->hid->setManufacturer(BleGamepadInstance->deviceManufacturer);
