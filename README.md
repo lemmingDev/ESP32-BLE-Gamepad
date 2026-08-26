@@ -163,6 +163,8 @@ Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](Tro
 ## Testing on Linux
 For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
 
+For how this library exposes the ESP32 over BLE (HID-over-GATT vs. the plain NUS GATT service) and how to extend it with extra features, see [GattVsHid](GattVsHid.md)
+
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
 
