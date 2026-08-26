@@ -154,22 +154,30 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   if (enableSInput)
   {
     // SInput owns Report IDs 0x01-0x03 outright (see BleSInput.h) -- it doesn't
-    // layer on top of the configurable report below, it replaces it. One Vendor
-    // Defined collection with three fixed-size reports: Input 0x01 (regular
-    // gamepad state), Input 0x02 (command/feature response), Output 0x03 (host ->
+    // layer on top of the configurable report below, it replaces it. One
+    // collection with three fixed-size reports: Input 0x01 (regular gamepad
+    // state), Input 0x02 (command/feature response), Output 0x03 (host ->
     // device commands). SDL's SInput driver reads/writes these by fixed byte
-    // offset and doesn't parse this descriptor's contents at all -- see
-    // GattVsHid.md -- so it only needs to be valid enough for the OS's HID
-    // bridge to size and route each report correctly.
+    // offset and doesn't parse this descriptor's field-level contents at all --
+    // see GattVsHid.md.
+    //
+    // The top-level Usage Page/Usage below is Generic Desktop/Gamepad, NOT
+    // Vendor Defined, and that part *does* matter, confirmed against a live
+    // SDL3 build: SDL_HIDAPI_ShouldIgnoreDevice() (src/hidapi/SDL_hidapi.c)
+    // discards any device from hidapi enumeration entirely -- before its VID/PID
+    // is even checked against SDL_IsJoystickSInputController() -- unless its top
+    // -level usage is Generic Desktop Joystick/Gamepad/MultiAxisController (this
+    // is gated by the SDL_HINT_JOYSTICK_HIDAPI_CONTROLLERS hint, default on). A
+    // Vendor Defined top-level usage here means the device never reaches SDL's
+    // gamepad layer at all, regardless of everything else being correct.
 
-    // USAGE_PAGE (Vendor Defined 0xFF00)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-
-    // USAGE (Vendor Usage 0x01)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    // USAGE_PAGE (Generic Desktop)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+
+    // USAGE (Gamepad)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
 
     // COLLECTION (Application)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;

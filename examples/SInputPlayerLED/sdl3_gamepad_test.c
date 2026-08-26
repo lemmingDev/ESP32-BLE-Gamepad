@@ -31,6 +31,8 @@ static const char *power_state_name(SDL_PowerState state)
 
 int main(void)
 {
+    setvbuf(stdout, NULL, _IOLBF, 0); // line-buffer stdout even when piped/redirected (e.g. over SSH)
+
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
@@ -76,9 +78,25 @@ int main(void)
     int lastPercent = -1;
     SDL_PowerState lastPowerState = SDL_POWERSTATE_UNKNOWN;
 
-    for (;;)
+    bool quit = false;
+    while (!quit)
     {
-        SDL_PumpEvents();
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            // SDL installs its own SIGINT/SIGTERM handler that turns the signal
+            // into this event rather than killing the process outright -- without
+            // checking for it, Ctrl-C (or `timeout`, which sends SIGTERM by
+            // default) would never actually stop this loop.
+            if (event.type == SDL_EVENT_QUIT)
+            {
+                quit = true;
+            }
+        }
+        if (quit)
+        {
+            break;
+        }
 
         Uint64 now = SDL_GetTicks();
 

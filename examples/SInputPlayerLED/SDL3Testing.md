@@ -5,6 +5,11 @@ SDL3 app on Linux: buttons/axes, Player LED, and the battery ramp added in
 this example — using [sdl3_gamepad_test.c](sdl3_gamepad_test.c), a small
 standalone test program in this directory.
 
+This exact flow — real ESP32 hardware, SDL3 3.4.14 built from source, tested
+over SSH — is what shook out the two real bugs the "Troubleshooting" and
+"Two things specific to SInput mode" sections below describe; they aren't
+hypothetical.
+
 ## 1. Get an SDL3 build that actually has the SInput driver
 
 The SInput `hidapi` driver landed in SDL3 via
@@ -65,18 +70,38 @@ export SDL_JOYSTICK_HIDAPI_SINPUT=1
 
 If it isn't already paired/trusted/connected, follow
 [LinuxHIDTesting.md](../../LinuxHIDTesting.md) steps 1-4 (pairing via
-`bluetoothctl`, confirming the `/dev/hidraw*`/`/dev/input/js*` nodes appear,
-and the `hidraw` udev rule so you don't need `sudo` for step 5). Everything
-there applies unchanged — SInput mode is still HID-over-GATT underneath, see
-[GattVsHid.md](../../GattVsHid.md).
+`bluetoothctl` and the `hidraw` udev rule so you don't need `sudo`).
+Everything there applies unchanged — SInput mode is still HID-over-GATT
+underneath, see [GattVsHid.md](../../GattVsHid.md) — **except** step 4/5's
+`/dev/input/js*` check: SInput's Report Descriptor uses a Vendor Defined
+usage page for its actual byte content (only the outer collection is Generic
+Desktop/Gamepad, see the note in `BleGamepad.cpp`'s SInput branch), so the
+kernel's `hid-generic` driver creates `/dev/hidraw*` but deliberately does
+**not** register an evdev/joystick device for it — there's no
+`/dev/input/js*` or matching `/proc/bus/input/devices` entry to check, and
+that's correct, not a bug. `jstest`/`evtest` have nothing to test against;
+skip straight to hidraw-based verification (step 5's approach, or this
+document's test program).
 
-One thing specific to SInput mode: `bleGamepadConfig.setEnableSInput(true)`
-switches the advertised VID/PID to `0x2E8A`/`0x10C6` (SDL's hardcoded SInput
-allowlist requires that exact pair — see `BleGamepadConfiguration.h`). If
-you'd previously paired this same board while it was running different
-firmware (a different VID/PID, or a different example), remove the old
-bonding first — `bluetoothctl remove <address>` — then re-pair, or BlueZ/SDL
-may still be looking at stale cached info for the old identity.
+Two things specific to SInput mode:
+
+- `bleGamepadConfig.setEnableSInput(true)` switches the advertised VID/PID to
+  `0x2E8A`/`0x10C6` (SDL's hardcoded SInput allowlist requires that exact
+  pair — see `BleGamepadConfiguration.h`). If you'd previously paired this
+  same board while it was running different firmware (a different VID/PID,
+  or a different example), remove the old bonding first —
+  `bluetoothctl remove <address>` — then re-pair.
+- If that re-pair fails with `org.bluez.Error.AuthenticationFailed` (check
+  with `sudo btmon -i hci0` in a second terminal — you'll see
+  `SMP: Pairing Failed (0x05)  Reason: Passkey entry failed`), removing the
+  bond from the *host* side isn't enough: the ESP32 still has its half of the
+  old bond in flash, and the two sides' keys no longer agree. Fully erase the
+  board's flash before reflashing (`esptool.py --port <port> erase_flash`,
+  or `pio run -t erase` under PlatformIO) rather than just re-uploading —
+  this is the same underlying issue as
+  [TroubleshootingGuide.md](../../TroubleshootingGuide.md)'s "Configuration
+  Changes Not Taking Effect" entry, just also needing the ESP32 side cleared,
+  not only the host's.
 
 ## 4. Build and run the test program
 
@@ -125,17 +150,39 @@ Battery: 26% (on battery)
 
 ## Troubleshooting
 
-**VID/PID looks right but the test program never finds a gamepad at all**
-- `SDL_GetGamepads()` only returns devices SDL's gamepad layer recognizes,
-  which is a stricter check than "the OS sees a joystick" (LinuxHIDTesting.md's
-  `jstest`/`evtest` steps can pass while this still doesn't). Re-check step
-  1 — `pkg-config --modversion sdl3` printing `3.2.x` here is the most
-  common cause, since 3.2.x has no SInput driver and this device's VID/PID
-  isn't on its list of pre-3.4 hidapi drivers either.
+**The test program never finds a gamepad at all, and raw hidapi doesn't see
+it either (see below)**
+- Re-check step 1 — `pkg-config --modversion sdl3` printing `3.2.x` here is
+  the most common cause, since 3.2.x has no SInput driver at all.
 - Confirm the hint from step 2 actually reached the process: SDL reads
   `SDL_JOYSTICK_HIDAPI_SINPUT` from the environment at `SDL_Init()` time, so
   `export` it in the *same* shell before running (or `sudo -E` if running
   under `sudo`, which drops the environment by default).
+- To check whether hidapi sees the device at all, independent of SDL's
+  gamepad-layer VID/PID matching, a couple of lines of `SDL_hid_init()` +
+  `SDL_hid_enumerate(0, 0)` (see `<SDL3/SDL_hidapi.h>`) will list every HID
+  device hidapi can see, with vendor/product IDs — a much smaller surface to
+  debug than the full gamepad stack. If that also comes back empty, see the
+  next entry.
+
+**Raw hidapi enumeration finds nothing at all (not just this device)**
+- SDL's hidapi layer discards, at the enumeration level, any HID device
+  whose *top-level* Report Descriptor usage isn't Generic Desktop
+  Joystick/Gamepad/MultiAxisController — `SDL_HIDAPI_ShouldIgnoreDevice()` in
+  `src/hidapi/SDL_hidapi.c`, gated by the (default-on)
+  `SDL_HINT_HIDAPI_ENUMERATE_ONLY_CONTROLLERS` hint — regardless of VID/PID. This
+  bit this library's own SInput implementation during development: the
+  earlier draft used a Vendor Defined top-level usage (reasonable, since
+  SDL's SInput driver reads every report by fixed byte offset and doesn't
+  care about descriptor semantics for anything else) and got silently
+  filtered out before VID/PID was ever checked. Fixed as of the version
+  you're reading this against — `BleGamepad.cpp`'s SInput branch now uses
+  Generic Desktop/Gamepad for the outer collection, same as the library's
+  classic descriptor. If you've modified the descriptor yourself, this is
+  the first thing to check.
+- Otherwise, this is likely a permissions issue on `/dev/hidraw*` itself, not
+  an SDL/hidapi-specific one — see the `hidraw` udev rule in
+  [LinuxHIDTesting.md](../../LinuxHIDTesting.md).
 
 **Found it, but VID/PID reads as `0xE502`/`0xBBAB` (or whatever you'd
 customized) instead of `0x2E8A`/`0x10C6`**
