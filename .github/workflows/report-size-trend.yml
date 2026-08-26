@@ -61,7 +61,11 @@ jobs:
       - name: Download this run's size report
         uses: actions/download-artifact@v8
         with:
-          name: report-size-data
+          # The "Compile Sketches" build matrix uploads one artifact per
+          # board (report-size-data-esp32, report-size-data-esp32s3, ...);
+          # merge them all into a single directory for the script below.
+          pattern: report-size-data-*
+          merge-multiple: true
           run-id: ${{ steps.source.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: report-size-data

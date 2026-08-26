@@ -1,0 +1,147 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        Please check the [Troubleshooting Guide](https://github.com/lemmingDev/ESP32-BLE-Gamepad/blob/master/TroubleshootingGuide.md) and search [existing issues](https://github.com/lemmingDev/ESP32-BLE-Gamepad/issues) first — your problem may already have an answer.
+
+        Only "What's the bug?" below is strictly required — but everyone maintaining and answering issues here does it as a hobby, in their spare time, so the more of the rest you can fill in, the better the odds someone can actually reproduce it and help. If a question doesn't apply or you haven't checked, just leave it blank or say so.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What's the bug?
+      description: A clear description of what's going wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we see this ourselves?
+      placeholder: |
+        1. Flash the attached sketch to a ...
+        2. Pair with ...
+        3. Press button 1 / move axis X / ...
+        4. See ...
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+
+  - type: dropdown
+    id: mcu
+    attributes:
+      label: MCU
+      options:
+        - ESP32
+        - ESP32-S3
+        - ESP32-C3
+        - ESP32-C6
+        - Other (specify below)
+
+  - type: input
+    id: board
+    attributes:
+      label: Development board
+      description: The specific board/module, if relevant (e.g. "ESP32-DevKitC", "Lolin C3 Mini", "Adafruit QT Py ESP32-S3").
+      placeholder: e.g. ESP32-DevKitC
+
+  - type: input
+    id: lib-version
+    attributes:
+      label: ESP32-BLE-Gamepad version
+      description: Release version, or commit hash if built from source.
+      placeholder: e.g. 0.7.4
+
+  - type: input
+    id: nimble-version
+    attributes:
+      label: NimBLE-Arduino version
+      placeholder: e.g. 2.2.1
+
+  - type: dropdown
+    id: build-system
+    attributes:
+      label: Build system
+      options:
+        - Arduino IDE
+        - arduino-cli
+        - PlatformIO
+        - Other (specify below)
+
+  - type: input
+    id: core-version
+    attributes:
+      label: esp32 (Espressif) Arduino core version
+      placeholder: e.g. 3.1.0
+
+  - type: dropdown
+    id: host-os
+    attributes:
+      label: OS of the BLE host (the device you're pairing the gamepad to)
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - iOS
+        - Other (specify below)
+
+  - type: dropdown
+    id: other-ble-devices
+    attributes:
+      label: Does any other BLE device pair/connect to that same host successfully?
+      description: Helps tell apart a problem with this library from a problem with the host's own Bluetooth stack/drivers.
+      options:
+        - "Yes, other BLE devices connect fine on this host"
+        - "No, I can't get any BLE device to connect on this host"
+        - "Haven't tried another BLE device"
+
+  - type: textarea
+    id: examples-tested
+    attributes:
+      label: Have other ESP32 BLE examples worked on this hardware?
+      description: e.g. a different sketch from this library's `examples/` folder, or one of NimBLE-Arduino's own examples. Which ones did you try, and did they work?
+
+  - type: dropdown
+    id: scanner-visible
+    attributes:
+      label: Is the gamepad visible in a BLE scanner?
+      description: e.g. nRF Connect for Mobile (Nordic Semiconductor) or Android BLE Scanner.
+      options:
+        - "Yes, visible and I can connect to it there"
+        - "Yes, visible but I can't connect to it there"
+        - "No, not visible at all"
+        - "Haven't tried"
+
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: Minimal code sample
+      description: The smallest sketch that reproduces the issue. This gets copy-pasted, so no need to also attach a file.
+      render: C++
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Serial monitor output / logs
+      description: Any relevant serial output, stack traces, or BLE sniffer logs. This will be automatically formatted as a code block.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant — screenshots, other libraries in use, whether this worked in a previous version, etc.
