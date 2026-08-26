@@ -141,14 +141,24 @@ Haptics and RGB commands are accepted (the write succeeds) but not acted on
 — there's no rumble motor or RGB LED driven yet; see
 `BleSInputReceiver::onWrite()` for where to add one.
 
-- Reachable from: any real SInput host — an SDL3 app with
-  `SDL_HINT_JOYSTICK_HIDAPI_SINPUT` enabled, or an app talking `hidraw`/
-  `hidapi` directly using the same report layout (see
+Reachability actually splits in two, because Input Report `0x01`'s
+buttons/axes fields carry real HID usages (Button page, Generic Desktop
+X/Y/Z/Rz/Rx/Ry) over the same bytes SDL reads by fixed offset — deliberately,
+so both consumers work off one descriptor — while Reports `0x02`/`0x03`
+(features/Player LED/haptics/RGB) don't:
+
+- **Buttons/axes** — reachable from *both* a real SInput host (an SDL3 app
+  with `SDL_HINT_JOYSTICK_HIDAPI_SINPUT` enabled) *and* the plain OS
+  joystick path: `/dev/input/js*`, `jstest`, `evtest`, anything using evdev,
+  no SInput awareness required at all.
+- **Player LED / features negotiation / haptics / RGB** — reachable only
+  from SInput-aware software: SDL's SInput driver, or an app talking
+  `hidraw`/`hidapi` directly using the same report layout (see
   [LinuxHIDTesting.md](LinuxHIDTesting.md#6-feature--output--input-reports-via-python-hidapi)
-  for the general pattern). No second connection, no extra pairing.
-- Not reachable from: SDL's generic `evdev`/`IOHIDManager`-only path without
-  the SInput hint, or any plain OS joystick API that only surfaces
-  axes/buttons — those never see the command/feature-response report.
+  for the general pattern). Reports `0x02`/`0x03` have no field-level HID
+  usages, so evdev/`jstest`/plain joystick APIs never see them — no second
+  connection needed to reach them, but a generic joystick API has no
+  concept of "send a Player LED command" to expose in the first place.
 
 ### B. Extending the classic Output/Feature Report yourself
 

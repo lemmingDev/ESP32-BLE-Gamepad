@@ -69,19 +69,18 @@ export SDL_JOYSTICK_HIDAPI_SINPUT=1
 ## 3. Pair the ESP32, same as any other test in this library
 
 If it isn't already paired/trusted/connected, follow
-[LinuxHIDTesting.md](../../LinuxHIDTesting.md) steps 1-4 (pairing via
-`bluetoothctl` and the `hidraw` udev rule so you don't need `sudo`).
-Everything there applies unchanged — SInput mode is still HID-over-GATT
-underneath, see [GattVsHid.md](../../GattVsHid.md) — **except** step 4/5's
-`/dev/input/js*` check: SInput's Report Descriptor uses a Vendor Defined
-usage page for its actual byte content (only the outer collection is Generic
-Desktop/Gamepad, see the note in `BleGamepad.cpp`'s SInput branch), so the
-kernel's `hid-generic` driver creates `/dev/hidraw*` but deliberately does
-**not** register an evdev/joystick device for it — there's no
-`/dev/input/js*` or matching `/proc/bus/input/devices` entry to check, and
-that's correct, not a bug. `jstest`/`evtest` have nothing to test against;
-skip straight to hidraw-based verification (step 5's approach, or this
-document's test program).
+[LinuxHIDTesting.md](../../LinuxHIDTesting.md) steps 1-5 unchanged — SInput
+mode is still HID-over-GATT underneath (see
+[GattVsHid.md](../../GattVsHid.md)), and it registers as a completely normal
+Linux joystick too: `/dev/input/js*` appears, `/proc/bus/input/devices`
+shows a real entry, and `jstest --normal /dev/input/jsN` reports 6 axes and
+32 buttons, live. That's not incidental — `BleGamepad.cpp`'s SInput branch
+deliberately gives Input Report 0x01's buttons/axes fields real HID usages
+(Button page, Generic Desktop X/Y/Z/Rz/Rx/Ry) over the exact same bytes SDL
+reads by fixed offset, specifically so both paths work off one descriptor.
+Only Reports 0x02/0x03 (SInput's own command/feature-response and
+output-command reports) stay opaque — nothing outside SDL's SInput driver
+(or an app speaking the same protocol) needs to read those.
 
 Two things specific to SInput mode:
 
