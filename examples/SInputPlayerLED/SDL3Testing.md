@@ -196,3 +196,17 @@ log line on the ESP32)**
   `sudo btmon -i hci0` (see [LinuxHIDTesting.md](../../LinuxHIDTesting.md#monitoring-bluetooth-traffic))
   in a second terminal to confirm the write is actually reaching the ATT
   layer at all, rather than being dropped somewhere in SDL/BlueZ.
+- If `btmon` shows the *Features* request/response exchange completing
+  correctly with the right capability byte (bit 1 set — confirmed
+  byte-for-byte correct on this library's side during development) but
+  `sdl3_gamepad_test` still never sends a `PLAYERLED` write, the problem is
+  upstream of this library: SDL's own `ProcessSDLFeaturesResponse()`
+  intermittently mis-parsed that exact response during testing (rebuilding
+  SDL3 with `DEBUG_SINPUT_INIT`/`DEBUG_SINPUT_PROTOCOL` enabled in
+  `SDL_hidapi_sinput.c` showed a plausible-looking capability byte turn into
+  a wrong buttons-count/gyro-range on the SDL side, with no change on the
+  wire), alongside a `hid-generic: Event data for report N was too short`
+  kernel log line suggesting a BLE notification reassembly issue somewhere
+  in SDL's Linux hidapi read path. Not something this library controls;
+  worth a fresh `sudo systemctl restart bluetooth` + re-pair, or filing
+  upstream against SDL if it's reproducible.

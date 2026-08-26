@@ -1,8 +1,10 @@
 /*
  * A basic SInput (https://github.com/HandHeldLegend/SInput-HID) device, using the
- * onboard LED most ESP32 dev boards expose on LED_BUILTIN to show the Player LED
- * index a real SInput host (an SDL3 app with SDL_HINT_JOYSTICK_HIDAPI_SINPUT
- * enabled) assigns to this controller via SDL_SetGamepadPlayerIndex().
+ * onboard LED most ESP32 dev boards expose on LED_BUILTIN as a Player 1 indicator
+ * -- lit only while a real SInput host (an SDL3 app with
+ * SDL_HINT_JOYSTICK_HIDAPI_SINPUT enabled) has assigned this controller Player LED
+ * index 1 via SDL_SetGamepadPlayerIndex(), off for every other player or none, the
+ * same way a real controller's single-LED player indicator behaves.
  *
  * setEnableSInput(true) replaces this library's usual configurable HID report with
  * SInput's fixed one -- see GattVsHid.md for why SInput needs its own report
@@ -78,11 +80,12 @@ void loop()
     {
       uint8_t playerLedIndex = bleGamepad.getPlayerLedIndex();
 
-      // 0 means "no player assigned" -- a real device with more than one LED
-      // would decode playerLedIndex into a specific pattern (e.g. light LED
-      // N-1). With a single onboard LED, this just lights it for any
-      // non-zero index.
-      digitalWrite(LED_BUILTIN, playerLedIndex != 0 ? HIGH : LOW);
+      // SInput's Player LED index is 1-based (0 means "no player assigned"),
+      // so 1 is Player 1. A real device with 4 LEDs would light LED N-1 for
+      // whichever index arrives here; with a single onboard LED, this wires
+      // it specifically to Player 1 -- on only when this controller has been
+      // assigned that slot, off for every other player (or none).
+      digitalWrite(LED_BUILTIN, playerLedIndex == 1 ? HIGH : LOW);
 
       Serial.print("Player LED index: ");
       Serial.println(playerLedIndex);

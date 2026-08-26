@@ -106,8 +106,11 @@ int main(void)
         {
             lastLedChange = now;
             playerIndex = (playerIndex + 1) % 4;
-            SDL_SetGamepadPlayerIndex(gamepad, playerIndex);
-            printf("-> SDL_SetGamepadPlayerIndex(%d)\n", playerIndex);
+            bool ok = SDL_SetGamepadPlayerIndex(gamepad, playerIndex);
+            if (ok)
+                printf("-> SDL_SetGamepadPlayerIndex(%d) succeeded\n", playerIndex);
+            else
+                printf("-> SDL_SetGamepadPlayerIndex(%d) FAILED: %s\n", playerIndex, SDL_GetError());
         }
 
         for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT; b++)
