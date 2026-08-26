@@ -2,36 +2,21 @@
 """
 Direct SInput protocol test for SInputPlayerLED.ino -- talks the raw
 Output/Input Report bytes straight to the device over hidraw, bypassing
-SDL's SInput driver entirely.
+SDL's SInput driver entirely. Useful for isolating a firmware bug from an
+SDL/driver-layer one.
 
-This exists to answer one question in isolation: does the firmware
-(BleSInputReceiver::onWrite()/sendFeaturesResponse() in BleSInput.cpp) behave
-correctly, independent of whatever SDL's own driver is or isn't doing? See
-"Resolved: Player LED wasn't reaching SDL's driver" in SDL3Testing.md in this
-directory for the full story -- what actually turned out to be wrong was a
-stale Features response byte layout in BleSInput.h (missing a protocol_version
-field SDL's driver now expects), not an SDL bug. This script's offsets below
-are kept in sync with BleSInput.h's SINPUT_FEAT_IDX_* constants -- if that
-header's offsets change again, update these to match or this script will
-silently read the wrong bytes.
-
-Two independent checks:
-  - Features response: requests the SInput Features response and decodes it
-    the same way SDL's own driver does. Prints whether the PLAYERLED
-    capability bit is set (it always is, unconditionally -- BleSInput.cpp) --
-    compare this against sdl3_gamepad_test.c's "Player LED capable (SDL's
-    view)" line for the exact same connection; they should now agree.
+Checks:
+  - Features response: requests it and decodes it the same way SDL's driver
+    does, printing the capability bits (PLAYERLED is always set).
   - Player LED: writes SINPUT_COMMAND_PLAYERLED directly and cycles the
-    index, the same command SDL_SetGamepadPlayerIndex() sends. The ESP32's
-    Serial Monitor should print "Player LED index: N" for this exactly like
-    it now does when driven via sdl3_gamepad_test.c.
+    index, the same command SDL_SetGamepadPlayerIndex() sends.
 
 Setup: needs the Python `hid` package (hidapi bindings) -- see
 LinuxHIDTesting.md step 2. Needs to see /dev/hidraw* for the SInput-mode
-device (VID 0x2E8A / PID 0x10C6 -- only present once
-bleGamepadConfig.setEnableSInput(true) is active and the board has been
-re-paired under it, see SDL3Testing.md step 3): run with sudo, or set up the
-udev rule from LinuxHIDTesting.md step 4 (adjusted to KERNELS=="0005:2E8A:10C6.*").
+device (VID 0x2E8A / PID 0x10C6, only present once
+bleGamepadConfig.setEnableSInput(true) is active and the board is paired
+under it): run with sudo, or set up the udev rule from LinuxHIDTesting.md
+step 4 (adjusted to KERNELS=="0005:2E8A:10C6.*").
 
 Usage:
     sudo .venv/bin/python sinput_hid_test.py                 # Features once, then cycle Player LED until Ctrl-C
@@ -46,33 +31,28 @@ import time
 
 import hid
 
-VID = 0x2E8A  # SINPUT_USB_VID (BleGamepadConfiguration.h) -- only advertised once setEnableSInput(true) is active
+VID = 0x2E8A  # SINPUT_USB_VID, only advertised once setEnableSInput(true) is active
 PID = 0x10C6  # SINPUT_USB_PID_GENERIC
 
-# Report IDs (BleSInput.h). hidapi's hid_write()/hid_read() always frame the
-# Report ID as buf[0], same as this directory's inline SDL3Testing.md example
-# and LinuxHIDTesting.md's get_feature_report() note -- regardless of what the
-# underlying BLE GATT payload looks like.
-REPORT_ID_INPUT_CMDDAT = 0x02  # SINPUT_REPORT_ID_INPUT_CMDDAT -- Features response arrives on this
-REPORT_ID_OUTPUT = 0x03  # SINPUT_REPORT_ID_OUTPUT_CMDDAT -- commands are sent on this
+# Report IDs (BleSInput.h). hidapi always frames the Report ID as buf[0].
+REPORT_ID_INPUT_CMDDAT = 0x02  # Features response arrives on this
+REPORT_ID_OUTPUT = 0x03  # commands are sent on this
 
-REPORT_LEN_OUTPUT = 47  # SINPUT_REPORT_LEN_OUTPUT -- payload only, excludes the Report ID byte
-REPORT_LEN_INPUT = 63  # SINPUT_REPORT_LEN_INPUT -- payload only
+REPORT_LEN_OUTPUT = 47  # payload only, excludes the Report ID byte
+REPORT_LEN_INPUT = 63
 
-# Output Report (0x03) sub-commands, payload byte 0 (BleSInput.h)
-COMMAND_FEATURES = 0x02  # SINPUT_COMMAND_FEATURES
-COMMAND_PLAYERLED = 0x03  # SINPUT_COMMAND_PLAYERLED
+# Output Report (0x03) sub-commands, payload byte 0
+COMMAND_FEATURES = 0x02
+COMMAND_PLAYERLED = 0x03
 
-# Features response (Input Report 0x02) payload offsets, BleSInput.h's
-# SINPUT_FEAT_IDX_* constants +1: those are indices into the GATT
-# payload-only buffer BleSInput.cpp builds, but hidraw's reads (like its
-# get_feature_report(), per LinuxHIDTesting.md) prepend the Report ID as
-# byte 0 on Linux, shifting everything else up by one.
-FEAT_CMD_ECHO_OFFSET = 1  # SINPUT_FEAT_IDX 0 + 1 -- echoes COMMAND_FEATURES back
-FEAT_PROTOCOL_VERSION_OFFSET = 2  # SINPUT_FEAT_IDX_PROTOCOL_VERSION (1) + 1, uint16 LE
-FEAT_CAPS0_OFFSET = 4  # SINPUT_FEAT_IDX_CAPS0 (3) + 1
-FEAT_USAGE_MASK_0_OFFSET = 14  # SINPUT_FEAT_IDX_USAGE_MASK_0 (13) + 1
-FEAT_USAGE_MASK_1_OFFSET = 15  # SINPUT_FEAT_IDX_USAGE_MASK_1 (14) + 1
+# Features response (Input Report 0x02) payload offsets: BleSInput.h's
+# SINPUT_FEAT_IDX_* constants +1, since hidraw reads prepend the Report ID
+# as byte 0 on Linux.
+FEAT_CMD_ECHO_OFFSET = 1
+FEAT_PROTOCOL_VERSION_OFFSET = 2  # uint16 LE
+FEAT_CAPS0_OFFSET = 4
+FEAT_USAGE_MASK_0_OFFSET = 14
+FEAT_USAGE_MASK_1_OFFSET = 15
 
 CAP_RUMBLE = 1 << 0
 CAP_PLAYERLED = 1 << 1
@@ -101,9 +81,8 @@ def send_command(dev, command, *payload_bytes):
 def request_features(dev):
     send_command(dev, COMMAND_FEATURES)
 
-    # The device also continuously notifies Input Report 0x01 (regular
-    # gamepad state) at the same time, interleaved on the same read stream --
-    # keep reading until the FEATURES echo shows up or we time out.
+    # Input Report 0x01 (regular gamepad state) is interleaved on the same
+    # read stream, so keep reading until the FEATURES echo shows up.
     dev.nonblocking = True
     end = time.time() + 2
     while time.time() < end:
@@ -121,8 +100,7 @@ def print_features(report):
     protocol_version = report[FEAT_PROTOCOL_VERSION_OFFSET] | (report[FEAT_PROTOCOL_VERSION_OFFSET + 1] << 8)
     caps0 = report[FEAT_CAPS0_OFFSET]
     print(f"Features response received, protocol_version={protocol_version}, caps0=0x{caps0:02X}")
-    print(f"  PLAYERLED capability bit: {'set' if caps0 & CAP_PLAYERLED else 'NOT set'} "
-          "(this library always sets it -- BleSInput.cpp's sendFeaturesResponse())")
+    print(f"  PLAYERLED capability bit: {'set' if caps0 & CAP_PLAYERLED else 'NOT set'}")
     for name, bit in (
         ("RUMBLE", CAP_RUMBLE),
         ("LEFT_STICK", CAP_LEFT_STICK),
