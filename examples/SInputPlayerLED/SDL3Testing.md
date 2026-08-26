@@ -122,11 +122,10 @@ the path to wherever `sdl3.pc` landed)
 Waiting for a gamepad (pair/connect the ESP32 now if it isn't already)...
 Opened: ESP32 BLE Gamepad (VID=0x2E8A PID=0x10C6) -- expect VID=0x2E8A PID=0x10C6 for SInput mode
 Rumble capable: false (expected false -- not implemented by this library yet, see GattVsHid.md)
--> SDL_SetGamepadPlayerIndex(0)
 Button 0: down
 Battery: 25% (on battery)
 Button 0: up
--> SDL_SetGamepadPlayerIndex(1)
+-> SDL_SetGamepadPlayerIndex(1) succeeded
 Battery: 26% (on battery)
 ...
 ```
@@ -140,12 +139,125 @@ Battery: 26% (on battery)
 - **Battery** climbs from 25 to 90 and back down over about 40 seconds, `on
   battery` throughout (the sketch never reports charging).
 - Every 3 seconds the test program itself calls
-  `SDL_SetGamepadPlayerIndex()`, cycling 0→1→2→3→0... — watch the ESP32's
-  own Serial Monitor at the same time: you should see `Player LED index: N`
-  print each time, staying in sync with the values this program prints.
+  `SDL_SetGamepadPlayerIndex()`, cycling 0→1→2→3→0..., and prints
+  `succeeded`/`FAILED` for each call — watch the ESP32's own Serial Monitor
+  at the same time for a matching `Player LED index: N` line. In practice
+  this often doesn't show up even though SDL reports `succeeded` — see
+  "Known issue: SDL doesn't reliably deliver Player LED commands" below
+  before assuming something's wrong with your setup.
 - **Rumble capable** should read `false` — this library's SInput support
   doesn't drive a rumble motor yet, and the Features response says so
   honestly (see [GattVsHid.md](../../GattVsHid.md)'s note on this).
+
+## Known issue: SDL doesn't reliably deliver Player LED commands
+
+**Status: reproducible, root-caused as far as SDL's own internals, not yet
+fixed. This is an SDL3 3.4.14 issue, not a bug in this library's firmware —
+see the evidence below.**
+
+### Symptom
+
+`sdl3_gamepad_test` calls `SDL_SetGamepadPlayerIndex()` every 3 seconds and
+it always reports `succeeded`:
+
+```
+-> SDL_SetGamepadPlayerIndex(1) succeeded
+-> SDL_SetGamepadPlayerIndex(2) succeeded
+-> SDL_SetGamepadPlayerIndex(3) succeeded
+```
+
+but no `Player LED index: N` line ever appears on the ESP32's Serial
+Monitor, and the LED never reacts. Confirmed across multiple independent
+runs (different sessions, different people), not a one-off — this is the
+normal/expected result right now, not something you're doing wrong.
+
+`succeeded` is misleading here: `SDL_SetGamepadPlayerIndex()` →
+`SDL_SetJoystickIDForPlayerIndex()` returns `true` based on its own internal
+player-slot bookkeeping succeeding, then separately calls
+`driver->SetDevicePlayerIndex()` — a `void` function with no return value —
+without checking whether that call actually wrote anything. So the public
+API has no way to signal this failure at the call site; `succeeded` only
+means "SDL found a driver for this instance."
+
+### The firmware is proven correct
+
+Writing the exact same command SDL would send, directly to the device's
+`hidraw` node (bypassing SDL/hidapi entirely), reliably works every time:
+
+```bash
+python3 -c "
+import os
+buf = bytearray(48)
+buf[0] = 0x03  # Output Report ID
+buf[1] = 0x03  # SINPUT_COMMAND_PLAYERLED
+buf[2] = 0x01  # player index 1 (0 = off)
+fd = os.open('/dev/hidraw2', os.O_RDWR)  # adjust the node
+os.write(fd, bytes(buf))
+os.close(fd)
+"
+```
+
+This reliably produces a `Player LED index: 1` Serial line within
+milliseconds and the LED itself visibly turns on (confirmed by direct
+observation, several times, alternating index 1/0). So
+`BleSInputReceiver::onWrite()` and `SInputPlayerLED.ino`'s
+`playerLedIndex == 1` logic are both correct — this is entirely an SDL-side
+delivery problem.
+
+### What's been ruled out on this library's side
+
+- **This library's recent descriptor changes** — reverted to the commit
+  before the field-level HID usage / top-level usage page fixes (see git
+  log) and rebuilt: still failed identically. Not caused by those changes.
+- **Stale BlueZ/bonding state** — `sudo systemctl restart bluetooth`, full
+  `bluetoothctl remove` + fresh re-pair: still failed identically.
+
+### What's been found on SDL's side
+
+`HIDAPI_DriverSInput_SetDevicePlayerIndex()` in
+`src/joystick/hidapi/SDL_hidapi_sinput.c` only sends the write if
+`ctx->player_leds_supported` is true, which gets set once by
+`ProcessSDLFeaturesResponse()` when parsing the device's Features response
+(`RetrieveSDLFeatures()`, called from `InitDevice()`). Rebuilding SDL3 with
+an `SDL_Log()` added to `SetDevicePlayerIndex()` (or enabling the existing
+but disabled `DEBUG_SINPUT_INIT`/`DEBUG_SINPUT_PROTOCOL` macros near the top
+of that file) shows `player_leds_supported=false` at call time.
+
+That's the puzzling part: the wire-level Features response, captured with
+`sudo btmon -i hci0` at the same time, is byte-for-byte correct — capability
+byte `0xf2` (bit 1, `PLAYERLED`, set). Replicating SDL's own parsing logic
+in Python against those exact captured bytes computes the *correct* values
+(`buttons_count=10`, `gyro_range=0`, `player_leds_supported=true`) — but
+SDL's own debug log printed different, wrong numbers from what should be
+the same payload (`buttons_count=5`, `gyro_range=3327` in one capture),
+meaning SDL is decoding a different or misaligned byte sequence than what's
+actually on the air. A kernel `dmesg` line appeared during this testing:
+
+```
+hid-generic 0005:2E8A:10C6.NNNN: Event data for report 1 was too short (63 vs 20)
+```
+
+suggesting BLE GATT notification truncation or reassembly issue somewhere
+in SDL's Linux hidapi read path (or the kernel's uhid bridge feeding it) —
+plausible given a 63-byte payload needs a negotiated ATT MTU well above the
+BLE default (23 bytes / 20 usable), though this hasn't been definitively
+tied to the exact failure yet.
+
+### Next steps (for the WIP PR / further investigation)
+
+- Instrument `RetrieveSDLFeatures()`'s read loop directly (not just the
+  parsed result) to see the raw bytes `SDL_hid_read_timeout()` actually
+  returns on each iteration, and whether `read == USB_PACKET_LENGTH`
+  passes on a genuinely correct 64-byte buffer or a coincidentally-matching
+  garbled one.
+- Check whether ATT MTU is fully negotiated before `InitDevice()` runs its
+  Features exchange — if the timing is racy, forcing a short delay before
+  the first write/read might confirm or rule this out.
+- If reproducible outside this specific setup, this looks worth filing
+  against [libsdl-org/SDL](https://github.com/libsdl-org/SDL) directly —
+  the evidence above (byte-perfect wire capture vs. wrong parsed values,
+  the "too short" kernel warning) doesn't point at anything specific to
+  this library's implementation.
 
 ## Troubleshooting
 
@@ -189,24 +301,9 @@ customized) instead of `0x2E8A`/`0x10C6`**
   `begin()` — see the note in step 3 above.
 
 **Buttons/axes work, but Player LED never reaches the device (no Serial
-log line on the ESP32)**
-- Confirm `sInputOutputGamepad`/`BleSInputReceiver::onWrite()` are actually
-  being hit — enable `BLE_GAMEPAD_DEBUG` (see the main README) for extra
-  Serial diagnostics on the firmware side, and run
-  `sudo btmon -i hci0` (see [LinuxHIDTesting.md](../../LinuxHIDTesting.md#monitoring-bluetooth-traffic))
-  in a second terminal to confirm the write is actually reaching the ATT
-  layer at all, rather than being dropped somewhere in SDL/BlueZ.
-- If `btmon` shows the *Features* request/response exchange completing
-  correctly with the right capability byte (bit 1 set — confirmed
-  byte-for-byte correct on this library's side during development) but
-  `sdl3_gamepad_test` still never sends a `PLAYERLED` write, the problem is
-  upstream of this library: SDL's own `ProcessSDLFeaturesResponse()`
-  intermittently mis-parsed that exact response during testing (rebuilding
-  SDL3 with `DEBUG_SINPUT_INIT`/`DEBUG_SINPUT_PROTOCOL` enabled in
-  `SDL_hidapi_sinput.c` showed a plausible-looking capability byte turn into
-  a wrong buttons-count/gyro-range on the SDL side, with no change on the
-  wire), alongside a `hid-generic: Event data for report N was too short`
-  kernel log line suggesting a BLE notification reassembly issue somewhere
-  in SDL's Linux hidapi read path. Not something this library controls;
-  worth a fresh `sudo systemctl restart bluetooth` + re-pair, or filing
-  upstream against SDL if it's reproducible.
+log line on the ESP32), even though `sdl3_gamepad_test` prints
+`SDL_SetGamepadPlayerIndex(...) succeeded`**
+- This is the known SDL-side issue documented above in "Known issue: SDL
+  doesn't reliably deliver Player LED commands" — read that section first,
+  it covers the firmware-side verification (raw `hidraw` write) and what's
+  been traced so far on SDL's side.
