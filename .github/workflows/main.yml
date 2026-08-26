@@ -27,6 +27,20 @@ jobs:
   compile-sketches:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [esp32, esp32s3, esp32c3, esp32c6]
+        include:
+          - board: esp32
+            fqbn: esp32:esp32:esp32
+          - board: esp32s3
+            fqbn: esp32:esp32:esp32s3
+          - board: esp32c3
+            fqbn: esp32:esp32:esp32c3
+          - board: esp32c6
+            fqbn: esp32:esp32:esp32c6
+
     permissions:
       contents: read        # needed to fetch base commit
       pull-requests: write  # needed to post the delta report
@@ -38,43 +52,52 @@ jobs:
         with:
           fetch-depth: 0    # required for comparing base vs. head commits
 
+      - name: Find example sketches
+        id: find-sketches
+        env:
+          # Sketches known to fail compilation; excluded until fixed.
+          EXCLUDE_SKETCHES: "Diagnostics"
+        run: |
+          {
+            echo 'sketch-paths<<EOF'
+            for dir in examples/*/; do
+              name="$(basename "$dir")"
+              skip=false
+              for excluded in $EXCLUDE_SKETCHES; do
+                if [[ "$name" == "$excluded" ]]; then
+                  skip=true
+                  break
+                fi
+              done
+              [[ "$skip" == true ]] && continue
+              [[ -f "${dir}${name}.ino" ]] && echo "- ${dir%/}"
+            done
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
       # See: https://github.com/arduino/compile-sketches#readme
       - name: Compile sketches
         uses: arduino/compile-sketches@v1
         with:
           enable-deltas-report: true
-          fqbn: esp32:esp32:esp32
+          fqbn: ${{ matrix.fqbn }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          sketch-paths: |
-            - examples/CharacteristicsConfiguration/CharacteristicsConfiguration.ino
-            - examples/DrivingControllerTest/DrivingControllerTest.ino
-            - examples/Fightstick/Fightstick.ino
-            - examples/FlightControllerTest/FlightControllerTest.ino
-            - examples/ForcePairingMode/ForcePairingMode.ino
-            - examples/Gamepad/Gamepad.ino
-            - examples/GetPeerInfo/GetPeerInfo.ino
-            - examples/IndividualAxes/IndividualAxes.ino
-            - examples/Keypad4x4/Keypad4x4.ino
-            - examples/MotionController/MotionController.ino
-            - examples/MultipleButtons/MultipleButtons.ino
-            - examples/MultipleButtonsAndHats/MultipleButtonsAndHats.ino
-            - examples/MultipleButtonsDebounce/MultipleButtonsDebounce.ino
-            - examples/PotAsAxis/PotAsAxis.ino
-            - examples/SetBatteryLevel/SetBatteryLevel.ino
-            - examples/SetBatteryPowerState/SetBatteryPowerState.ino
-            - examples/SingleButton/SingleButton.ino
-            - examples/SingleButtonDebounce/SingleButtonDebounce.ino
-            - examples/SpecialButtons/SpecialButtons.ino
-            - examples/TestAll/TestAll.ino
-            - examples/TestReceivingOutputReport/TestReceivingOutputReport.ino
+          sketch-paths: ${{ steps.find-sketches.outputs.sketch-paths }}
           libraries: |
             - name: NimBLE-Arduino
             - name: Keypad
             - name: Bounce2
             - source-path: .
 
+      - name: Summarize memory usage
+        if: always()
+        run: |
+          python3 .github/scripts/report_size_summary.py \
+            --reports-dir sketches-reports \
+            --summary-file "$GITHUB_STEP_SUMMARY"
+
       - name: Upload report size data
         uses: actions/upload-artifact@v7
         with:
-          name: report-size-data
+          name: report-size-data-${{ matrix.board }}
           path: sketches-reports

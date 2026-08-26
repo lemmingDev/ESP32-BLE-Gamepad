@@ -22,10 +22,12 @@ jobs:
       - name: Report size deltas
         uses: arduino/report-size-deltas@v1
         with:
-          # Matches the artifact name uploaded by the "Compile Sketches"
-          # workflow (.github/workflows/main.yml). The action searches
-          # recent workflow runs for artifacts matching this name and
-          # posts a comment on any open PR it can diff a base vs. head
-          # report for; runs with nothing to compare (pushes, the monthly
-          # schedule build) are skipped automatically.
-          sketches-reports-source: report-size-data
+          # Regex matching the per-board artifact names uploaded by the
+          # "Compile Sketches" workflow's build matrix
+          # (.github/workflows/main.yml), e.g. report-size-data-esp32,
+          # report-size-data-esp32s3, etc. The action searches recent
+          # workflow runs for artifacts matching this pattern and posts a
+          # comment on any open PR it can diff a base vs. head report for;
+          # runs with nothing to compare (pushes, the monthly schedule
+          # build) are skipped automatically.
+          sketches-reports-source: report-size-data-.*
