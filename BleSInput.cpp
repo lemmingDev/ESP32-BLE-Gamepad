@@ -14,6 +14,12 @@ void BleSInputReceiver::sendFeaturesResponse()
 
     report[0] = SINPUT_COMMAND_FEATURES; // command echo, so the host knows which reply this is
 
+    // SDL doesn't currently gate any behavior on this, but populate it anyway
+    // in case a future SDL version does -- see BleSInput.h's note above
+    // SINPUT_FEAT_IDX_PROTOCOL_VERSION for why this field exists at all.
+    report[SINPUT_FEAT_IDX_PROTOCOL_VERSION] = 1;
+    report[SINPUT_FEAT_IDX_PROTOCOL_VERSION + 1] = 0;
+
     uint8_t caps0 = SINPUT_FEAT_CAP_PLAYERLED; // the only command this library actually acts on today
     if (configuration->getIncludeXAxis() && configuration->getIncludeYAxis())
         caps0 |= SINPUT_FEAT_CAP_LEFT_STICK;
@@ -25,9 +31,9 @@ void BleSInputReceiver::sendFeaturesResponse()
         caps0 |= SINPUT_FEAT_CAP_RIGHT_TRIGGER;
     report[SINPUT_FEAT_IDX_CAPS0] = caps0;
 
-    // report[SINPUT_FEAT_IDX_CAPS1] (touchpad/RGB), TYPE, STYLE, POLL_MS, ACCEL_RANGE,
-    // GYRO_RANGE all stay 0 -- unsupported/unclassified, and SDL only reads POLL_MS/
-    // *_RANGE when the corresponding capability bit above is set.
+    // report[SINPUT_FEAT_IDX_CAPS1] (touchpad/RGB/handheld), TYPE, STYLE, POLL_US,
+    // ACCEL_RANGE, GYRO_RANGE all stay 0 -- unsupported/unclassified, and SDL only
+    // reads POLL_US/*_RANGE when the corresponding capability bit above is set.
 
     uint8_t usageMask0 = 0;
     if (configuration->getButtonCount() >= 1) usageMask0 |= SINPUT_BTN0_SOUTH;

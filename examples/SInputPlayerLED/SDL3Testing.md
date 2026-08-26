@@ -6,9 +6,9 @@ this example — using [sdl3_gamepad_test.c](sdl3_gamepad_test.c), a small
 standalone test program in this directory.
 
 This exact flow — real ESP32 hardware, SDL3 3.4.14 built from source, tested
-over SSH — is what shook out the two real bugs the "Troubleshooting" and
-"Two things specific to SInput mode" sections below describe; they aren't
-hypothetical.
+over SSH — is what shook out the real bugs the "Troubleshooting", "Two
+things specific to SInput mode", and "Resolved: Player LED wasn't reaching
+SDL's driver" sections below describe; they aren't hypothetical.
 
 ## 1. Get an SDL3 build that actually has the SInput driver
 
@@ -116,12 +116,55 @@ gcc sdl3_gamepad_test.c -o sdl3_gamepad_test $(pkg-config --cflags --libs sdl3)
 can't find it: `PKG_CONFIG_PATH=/usr/local/lib/pkgconfig gcc ...`, adjusting
 the path to wherever `sdl3.pc` landed)
 
+Pass `-v`/`--verbose` to also enable `SDL_LOG_CATEGORY_INPUT` at
+`SDL_LOG_PRIORITY_VERBOSE` (SDL3's dedicated log category for the
+joystick/gamepad/hidapi subsystem):
+
+```bash
+./sdl3_gamepad_test -v
+```
+
+This is a runtime flag, not a rebuild, so it can't reach logging gated behind
+the SInput driver's own `DEBUG_SINPUT_INIT`/`DEBUG_SINPUT_PROTOCOL` macros
+(those are compiled out entirely unless you edit
+`src/joystick/hidapi/SDL_hidapi_sinput.c` and rebuild SDL — see "What's been
+found on SDL's side" below) — but it does surface whatever SDL already logs
+at debug/verbose priority elsewhere in the hidapi/joystick stack, at no cost
+beyond the flag.
+
+There's also [sinput_hid_test.py](sinput_hid_test.py) in this directory,
+which talks the same protocol directly over `hidraw`, bypassing SDL
+entirely — useful for isolating a firmware bug from an SDL/driver-layer one
+(see "Resolved: Player LED wasn't reaching SDL's driver" below, where doing
+exactly that was how a real bug here got root-caused). If you followed step 3 above via
+[LinuxHIDTesting.md](../../LinuxHIDTesting.md)'s steps 1-5, its step 2
+already set you up a Python venv with the `hid` package installed, so you
+can run it right away:
+
+```bash
+sudo ~/src/pyBLEgameTests/.venv/bin/python sinput_hid_test.py
+```
+
+Otherwise, set one up the same way that step does:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install hid
+sudo .venv/bin/python sinput_hid_test.py
+```
+
+(`sudo` unless you've set up the `hidraw` udev rule from
+[LinuxHIDTesting.md](../../LinuxHIDTesting.md) step 4)
+
 ## What to expect
 
 ```
+SDL runtime version: 3.4.14 -- must be 3.4.x+ for the SInput driver, see SDL3Testing.md step 1
 Waiting for a gamepad (pair/connect the ESP32 now if it isn't already)...
 Opened: ESP32 BLE Gamepad (VID=0x2E8A PID=0x10C6) -- expect VID=0x2E8A PID=0x10C6 for SInput mode
+Underlying device path: /dev/hidraw2 (cross-reference with sinput_hid_test.py --device <path>, or a concurrent `sudo btmon -i hci0`)
 Rumble capable: false (expected false -- not implemented by this library yet, see GattVsHid.md)
+Player LED capable (SDL's view): true -- expected true; false means SDL will silently drop every SDL_SetGamepadPlayerIndex() call below
 Button 0: down
 Battery: 25% (on battery)
 Button 0: up
@@ -134,6 +177,16 @@ Battery: 26% (on battery)
   usual default (`0xE502`/`0xBBAB`) instead, `setEnableSInput(true)` isn't
   taking effect (check it's called before `begin()`, and that you're not
   also calling `setVid()`/`setPid()` afterwards and overriding it).
+- **Underlying device path** is the `hidraw` node SDL opened for this
+  gamepad — hand it straight to `sinput_hid_test.py --device <path>` (see
+  below) to test the same connection at the raw protocol level, or watch for
+  it in a concurrent `sudo btmon -i hci0` capture.
+- **Player LED capable (SDL's view)** is `SDL_PROP_GAMEPAD_CAP_PLAYER_LED_BOOLEAN`
+  — this is the public-API window onto the internal `player_leds_supported`
+  flag discussed in "Resolved: Player LED wasn't reaching SDL's driver"
+  below. It should read `true`; if it prints `false`, see that section —
+  either you're on an old version of this library from before the fix, or
+  something has drifted again.
 - **Button 0** toggles roughly once a second, tracking BUTTON_1 in the
   sketch.
 - **Battery** climbs from 25 to 90 and back down over about 40 seconds, `on
@@ -141,19 +194,21 @@ Battery: 26% (on battery)
 - Every 3 seconds the test program itself calls
   `SDL_SetGamepadPlayerIndex()`, cycling 0→1→2→3→0..., and prints
   `succeeded`/`FAILED` for each call — watch the ESP32's own Serial Monitor
-  at the same time for a matching `Player LED index: N` line. In practice
-  this often doesn't show up even though SDL reports `succeeded` — see
-  "Known issue: SDL doesn't reliably deliver Player LED commands" below
-  before assuming something's wrong with your setup.
+  at the same time for a matching `Player LED index: N` line. This should
+  now show up reliably; if it doesn't, see "Resolved: Player LED wasn't
+  reaching SDL's driver" below before assuming something's wrong with your
+  setup.
 - **Rumble capable** should read `false` — this library's SInput support
   doesn't drive a rumble motor yet, and the Features response says so
   honestly (see [GattVsHid.md](../../GattVsHid.md)'s note on this).
 
-## Known issue: SDL doesn't reliably deliver Player LED commands
+## Resolved: Player LED wasn't reaching SDL's driver
 
-**Status: reproducible, root-caused as far as SDL's own internals, not yet
-fixed. This is an SDL3 3.4.14 issue, not a bug in this library's firmware —
-see the evidence below.**
+**Status: root-caused and fixed.** This turned out to be a bug in this
+library's own SInput implementation, not in SDL — the opposite of what the
+investigation below first concluded. Kept here (with the outdated
+conclusions struck through rather than deleted) because the debugging trail
+itself is the useful part if something like this happens again.
 
 ### Symptom
 
@@ -182,27 +237,39 @@ means "SDL found a driver for this instance."
 ### The firmware is proven correct
 
 Writing the exact same command SDL would send, directly to the device's
-`hidraw` node (bypassing SDL/hidapi entirely), reliably works every time:
+`hidraw` node (bypassing SDL/hidapi entirely), reliably works every time.
+[sinput_hid_test.py](sinput_hid_test.py) in this directory does exactly
+that — it also requests and decodes the Features response the same way
+SDL's driver is supposed to, so you can compare its (correct) parse against
+`sdl3_gamepad_test.c`'s "Player LED capable (SDL's view)" line for the same
+device (see step 4 above for the one-time Python venv setup):
 
-```bash
-python3 -c "
-import os
-buf = bytearray(48)
-buf[0] = 0x03  # Output Report ID
-buf[1] = 0x03  # SINPUT_COMMAND_PLAYERLED
-buf[2] = 0x01  # player index 1 (0 = off)
-fd = os.open('/dev/hidraw2', os.O_RDWR)  # adjust the node
-os.write(fd, bytes(buf))
-os.close(fd)
-"
+```
+Opening /dev/hidraw2
+Features response received, caps0=0xF2
+  PLAYERLED capability bit: set (this library always sets it -- BleSInput.cpp's sendFeaturesResponse())
+  RUMBLE: not set
+  LEFT_STICK: set
+  RIGHT_STICK: set
+  LEFT_TRIGGER: set
+  RIGHT_TRIGGER: set
+  usage_mask_0=0x01 usage_mask_1=0x00
+Cycling Player LED index 0->1->2->3->0... every 3s (watch the ESP32's Serial Monitor for 'Player LED index: N' and the onboard LED). Ctrl-C to stop.
+-> wrote SINPUT_COMMAND_PLAYERLED index=1
 ```
 
 This reliably produces a `Player LED index: 1` Serial line within
 milliseconds and the LED itself visibly turns on (confirmed by direct
-observation, several times, alternating index 1/0). So
-`BleSInputReceiver::onWrite()` and `SInputPlayerLED.ino`'s
-`playerLedIndex == 1` logic are both correct — this is entirely an SDL-side
-delivery problem.
+observation, several times, alternating index 1/0), and the Features
+response's PLAYERLED bit always comes back set. So
+`BleSInputReceiver::onWrite()`/`sendFeaturesResponse()` and
+`SInputPlayerLED.ino`'s `playerLedIndex == 1` logic are all correct.
+
+~~This is entirely an SDL-side delivery problem.~~ **This conclusion was
+wrong** — see "Root cause" below. The firmware being correct and SDL's
+capability check failing were both true at the same time, but not because
+either side was buggy in isolation: the two sides were decoding the same
+bytes according to two different, incompatible layouts.
 
 ### What's been ruled out on this library's side
 
@@ -212,52 +279,80 @@ delivery problem.
 - **Stale BlueZ/bonding state** — `sudo systemctl restart bluetooth`, full
   `bluetoothctl remove` + fresh re-pair: still failed identically.
 
-### What's been found on SDL's side
+### ~~What's been found on SDL's side~~ Root cause
 
 `HIDAPI_DriverSInput_SetDevicePlayerIndex()` in
 `src/joystick/hidapi/SDL_hidapi_sinput.c` only sends the write if
 `ctx->player_leds_supported` is true, which gets set once by
 `ProcessSDLFeaturesResponse()` when parsing the device's Features response
-(`RetrieveSDLFeatures()`, called from `InitDevice()`). Rebuilding SDL3 with
-an `SDL_Log()` added to `SetDevicePlayerIndex()` (or enabling the existing
-but disabled `DEBUG_SINPUT_INIT`/`DEBUG_SINPUT_PROTOCOL` macros near the top
-of that file) shows `player_leds_supported=false` at call time.
+(`RetrieveSDLFeatures()`, called from `InitDevice()`). That part of the
+original investigation was right: `player_leds_supported` was indeed false.
+Where it went wrong was concluding SDL was misparsing a correct payload.
 
-That's the puzzling part: the wire-level Features response, captured with
-`sudo btmon -i hci0` at the same time, is byte-for-byte correct — capability
-byte `0xf2` (bit 1, `PLAYERLED`, set). Replicating SDL's own parsing logic
-in Python against those exact captured bytes computes the *correct* values
-(`buttons_count=10`, `gyro_range=0`, `player_leds_supported=true`) — but
-SDL's own debug log printed different, wrong numbers from what should be
-the same payload (`buttons_count=5`, `gyro_range=3327` in one capture),
-meaning SDL is decoding a different or misaligned byte sequence than what's
-actually on the air. A kernel `dmesg` line appeared during this testing:
+Diffing SDL's actual `src/joystick/hidapi/SDL_hidapi_sinput.c` at the exact
+3.4.14 tag against this library's `BleSInput.h` found the real story: the
+SInput driver picked up several protocol revisions after the PR this
+library's constants were originally reverse-engineered from
+([libsdl-org/SDL#13343](https://github.com/libsdl-org/SDL/pull/13343)) —
+notably [#13667, "Version as a capabilities vehicle"](https://github.com/libsdl-org/SDL/pull/13667)
+— all already merged into the 3.4.14 tag itself (confirmed via GitHub's
+compare API: zero SInput-related file changes between the 3.4.14 tag and
+current `main`, so this isn't something a newer SDL build would have fixed
+either). That PR inserted a 2-byte `protocol_version` field into the
+Features response right after the command-echo byte, shifting every field
+after it by 2:
 
-```
-hid-generic 0005:2E8A:10C6.NNNN: Event data for report 1 was too short (63 vs 20)
-```
+| Byte offset (from command echo) | SDL 3.4.14 actually reads | This library used to send |
+|---|---|---|
+| 0 | command echo | command echo ✓ |
+| 1-2 | `protocol_version` (u16) — new in #13667 | caps0, caps1 |
+| **3** | **caps0, incl. PLAYERLED bit `0x02`** | `type` (always 0) |
+| 4 | caps1 | `style` (always 0) |
+| 5 | gamepad type | `poll_ms` |
+| 7-8 | poll rate (**microseconds**, not ms) | accel_range |
+| 9-10 | accel_range | gyro_range |
+| 11-12 | gyro_range | usage_mask_0, usage_mask_1 |
 
-suggesting BLE GATT notification truncation or reassembly issue somewhere
-in SDL's Linux hidapi read path (or the kernel's uhid bridge feeding it) —
-plausible given a 63-byte payload needs a negotiated ATT MTU well above the
-BLE default (23 bytes / 20 usable), though this hasn't been definitively
-tied to the exact failure yet.
+So SDL was reading byte 3 — this library's always-zero `type` byte — as
+`caps0`, computing `player_leds_supported = false` from a field that never
+carried the real capability data in the first place. The `0xf2` capability
+byte the original investigation captured via `btmon` was real and correct —
+it just landed one field to the left of where SDL 3.4.14 actually looks for
+it. Both sides were decoding their inputs correctly; only the layout
+contract between them was stale.
 
-### Next steps (for the WIP PR / further investigation)
+Separately (and unrelated to the LED bug, since it doesn't affect
+`player_leds_supported`): `SINPUT_BTN0_SOUTH`/`EAST`/`WEST`/`NORTH`'s bit
+*values* were correct as originally written, despite superficially looking
+inconsistent with SDL's own `SINPUT_BUTTONMASK_*` constants of the same
+names in `SDL_hidapi_sinput.c` — those constants turned out to be unused
+dead code in SDL's own driver. SDL's actual live-button decode assigns raw
+joystick button indices purely by scanning `usage_mask` bits in position
+order, with its mapping-string generator unconditionally assigning South/
+East/West/North to raw indices 0/1/2/3 in that order — so what matters is
+that those four bits are the lowest four enabled `usage_mask` bits, in that
+literal order, which they already were. (Caught this the hard way: an
+earlier pass at this fix "corrected" these bit values to match the dead
+`SINPUT_BUTTONMASK_*` constants, which silently broke which physical button
+reported as SDL's `SOUTH` — verified via a full board reflash and re-test.
+It's reverted; see `BleSInput.h`'s comment on `SINPUT_BTN0_SOUTH` for the
+full explanation, kept there so it isn't "corrected" again the same way.)
 
-- Instrument `RetrieveSDLFeatures()`'s read loop directly (not just the
-  parsed result) to see the raw bytes `SDL_hid_read_timeout()` actually
-  returns on each iteration, and whether `read == USB_PACKET_LENGTH`
-  passes on a genuinely correct 64-byte buffer or a coincidentally-matching
-  garbled one.
-- Check whether ATT MTU is fully negotiated before `InitDevice()` runs its
-  Features exchange — if the timing is racy, forcing a short delay before
-  the first write/read might confirm or rule this out.
-- If reproducible outside this specific setup, this looks worth filing
-  against [libsdl-org/SDL](https://github.com/libsdl-org/SDL) directly —
-  the evidence above (byte-perfect wire capture vs. wrong parsed values,
-  the "too short" kernel warning) doesn't point at anything specific to
-  this library's implementation.
+### The fix
+
+`BleSInput.h`/`BleSInput.cpp` now match SDL 3.4.14's actual layout: a
+`SINPUT_FEAT_IDX_PROTOCOL_VERSION` field was added, and every
+`SINPUT_FEAT_IDX_*` offset from `CAPS0` onward shifted by 2 to match.
+Verified end-to-end on real hardware, not just by re-derivation: after
+reflashing, `sdl3_gamepad_test -v` prints `Player LED capable (SDL's view):
+true`, and its `SDL_SetGamepadPlayerIndex()` calls now produce real `Player
+LED index: N` lines on the ESP32's own Serial Monitor and visibly drive the
+onboard LED — through the actual SDL path, not the `sinput_hid_test.py`
+bypass. [sinput_hid_test.py](sinput_hid_test.py)'s own offsets were updated
+in lockstep (it was reading the old, now-wrong layout too) and its Features
+dump matches SDL's parse exactly post-fix (`protocol_version=1,
+caps0=0xF2`, agreeing with `sdl3_gamepad_test.c`'s capability line for the
+same connection).
 
 ## Troubleshooting
 
@@ -302,8 +397,15 @@ customized) instead of `0x2E8A`/`0x10C6`**
 
 **Buttons/axes work, but Player LED never reaches the device (no Serial
 log line on the ESP32), even though `sdl3_gamepad_test` prints
-`SDL_SetGamepadPlayerIndex(...) succeeded`**
-- This is the known SDL-side issue documented above in "Known issue: SDL
-  doesn't reliably deliver Player LED commands" — read that section first,
-  it covers the firmware-side verification (raw `hidraw` write) and what's
-  been traced so far on SDL's side.
+`SDL_SetGamepadPlayerIndex(...) succeeded`, and "Player LED capable (SDL's
+view)" prints `false`**
+- If you're on a version of this library from before this was fixed (check
+  `BleSInput.h` for `SINPUT_FEAT_IDX_PROTOCOL_VERSION` — present means
+  fixed), see "Resolved: Player LED wasn't reaching SDL's driver" above for
+  the full root cause and fix. Update to a version that has it.
+- If you're already on a fixed version and still seeing this, something
+  else is wrong — re-run [sinput_hid_test.py](sinput_hid_test.py) to confirm
+  the Features response's `PLAYERLED` bit and `sdl3_gamepad_test.c`'s
+  "Player LED capable (SDL's view)" line still agree (both `true`); if they
+  now disagree again, the offsets have drifted from SDL's driver a second
+  time and need re-deriving the same way "Resolved" describes.

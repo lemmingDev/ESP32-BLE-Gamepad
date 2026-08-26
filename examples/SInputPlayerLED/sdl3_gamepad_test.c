@@ -9,7 +9,18 @@
  * build SDL3, the required hint, and what to expect.
  *
  * Build:   gcc sdl3_gamepad_test.c -o sdl3_gamepad_test $(pkg-config --cflags --libs sdl3)
- * Run:     ./sdl3_gamepad_test
+ * Run:     ./sdl3_gamepad_test [-v]
+ *
+ * -v/--verbose enables SDL_LOG_CATEGORY_INPUT at SDL_LOG_PRIORITY_VERBOSE,
+ * SDL3's dedicated log category for the joystick/gamepad/hidapi subsystem --
+ * useful for chasing the "Known issue" in SDL3Testing.md (SDL not delivering
+ * Player LED commands): it surfaces whatever the SInput hidapi driver logs
+ * during its Features-response parse. To go further still (the driver's own
+ * DEBUG_SINPUT_INIT/DEBUG_SINPUT_PROTOCOL macros in
+ * src/joystick/hidapi/SDL_hidapi_sinput.c), you need to flip those on and
+ * rebuild SDL itself -- this flag alone can't reach code gated out at
+ * compile time. See sinput_hid_test.py in this directory for a way to test
+ * the device's actual protocol behavior independent of SDL entirely.
  */
 
 #include <SDL3/SDL.h>
@@ -29,15 +40,33 @@ static const char *power_state_name(SDL_PowerState state)
     }
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     setvbuf(stdout, NULL, _IOLBF, 0); // line-buffer stdout even when piped/redirected (e.g. over SSH)
+
+    bool verbose = false;
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0)
+            verbose = true;
+    }
+    if (verbose)
+    {
+        // Set before SDL_Init() so subsystem-init-time logging (device
+        // enumeration, the Features-response parse) isn't missed.
+        SDL_SetLogPriority(SDL_LOG_CATEGORY_INPUT, SDL_LOG_PRIORITY_VERBOSE);
+        printf("Verbose SDL_LOG_CATEGORY_INPUT logging enabled.\n");
+    }
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
+
+    int sdlVersion = SDL_GetVersion();
+    printf("SDL runtime version: %d.%d.%d -- must be 3.4.x+ for the SInput driver, see SDL3Testing.md step 1\n",
+           SDL_VERSIONNUM_MAJOR(sdlVersion), SDL_VERSIONNUM_MINOR(sdlVersion), SDL_VERSIONNUM_MICRO(sdlVersion));
 
     SDL_Gamepad *gamepad = NULL;
     printf("Waiting for a gamepad (pair/connect the ESP32 now if it isn't already)...\n");
@@ -67,9 +96,24 @@ int main(void)
     printf("Opened: %s (VID=0x%04X PID=0x%04X) -- expect VID=0x2E8A PID=0x10C6 for SInput mode\n",
            SDL_GetGamepadName(gamepad), vendor, product);
 
+    SDL_Joystick *joystick = SDL_GetGamepadJoystick(gamepad);
+    const char *devicePath = joystick ? SDL_GetJoystickPath(joystick) : NULL;
+    printf("Underlying device path: %s (cross-reference with sinput_hid_test.py --device <path>, or a "
+           "concurrent `sudo btmon -i hci0`)\n", devicePath ? devicePath : "(none reported)");
+
     SDL_PropertiesID props = SDL_GetGamepadProperties(gamepad);
     printf("Rumble capable: %s (expected false -- not implemented by this library yet, see GattVsHid.md)\n",
            SDL_GetBooleanProperty(props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false) ? "true" : "false");
+
+    // This is SDL's own view of the SInput driver's internal
+    // player_leds_supported flag (see SDL3Testing.md's "Known issue" section)
+    // surfaced through the public API -- if this prints false while
+    // sinput_hid_test.py's Features-response dump shows the PLAYERLED bit
+    // set, that mismatch *is* the bug, and it's on SDL's parsing, not this
+    // library's firmware.
+    printf("Player LED capable (SDL's view): %s -- expected true; false means SDL will silently drop every "
+           "SDL_SetGamepadPlayerIndex() call below\n",
+           SDL_GetBooleanProperty(props, SDL_PROP_GAMEPAD_CAP_PLAYER_LED_BOOLEAN, false) ? "true" : "false");
 
     Uint64 lastLedChange = 0;
     int playerIndex = 0;
