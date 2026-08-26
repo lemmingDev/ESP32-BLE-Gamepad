@@ -27,6 +27,9 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _enableOutputReport(false),
                                                      _enableFeatureReport(false),
                                                      _enableNordicUARTService(false),
+                                                     _enableRumble(false),
+                                                     _enablePlayerLED(false),
+                                                     _enableSInput(false),
                                                      _outputReportLength(64),
                                                      _featureReportLength(64),
                                                      _transmitPowerLevel(9)
@@ -136,6 +139,9 @@ const char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevi
 bool BleGamepadConfiguration::getEnableOutputReport(){ return _enableOutputReport; }
 bool BleGamepadConfiguration::getEnableFeatureReport(){ return _enableFeatureReport; }
 bool BleGamepadConfiguration::getEnableNordicUARTService(){ return _enableNordicUARTService; }
+bool BleGamepadConfiguration::getEnableRumble(){ return _enableRumble; }
+bool BleGamepadConfiguration::getEnablePlayerLED(){ return _enablePlayerLED; }
+bool BleGamepadConfiguration::getEnableSInput(){ return _enableSInput; }
 uint16_t BleGamepadConfiguration::getOutputReportLength(){ return _outputReportLength; }
 uint16_t BleGamepadConfiguration::getFeatureReportLength(){ return _featureReportLength; }
 int8_t BleGamepadConfiguration::getTXPowerLevel(){ return _transmitPowerLevel; }	// Returns the power level that was set as the server started
@@ -218,6 +224,22 @@ void BleGamepadConfiguration::setHardwareRevision(const char *value) { _hardware
 void BleGamepadConfiguration::setEnableOutputReport(bool value) { _enableOutputReport = value; }
 void BleGamepadConfiguration::setEnableFeatureReport(bool value) { _enableFeatureReport = value; }
 void BleGamepadConfiguration::setEnableNordicUARTService(bool value) { _enableNordicUARTService = value; }
+void BleGamepadConfiguration::setEnableRumble(bool value) { _enableRumble = value; }
+void BleGamepadConfiguration::setEnablePlayerLED(bool value) { _enablePlayerLED = value; }
+
+void BleGamepadConfiguration::setEnableSInput(bool value)
+{
+    _enableSInput = value;
+
+    if (value)
+    {
+        // SDL's SInput hidapi driver only matches this exact VID/PID pair (see the
+        // SINPUT_USB_VID/SINPUT_USB_PID_GENERIC comment above) -- default to it so
+        // SInput mode works out of the box. Call setVid()/setPid() after this to override.
+        _vid = SINPUT_USB_VID;
+        _pid = SINPUT_USB_PID_GENERIC;
+    }
+}
 void BleGamepadConfiguration::setOutputReportLength(uint16_t value) { _outputReportLength = value; }
 void BleGamepadConfiguration::setFeatureReportLength(uint16_t value) { _featureReportLength = value; }
 void BleGamepadConfiguration::setTXPowerLevel(int8_t value) { _transmitPowerLevel = value; }

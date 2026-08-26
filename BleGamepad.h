@@ -12,12 +12,27 @@
 #include "BleGamepadConfiguration.h"
 #include "BleOutputReceiver.h"
 #include "BleFeatureReport.h"
+#include "BleSInput.h"
 #include "BleNUS.h"
 
 // Debug enabled, disabled by default
 #ifndef BLE_GAMEPAD_DEBUG
 #define BLE_GAMEPAD_DEBUG 0
 #endif
+
+// Input capabilities
+#define BLE_CAP_BUTTONS    (1 << 0)
+#define BLE_CAP_AXES       (1 << 1)
+#define BLE_CAP_HAT        (1 << 2)
+
+// Feedback capabilities
+#define BLE_CAP_RUMBLE     (1 << 0)
+#define BLE_CAP_PLAYERLED  (1 << 1)
+#define BLE_CAP_RGBLED     (1 << 2)
+
+// Sensor capabilities
+#define BLE_CAP_GYRO       (1 << 0)
+#define BLE_CAP_ACCEL      (1 << 1)
 
 class BleGamepad
 {
@@ -32,6 +47,7 @@ class BleGamepad
     uint16_t outputReportLength;
     bool enableFeatureReport;
     uint16_t featureReportLength;
+    bool enableSInput;
     uint8_t _buttons[16]; // 8 bits x 16 bytes = 128 bits --> 128 button max
     uint8_t _specialButtons;
     int16_t _x;
@@ -66,13 +82,17 @@ class BleGamepad
     BleConnectionStatus *connectionStatus;
     BleOutputReceiver *outputReceiver;
     BleFeatureReceiver *featureReceiver;
+    BleSInputReceiver *sInputReceiver;
     NimBLEServer *pServer;
     BleNUS* nus;
-    
+
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
     NimBLECharacteristic *outputGamepad;
     NimBLECharacteristic *featureGamepad;
+    NimBLECharacteristic *sInputGamepad;       // SInput Input Report 0x01 (regular gamepad state)
+    NimBLECharacteristic *sInputCmdGamepad;    // SInput Input Report 0x02 (command/feature response)
+    NimBLECharacteristic *sInputOutputGamepad; // SInput Output Report 0x03 (host -> device commands)
     NimBLECharacteristic *pCharacteristic_Power_State;
 
     uint8_t *outputBackupBuffer;
@@ -157,6 +177,8 @@ class BleGamepad
     bool isFeatureReceived();
     uint8_t* getFeatureBuffer();
     void setFeatureBuffer(const uint8_t* data, uint16_t length);
+    bool isPlayerLedReceived();
+    uint8_t getPlayerLedIndex();
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();

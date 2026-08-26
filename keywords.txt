@@ -49,6 +49,7 @@ setSimulationControls	KEYWORD2
 setControllerType	KEYWORD2
 setAutoReport	KEYWORD2
 setHidReportId	KEYWORD2
+setEnableSInput	KEYWORD2
 sendReport	KEYWORD2
 setButtonCount	KEYWORD2
 setHatSwitchCount	KEYWORD2
@@ -182,6 +183,8 @@ beginNUS  KEYWORD2
 sendDataOverNUS KEYWORD2
 setNUSDataReceivedCallback  KEYWORD2
 getNUS  KEYWORD2
+isPlayerLedReceived	KEYWORD2
+getPlayerLedIndex	KEYWORD2
 
 #######################################
 # Constants
