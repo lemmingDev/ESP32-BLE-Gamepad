@@ -5,6 +5,16 @@
 
 Bluetooth LE Gamepad library for the ESP32
 
+## Supported boards
+This library depends only on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino) and has no chip-specific code, so it should work on any Espressif MCU with a BLE radio. The following are currently built and compile-tested in CI (see [main.yml](.github/workflows/main.yml)):
+
+ - ESP32
+ - ESP32-S3
+ - ESP32-C3
+ - ESP32-C6
+
+Other BLE-capable variants (e.g. ESP32-C2, ESP32-H2) are likely to work too, but aren't currently covered by CI. Note that plain ESP32-S2 has no Bluetooth radio at all, so it can't run this library.
+
 ## License
 Published under the MIT license. Please see license.txt.
 
@@ -28,7 +38,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Report optional battery level to host
  - [x] Uses efficient NimBLE bluetooth library
  - [x] HID Output Report function
- - [ ] HID Feature Report function
+ - [x] HID Feature Report function
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
@@ -149,6 +159,11 @@ Update sent on next gamepad update if auto reporting is not enabled
 
 ## Troubleshooting Guide
 Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](TroubleshootingGuide.md)
+
+## Testing on Linux
+For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
+
+For how this library exposes the ESP32 over BLE (HID-over-GATT vs. the plain NUS GATT service) and how to extend it with extra features, see [GattVsHid](GattVsHid.md)
 
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.

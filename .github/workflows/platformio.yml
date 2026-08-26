@@ -26,7 +26,11 @@ jobs:
 
     strategy:
       matrix:
-        board: [esp32dev, lolin_c3_mini, esp32s3]
+        # esp32c6 is disabled here: the official "espressif32" PlatformIO
+        # platform doesn't support the arduino framework for it yet (only
+        # espidf). Re-enable once that lands; see the commented-out
+        # [env:esp32c6] in test/ci_build/platformio.ini.
+        board: [esp32dev, esp32s3, esp32c3]
 
     steps:
       - name: Checkout code
