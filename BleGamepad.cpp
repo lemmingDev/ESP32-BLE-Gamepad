@@ -183,39 +183,116 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
 
-    // LOGICAL_MINIMUM (0)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-
-    // LOGICAL_MAXIMUM (255)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-
-    // REPORT_SIZE (8 bits)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
-
-    // Input Report 0x01 (regular gamepad state)
+    // Input Report 0x01 (regular gamepad state). Unlike Reports 0x02/0x03
+    // below, this one's buttons/axes fields carry real HID usages (Button,
+    // Generic Desktop X/Y/Z/Rz/Rx/Ry) over the exact same bytes SDL's SInput
+    // driver already reads by fixed offset -- SDL ignores usage annotations
+    // entirely, but the kernel's hid-generic/hid-input driver needs them to
+    // map fields to evdev BTN_*/ABS_* codes. Without this, SDL still works
+    // (confirmed), but nothing else does -- no /dev/input/js*, no plain
+    // jstest/evtest, no non-SInput-aware app. With it, both paths work off
+    // the same bytes.
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
     tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT;
+
+    // Bytes 0-1 (plug status, charge level): no generic meaning, pad them out
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (2)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Const,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
+
+    // Bytes 2-5 (buttons_0..3): 32 generic buttons, matching this library's
+    // classic descriptor's own button block above
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05; // USAGE_PAGE (Button)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x25; // LOGICAL_MAXIMUM (1)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (1)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x19; // USAGE_MINIMUM (Button 1)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x29; // USAGE_MAXIMUM (Button 32)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x20;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (32)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x20;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // Bytes 6-17 (left X/Y, right X/Y, left/right trigger): 6 signed 16-bit
+    // axes, same X/Y/Z/Rz/Rx/Ry usage codes and ordering this library's
+    // classic descriptor/setHIDAxes() already use
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05; // USAGE_PAGE (Generic Desktop)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16; // LOGICAL_MINIMUM (-32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (32767)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (16)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x10;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (X) -- left stick X
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x30;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Y) -- left stick Y
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x31;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Z) -- right stick X
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x32;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Rz) -- right stick Y
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x35;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Rx) -- left trigger
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x33;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Ry) -- right trigger
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x34;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (6)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
+
+    // Bytes 18-62 (IMU/touchpad/reserved): unused, pad them out
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (45)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT - 2 - 4 - 12;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Const,Var,Abs)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
+
+    // Input Report 0x02 (command/feature response) and Output Report 0x03
+    // (host -> device commands): plain opaque blobs, no field-level usages.
+    // Only SDL's SInput driver (or an app speaking the same protocol) ever
+    // touches these -- see BleSInput.h -- so there's nothing for the kernel's
+    // generic HID input mapping to usefully do with them either way.
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
+
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
+    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT_CMDDAT;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
     tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
 
-    // Input Report 0x02 (command/feature response)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT_CMDDAT;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-
-    // Output Report 0x03 (host -> device commands)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
     tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_OUTPUT_CMDDAT;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95;
+    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
     tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_OUTPUT;
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x91; // OUTPUT (Data,Var,Abs)
     tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
