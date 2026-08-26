@@ -203,8 +203,8 @@ it either (see below)**
   next entry.
 
 **Raw hidapi enumeration finds nothing at all (not just this device)**
-- Otherwise, this is likely a permissions issue on `/dev/hidraw*` itself, not
-  an SDL/hidapi-specific one — see the `hidraw` udev rule in
+- This is likely a permissions issue on `/dev/hidraw*` itself, not an
+  SDL/hidapi-specific one — see the `hidraw` udev rule in
   [LinuxHIDTesting.md](../../LinuxHIDTesting.md).
 
 **Found it, but VID/PID reads as `0xE502`/`0xBBAB` (or whatever you'd
