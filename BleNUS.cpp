@@ -1,4 +1,5 @@
 #include "BleNUS.h"
+#include <Arduino.h>
 #include <NimBLEDevice.h>
 #include "NimBLELog.h"
 

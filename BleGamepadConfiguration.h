@@ -240,6 +240,8 @@ private:
     bool _enableOutputReport;
     bool _enableFeatureReport;
     bool _enableNordicUARTService;
+    bool _enableRumble;
+    bool _enablePlayerLED;
     uint16_t _outputReportLength;
     uint16_t _featureReportLength;
     int8_t _transmitPowerLevel;
@@ -300,6 +302,8 @@ public:
     bool getEnableOutputReport();
     bool getEnableFeatureReport();
     bool getEnableNordicUARTService();
+    bool getEnableRumble();
+    bool getEnablePlayerLED();
     uint16_t getOutputReportLength();
     uint16_t getFeatureReportLength();
     int8_t getTXPowerLevel();
@@ -352,6 +356,8 @@ public:
     void setEnableOutputReport(bool value);
     void setEnableFeatureReport(bool value);
     void setEnableNordicUARTService(bool value);
+    void setEnableRumble(bool value);
+    void setEnablePlayerLED(bool value);
     void setOutputReportLength(uint16_t value);
     void setFeatureReportLength(uint16_t value);
     void setTXPowerLevel(int8_t value);
