@@ -19,6 +19,12 @@
  * This library only implements the Player LED command today -- see
  * BleSInputReceiver::onWrite() in BleSInput.cpp -- so rumble (haptics) and RGB
  * commands are accepted but otherwise ignored.
+ *
+ * Battery is also wired up: the charge level slides back and forth between 25%
+ * and 90% (a fake "ramp", since there's no real fuel gauge here) so a host's
+ * battery indicator has something visibly changing to test against -- watch it
+ * with SDL_GetGamepadPowerInfo() (see SDL3Testing.md for a ready-to-run test
+ * program covering this, Player LED, and buttons/axes together).
  */
 
 #include <BleGamepad.h>
@@ -28,6 +34,10 @@
 #endif
 
 #define BUTTON_TOGGLE_INTERVAL_MS 1000
+
+#define BATTERY_RAMP_STEP_INTERVAL_MS 300 // 1%/step -- a full 25 -> 90 -> 25 sweep takes ~40s
+#define BATTERY_RAMP_MIN 25
+#define BATTERY_RAMP_MAX 90
 
 BleGamepad bleGamepad;
 BleGamepadConfiguration bleGamepadConfig;
@@ -52,6 +62,17 @@ void loop()
 {
   if (bleGamepad.isConnected())
   {
+    // begin() sets up power state on a background task, so wait until we're
+    // connected (which implies that task has finished) before seeding it --
+    // same reasoning as TestFeatureReports.ino's "seeded" flag.
+    static bool powerStateSeeded = false;
+    if (!powerStateSeeded)
+    {
+      bleGamepad.setBatteryPowerInformation(POWER_STATE_PRESENT);
+      bleGamepad.setDischargingState(POWER_STATE_DISCHARGING); // "on battery", not wired/charging
+      powerStateSeeded = true;
+    }
+
     // Poll for a Player LED command from the host
     if (bleGamepad.isPlayerLedReceived())
     {
@@ -67,6 +88,29 @@ void loop()
       Serial.println(playerLedIndex);
     }
 
+    // Slide the battery charge level back and forth between 25% and 90% --
+    // sendReport() (on the button timer below) picks up whatever this is set
+    // to each time it runs, so this doesn't need its own sendReport() call.
+    static uint8_t batteryLevel = BATTERY_RAMP_MIN;
+    static int8_t batteryRampDirection = 1;
+    static unsigned long lastBatteryRampTime = 0;
+    if (millis() - lastBatteryRampTime >= BATTERY_RAMP_STEP_INTERVAL_MS)
+    {
+      lastBatteryRampTime = millis();
+      batteryLevel += batteryRampDirection;
+      if (batteryLevel >= BATTERY_RAMP_MAX)
+      {
+        batteryLevel = BATTERY_RAMP_MAX;
+        batteryRampDirection = -1;
+      }
+      else if (batteryLevel <= BATTERY_RAMP_MIN)
+      {
+        batteryLevel = BATTERY_RAMP_MIN;
+        batteryRampDirection = 1;
+      }
+      bleGamepad.setBatteryLevel(batteryLevel); // Also updates the standard Battery Service (0x180F), independent of SInput
+    }
+
     // Toggle BUTTON_1 on a repeating timer, just to demonstrate the Input Report
     static bool button1Pressed = false;
     static unsigned long lastButtonToggleTime = 0;
@@ -76,6 +120,10 @@ void loop()
       button1Pressed = !button1Pressed;
       button1Pressed ? bleGamepad.press(BUTTON_1) : bleGamepad.release(BUTTON_1);
       bleGamepad.sendReport();
+
+      Serial.print("Battery: ");
+      Serial.print(batteryLevel);
+      Serial.println("%");
     }
   }
 }

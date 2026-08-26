@@ -69,6 +69,14 @@
 // Joystick Input Report (0x01) payload offsets
 #define SINPUT_IN_IDX_PLUG_STATUS   0
 #define SINPUT_IN_IDX_CHARGE_LEVEL  1
+
+// SINPUT_IN_IDX_PLUG_STATUS values (SDL_hidapi_sinput.c's HandleStatePacket switch)
+#define SINPUT_PLUG_STATUS_UNKNOWN    0 // also anything SDL doesn't recognize
+#define SINPUT_PLUG_STATUS_NO_BATTERY 1 // wired / no battery -- SDL forces charge level to 0
+#define SINPUT_PLUG_STATUS_CHARGING   2
+#define SINPUT_PLUG_STATUS_CHARGED    3 // SDL forces charge level to 100
+#define SINPUT_PLUG_STATUS_ON_BATTERY 4
+
 #define SINPUT_IN_IDX_BUTTONS_0     2
 #define SINPUT_IN_IDX_BUTTONS_1     3
 #define SINPUT_IN_IDX_BUTTONS_2     4

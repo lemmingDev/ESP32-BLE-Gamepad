@@ -1083,8 +1083,28 @@ void BleGamepad::sendReport(void)
     uint8_t m[SINPUT_REPORT_LEN_INPUT];
     memset(m, 0, sizeof(m));
 
-    m[SINPUT_IN_IDX_PLUG_STATUS] = 0;  // 0 = "Wired/No Battery Supported" -- this library
-    m[SINPUT_IN_IDX_CHARGE_LEVEL] = 0; // doesn't report battery state through SInput yet
+    // Derived from the same state setBatteryLevel()/setBatteryPowerInformation()/
+    // setChargingState()/setDischargingState() already drive for the standard BLE
+    // Battery Service (0x180F) -- SInput doesn't read that GATT service (see
+    // GattVsHid.md), so it needs its own copy of the same information here.
+    // There's no dedicated signal in this library for "finished charging", so
+    // SINPUT_PLUG_STATUS_CHARGED is never produced; a still-connected charger
+    // that's stopped topping up reports as SINPUT_PLUG_STATUS_CHARGING.
+    uint8_t plugStatus = SINPUT_PLUG_STATUS_UNKNOWN;
+    if (_chargingState == POWER_STATE_CHARGING)
+    {
+      plugStatus = SINPUT_PLUG_STATUS_CHARGING;
+    }
+    else if (_batteryPowerInformation == POWER_STATE_NOT_PRESENT || _batteryPowerInformation == POWER_STATE_NOT_SUPPORTED)
+    {
+      plugStatus = SINPUT_PLUG_STATUS_NO_BATTERY;
+    }
+    else if (_dischargingState == POWER_STATE_DISCHARGING)
+    {
+      plugStatus = SINPUT_PLUG_STATUS_ON_BATTERY;
+    }
+    m[SINPUT_IN_IDX_PLUG_STATUS] = plugStatus;
+    m[SINPUT_IN_IDX_CHARGE_LEVEL] = batteryLevel;
 
     uint8_t buttons0 = 0;
     if (configuration.getButtonCount() >= 1 && isPressed(BUTTON_1)) buttons0 |= SINPUT_BTN0_SOUTH;
