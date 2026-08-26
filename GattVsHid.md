@@ -88,13 +88,18 @@ and knows the exact byte layout of its Output/Feature Reports. A
 for free: the kernel will happily carry the bytes, but nothing translates
 "set player LED 2" into a `SDL_GameControllerSetLED()` call unless a driver
 was written that knows this device's report format specifically. This is
-precisely the gap community protocols like SInput are trying to close —
-define a well-known vendor Feature/Output Report layout (capability
-bitmask, LED/rumble command bytes) so a **userspace** layer (a custom SDL
-`hidapi` driver, or an app talking `hidraw` directly, the same way
+precisely the gap community protocols like [SInput](https://github.com/HandHeldLegend/SInput-HID)
+are trying to close — define a well-known vendor Feature/Output Report
+layout (capability bitmask, LED/rumble command bytes) so a **userspace**
+layer (a custom SDL `hidapi` driver, or an app talking `hidraw` directly,
+the same way
 [LinuxHIDTesting.md](LinuxHIDTesting.md#6-feature--output--input-reports-via-python-hidapi)'s
 Python example does) can drive it, instead of waiting on kernel driver
-support per device.
+support per device. SDL's own `hidapi` driver for it landed as
+[libsdl-org/SDL#13343](https://github.com/libsdl-org/SDL/pull/13343), which
+is what turns a SInput-shaped device into a normal
+`SDL_GameController` with rumble/LED support, no per-VID/PID driver of our
+own required — see the [References](#references) section below.
 
 ## Extending capabilities: two paths, different reachability
 
@@ -109,8 +114,11 @@ strength, player LED index, RGB values) and/or Feature Report (bidirectional:
 device advertises which of those it supports). `BleFeatureReceiver::
 buildFeatureReport()` in [BleFeatureReport.cpp](BleFeatureReport.cpp) already
 does this for a capability bitmask (`FEAT_CAP_RUMBLE`, `FEAT_CAP_PLAYERLED`,
-etc., modeled on SInput's `Features 0x02` report) — the same idea extends
-naturally to actual LED/rumble *command* bytes in the Output Report.
+etc., modeled on [SInput](https://github.com/HandHeldLegend/SInput-HID)'s
+["Features" 0x02 report](https://docs.handheldlegend.com/s/sinput/doc/features-response-bytes-1lMp7WL7bq))
+— the same idea extends naturally to actual LED/rumble *command* bytes in
+the Output Report, per the
+[SInput HID protocol spec](https://docs.handheldlegend.com/s/sinput/doc/sinput-hid-protocol-TkPYWlDMAg).
 
 - Reachable from: any app already reading this device's Input Report via
   `hidraw`/`hidapi` — i.e. exactly the kind of code a game or an SDL
@@ -197,3 +205,19 @@ The top path is what any existing game/SDL code already reaches without
 modification once a report layout is defined for it. The bottom path
 requires a purpose-built companion app, but has none of the HID
 Report Descriptor's constraints.
+
+## References
+
+- [HandHeldLegend/SInput-HID](https://github.com/HandHeldLegend/SInput-HID) —
+  the protocol's reference repo: supported devices, and links to the spec.
+- [SInput HID protocol spec](https://docs.handheldlegend.com/s/sinput/doc/sinput-hid-protocol-TkPYWlDMAg) —
+  full report layout (buttons, gyro/accel, haptics, player LEDs, touchpads).
+- [SInput "Features" (0x02) response bytes](https://docs.handheldlegend.com/s/sinput/doc/features-response-bytes-1lMp7WL7bq) —
+  the capability bitmask `BleFeatureReceiver::buildFeatureReport()` in
+  [BleFeatureReport.cpp](BleFeatureReport.cpp) is modeled on.
+- [libsdl-org/SDL#13343 — Implement SInput Device Support](https://github.com/libsdl-org/SDL/pull/13343) —
+  the SDL `hidapi` driver that recognizes SInput-shaped devices, turning
+  them into a normal `SDL_GameController` with rumble/LED support without a
+  per-VID/PID driver.
+- [lemmingDev/ESP32-BLE-Gamepad#288](https://github.com/lemmingDev/ESP32-BLE-Gamepad/issues/288) —
+  the feature request that started this library's SInput work.
