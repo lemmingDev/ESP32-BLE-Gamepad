@@ -25,8 +25,9 @@
  * Battery is also wired up: the charge level slides back and forth between 25%
  * and 90% (a fake "ramp", since there's no real fuel gauge here) so a host's
  * battery indicator has something visibly changing to test against -- watch it
- * with SDL_GetGamepadPowerInfo() (see SDL3Testing.md for a ready-to-run test
- * program covering this, Player LED, and buttons/axes together).
+ * with SDL_GetGamepadPowerInfo() (see host_test/SDL3Testing.md for a
+ * ready-to-run test program covering this, Player LED, and buttons/axes
+ * together).
  */
 
 #include <BleGamepad.h>

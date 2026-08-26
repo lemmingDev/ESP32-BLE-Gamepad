@@ -281,6 +281,6 @@ constraints.
 - [examples/SInputPlayerLED](examples/SInputPlayerLED/SInputPlayerLED.ino) —
   a basic SInput sketch using the onboard LED to show the Player LED index,
   with a battery ramp to test against too.
-- [examples/SInputPlayerLED/SDL3Testing.md](examples/SInputPlayerLED/SDL3Testing.md) —
+- [examples/SInputPlayerLED/host_test/SDL3Testing.md](examples/SInputPlayerLED/host_test/SDL3Testing.md) —
   testing that sketch end-to-end against a real SDL3 app on Linux, including
   a ready-to-run test program.

@@ -298,7 +298,7 @@ done
 
 This is independent of everything else in this doc — it works the same
 whether the device is running this library's classic configurable report or
-[SInput mode](examples/SInputPlayerLED/SDL3Testing.md), since both ride on
+[SInput mode](examples/SInputPlayerLED/host_test/SDL3Testing.md), since both ride on
 `setBatteryLevel()`/the same standard Battery Service, not a HID Report at
 all. See [GattVsHid.md](GattVsHid.md) for how that fits together with
 everything else this library exposes over BLE.

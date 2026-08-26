@@ -24,8 +24,9 @@
 // tag. The Features response offsets below are reverse engineered against
 // that current 3.4.14 source, NOT the original PR, after a real mismatch there
 // was root-caused as the reason SDL always saw player_leds_supported=false --
-// see the "Known issue" section (now resolved) in examples/SInputPlayerLED/
-// SDL3Testing.md for the full story. If SDL's driver moves again, re-derive
+// see the "Known issue" section (now resolved) in
+// examples/SInputPlayerLED/host_test/SDL3Testing.md for the full story. If
+// SDL's driver moves again, re-derive
 // against its actual current source, not this comment or the original PR.
 //
 // hidapi's hid_write()/hid_read() always frame the Report ID as byte[0] of the
