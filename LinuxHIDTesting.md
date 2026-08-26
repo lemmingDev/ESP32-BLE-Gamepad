@@ -255,6 +255,54 @@ portable across the two:
 data = list(after)[1:] if list(after)[:1] == [REPORT_ID] else list(after)
 ```
 
+## Battery level via `upower` (no code needed)
+
+Whatever `bleGamepad.setBatteryLevel()` is set to shows up in plain Linux
+system tooling, no HID code involved at all: it's the standard BLE Battery
+Service (`0x180F`), which BlueZ bridges straight to its `Battery1` D-Bus
+interface once the device is paired and connected, and `upower` picks that
+up automatically like it would a Bluetooth mouse or headset.
+
+Find the device (its UPower path is `gaming_input_dev_` followed by the
+Bluetooth address with colons swapped for underscores):
+
+```bash
+upower -e | grep gaming_input
+# /org/freedesktop/UPower/devices/gaming_input_dev_14_2B_2F_EB_98_8A
+```
+
+Read the current level:
+
+```bash
+upower -i /org/freedesktop/UPower/devices/gaming_input_dev_14_2B_2F_EB_98_8A
+```
+
+which includes a `percentage:` line alongside `rechargeable`, `warning-level`,
+and `updated` (a timestamp confirming it's live, not a one-time cached read
+from pairing). To watch it change in the console as the firmware updates it
+— handy for confirming a battery-reporting sketch is actually working, e.g.
+[SInputPlayerLED.ino](examples/SInputPlayerLED/SInputPlayerLED.ino)'s ramp:
+
+```bash
+watch -n1 "upower -i /org/freedesktop/UPower/devices/gaming_input_dev_14_2B_2F_EB_98_8A | grep percentage"
+```
+
+or, for a plain polling loop without `watch`:
+
+```bash
+while true; do
+  upower -i /org/freedesktop/UPower/devices/gaming_input_dev_14_2B_2F_EB_98_8A | grep percentage
+  sleep 1
+done
+```
+
+This is independent of everything else in this doc — it works the same
+whether the device is running this library's classic configurable report or
+[SInput mode](examples/SInputPlayerLED/SDL3Testing.md), since both ride on
+`setBatteryLevel()`/the same standard Battery Service, not a HID Report at
+all. See [GattVsHid.md](GattVsHid.md) for how that fits together with
+everything else this library exposes over BLE.
+
 ## Monitoring Bluetooth traffic
 
 To watch what's actually happening over the air — pairing/bonding, GATT
@@ -301,3 +349,12 @@ that drops unexpectedly — much more direct than inferring state from
 can't see the Feature/Output Report characteristics**
 - Expected — see the "Why not just use a BLE GATT library" section above.
   Use the OS's HID API instead.
+
+**`upower -e` doesn't list the device at all**
+- Confirm it's actually paired (not just connected) — `bluetoothctl info
+  <address>` should show `Paired: yes`. BlueZ only exposes a `Battery1`
+  D-Bus interface, which is what `upower` watches, for devices it has a
+  bonding record for.
+- Confirm the sketch actually calls `setBatteryLevel()` at some point after
+  connecting — the Battery Service exists on the GATT server regardless, but
+  BlueZ/`upower` may not surface a device with no battery data reported yet.
