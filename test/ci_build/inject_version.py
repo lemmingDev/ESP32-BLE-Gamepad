@@ -1,10 +1,13 @@
-# PlatformIO pre-build step: derive a build-time identifier for the library
-# ("ESP32-BLE-Gamepad <version>+g<short-sha>") from ../../library.properties and
-# git, and expose it as the BLE_GAMEPAD_LIB_VERSION macro. main.cpp reports it
-# as the Software Revision DIS characteristic, so a GATT browser shows exactly
-# which build is flashed.
+# PlatformIO pre-build step. Exposes two macros:
+#   BLE_GAMEPAD_LIB_VERSION - "ESP32-BLE-Gamepad <version>+g<short-sha>" from
+#     ../../library.properties and git; main.cpp reports it as the Software
+#     Revision DIS characteristic so a GATT browser shows which build is flashed.
+#   BLE_GAMEPAD_BUILD_TIME - UTC timestamp of this build. It changes every run,
+#     which also forces main.cpp to recompile, so the value printed on boot is a
+#     reliable "did my upload actually land?" check.
 
 import subprocess
+import time
 from pathlib import Path
 
 Import("env")  # noqa: F821 (injected by PlatformIO)
@@ -33,5 +36,11 @@ identifier = "ESP32-BLE-Gamepad " + version
 if sha:
     identifier += "+g" + sha
 
+build_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
 print("BLE_GAMEPAD_LIB_VERSION = %s" % identifier)
-env.Append(CPPDEFINES=[("BLE_GAMEPAD_LIB_VERSION", env.StringifyMacro(identifier))])
+print("BLE_GAMEPAD_BUILD_TIME  = %s" % build_time)
+env.Append(CPPDEFINES=[
+    ("BLE_GAMEPAD_LIB_VERSION", env.StringifyMacro(identifier)),
+    ("BLE_GAMEPAD_BUILD_TIME", env.StringifyMacro(build_time)),
+])

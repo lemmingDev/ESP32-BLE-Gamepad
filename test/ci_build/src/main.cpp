@@ -3,8 +3,8 @@
  *
  * Needs no wiring and no extra libraries. It brings up the full BLE profile the
  * library offers so a host can be checked against a known-good build:
- *   - the gamepad HID service, plus one (never-touched) hat switch so Android
- *     still registers it as a gamepad;
+ *   - the gamepad HID service (24 buttons, the right thumbstick, and one
+ *     never-touched hat switch so Android still registers it as a gamepad);
  *   - every Device Information Service characteristic, filled with an
  *     identifiable value;
  *   - the Nordic UART Service (NUS): on connect it greets, then pushes a status
@@ -12,12 +12,17 @@
  *     echoed back).
  *
  * Once a host connects it, on its own:
- *   - presses one button every ~250 ms, cycling BUTTON_3..BUTTON_8. BUTTON_1 and
- *     BUTTON_2 are deliberately skipped: they map to A / B (accept / back) on
- *     Android, so auto-pressing them would fire UI navigation on the host.
- *   - walks the battery level down 100 -> 0 (wrapping back to 100) every ~5 s,
- *     switching the reported power state between "unplugged / discharging" and
- *     "plugged in / charging" as it goes.
+ *   - presses one button every ~250 ms, cycling BUTTON_25..BUTTON_32. The first
+ *     16 buttons are skipped on purpose: Android maps them to named controls
+ *     (A/B/X/Y, the shoulders and triggers, start/select, stick clicks), so
+ *     auto-pressing them fires UI navigation on the host. Buttons 17+ land on
+ *     Android's generic KEYCODE_BUTTON_* range, which nothing acts on.
+ *   - sweeps the right thumbstick (Z / RZ axes) around a small circle. The right
+ *     stick is used rather than the left, and the deflection kept under ~50%, so
+ *     it doesn't drive Android's on-screen focus.
+ *   - ramps the reported battery level down 100 -> 10 and back up again on a
+ *     ~5 s tick, reporting "discharging" while it falls and "charging" while it
+ *     rises (critical at/below 20%).
  *
  * The point is a known-good device you can watch in any gamepad tester, in
  * nRF Connect, or over a BLE UART terminal without a local toolchain: flash it,
@@ -26,31 +31,60 @@
  *
  * .github/workflows/platformio.yml builds this for esp32dev / esp32s3 /
  * esp32c3 and uploads the flashable binaries as run artifacts (and attaches
- * them to GitHub releases). See test/ci_build/README.md. Issue #342.
+ * them to GitHub releases). See test/ci_build/README.md.
  */
 
 #include <Arduino.h>
+#include <math.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
 
-// Set by inject_version.py at build time, e.g. "ESP32-BLE-Gamepad 0.7.5-rc0+g05599be".
+// Set by inject_version.py at build time, e.g. "ESP32-BLE-Gamepad 0.7.5-rc0+g05599be"
+// and "2026-08-27T14:32:10Z". BLE_GAMEPAD_BUILD_TIME changes every build, so the
+// line printed on boot confirms a fresh upload actually landed.
 #ifndef BLE_GAMEPAD_LIB_VERSION
 #define BLE_GAMEPAD_LIB_VERSION "ESP32-BLE-Gamepad (unknown build)"
 #endif
+#ifndef BLE_GAMEPAD_BUILD_TIME
+#define BLE_GAMEPAD_BUILD_TIME __DATE__ " " __TIME__
+#endif
 
-#define BUTTON_COUNT 8
-#define FIRST_TEST_BUTTON 3 // skip BUTTON_1 / BUTTON_2 (A / B = accept / back on Android)
-#define LAST_TEST_BUTTON 8
-#define BUTTON_INTERVAL_MS 250
+// The Linux/Android HID layer maps gamepad HID buttons 1..16 onto the named
+// BTN_GAMEPAD codes (A/B/X/Y, shoulders, triggers, start/select, stick clicks),
+// which Android TV uses for UI navigation. Buttons 17+ fall through to
+// BTN_TRIGGER_HAPPY -> KEYCODE_BUTTON_1.., which testers still show but the UI
+// ignores - so auto-press well above 16.
+#define BUTTON_COUNT 12
+#define FIRST_TEST_BUTTON 8
+#define LAST_TEST_BUTTON 11
+#define BUTTON_INTERVAL_MS 2500
+#define BUTTON_HOLD_MS 350 // long enough for a gamepad tester to show it
+
+#define AXIS_INTERVAL_MS 80
+#define AXIS_CENTER 16384 // default axis range is 0..32767
+// Stay well under ~50% deflection: at/above that Android synthesises D-pad
+// presses from a stick, which is itself UI navigation.
+#define AXIS_RADIUS 7000
+#define AXIS_STEP_RAD 0.20f // ~0.8 s per revolution
+
 #define BATTERY_INTERVAL_MS 5000
+#define BATTERY_MIN 10
+#define BATTERY_MAX 100
+#define BATTERY_STEP 10
+#define BATTERY_CRITICAL 20
+
 #define NUS_STATUS_INTERVAL_MS 3000
 
-BleGamepad bleGamepad("ESP32 BLE Gamepad Test", "lemmingDev ESP32-BLE-Gamepad", 100);
+BleGamepad bleGamepad("ESP32 BLE Gamepad Test", "lemmingDev", 100);
 BleGamepadConfiguration bleGamepadConfig;
 
 static uint8_t currentButton = FIRST_TEST_BUTTON;
-static int batteryLevel = 100;
+static float axisAngle = 0.0f;
+static int batteryLevel = BATTERY_MAX;
+static int batteryStep = -BATTERY_STEP; // start by draining
 static bool wasConnected = false;
+static bool nusSubscribed = false;
 static unsigned long lastButtonStep = 0;
+static unsigned long lastAxisStep = 0;
 static unsigned long lastBatteryStep = 0;
 static unsigned long lastNusStatus = 0;
 
@@ -59,7 +93,7 @@ String statusLine()
     return String("uptime_ms=") + millis() +
            " connected=" + (bleGamepad.isConnected() ? "yes" : "no") +
            " button=" + currentButton +
-           " battery=" + batteryLevel +
+           " battery=" + batteryLevel + (batteryStep < 0 ? " (draining)" : " (charging)") +
            " free_heap=" + ESP.getFreeHeap();
 }
 
@@ -68,6 +102,7 @@ String statusLine()
 void onNusSubscribeChanged(bool subscribed, const std::string &address)
 {
     Serial.printf("NUS %s %s\n", address.c_str(), subscribed ? "subscribed" : "unsubscribed");
+    nusSubscribed = subscribed;
 
     if (subscribed)
     {
@@ -82,17 +117,22 @@ void onNusSubscribeChanged(bool subscribed, const std::string &address)
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("ESP32-BLE-Gamepad test firmware starting");
+    Serial.printf("\nESP32-BLE-Gamepad test firmware starting\n  build: %s\n  built: %s\n",
+                  BLE_GAMEPAD_LIB_VERSION, BLE_GAMEPAD_BUILD_TIME);
 
-    bleGamepadConfig.setAutoReport(false); // report is sent explicitly below
+    //bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD);
+    //bleGamepadConfig.setControllerType(CONTROLLER_TYPE_JOYSTICK);
+
+    bleGamepadConfig.setAutoReport(false); // reports are sent explicitly below
     bleGamepadConfig.setButtonCount(BUTTON_COUNT);
+
     // Android won't register the device as a gamepad with zero hats; keep one
-    // (never touched), and drop the axes so the HID descriptor stays small
-    // enough that Android's parser reads the button offsets correctly.
+    // (never touched). Only the right thumbstick (Z / RZ) is enabled - a small
+    // HID descriptor keeps Android's report parser reading button offsets right.
     bleGamepadConfig.setHatSwitchCount(1);
-    bleGamepadConfig.setWhichAxes(false, false, false, false, false, false, false, false);
-    bleGamepadConfig.setVid(0xe502);
-    bleGamepadConfig.setPid(0xabcd);
+    bleGamepadConfig.setWhichAxes(false, false, true, false, false, true, false, false);
+    //bleGamepadConfig.setVid(0xe502);
+    //bleGamepadConfig.setPid(0xabcd);
 
     // Fill every Device Information Service characteristic with an identifiable
     // value so a GATT browser can confirm each one is present and readable.
@@ -110,34 +150,58 @@ void setup()
 // Press then release the next button, cycling FIRST_TEST_BUTTON..LAST_TEST_BUTTON.
 void stepButtons()
 {
+    Serial.printf("Pressing button %u (cycling %u..%u)\n",
+                  currentButton, FIRST_TEST_BUTTON, LAST_TEST_BUTTON);
+
     bleGamepad.press(currentButton);
     bleGamepad.sendReport();
-    delay(20);
+    delay(BUTTON_HOLD_MS);
     bleGamepad.release(currentButton);
     bleGamepad.sendReport();
 
-    Serial.printf("Pressed button %u (cycling %u..%u)\n",
-                  currentButton, FIRST_TEST_BUTTON, LAST_TEST_BUTTON);
+    Serial.printf("Released button %u\n", currentButton);
     currentButton = (currentButton >= LAST_TEST_BUTTON) ? FIRST_TEST_BUTTON : currentButton + 1;
 }
 
-// Drop the battery level by 10% (wrapping 0 -> 100) and report a power state
-// that matches: discharging above 30%, charging at/below it, critical at/below
-// 10%.
-void stepBattery()
+// Advance the right thumbstick one step around a circle.
+void stepAxes()
 {
-    batteryLevel -= 10;
-    if (batteryLevel < 0)
+    axisAngle += AXIS_STEP_RAD;
+    if (axisAngle >= TWO_PI)
     {
-        batteryLevel = 100;
+        axisAngle -= TWO_PI;
     }
 
-    if (batteryLevel <= 30)
+    int16_t z = AXIS_CENTER + (int16_t)(AXIS_RADIUS * cosf(axisAngle));
+    int16_t rZ = AXIS_CENTER + (int16_t)(AXIS_RADIUS * sinf(axisAngle));
+    bleGamepad.setRightThumb(z, rZ);
+    bleGamepad.sendReport();
+}
+
+// Ramp the reported battery level between BATTERY_MIN and BATTERY_MAX, reversing
+// direction at each end, and report a matching power state.
+void stepBattery()
+{
+    batteryLevel += batteryStep;
+    if (batteryLevel <= BATTERY_MIN)
+    {
+        batteryLevel = BATTERY_MIN;
+        batteryStep = BATTERY_STEP; // start charging back up
+    }
+    else if (batteryLevel >= BATTERY_MAX)
+    {
+        batteryLevel = BATTERY_MAX;
+        batteryStep = -BATTERY_STEP; // start draining again
+    }
+
+    uint8_t powerLevel = (batteryLevel <= BATTERY_CRITICAL) ? POWER_STATE_CRITICAL : POWER_STATE_GOOD;
+
+    if (batteryStep > 0)
     {
         bleGamepad.setPowerStateAll(POWER_STATE_PRESENT,
                                     POWER_STATE_NOT_DISCHARGING,
                                     POWER_STATE_CHARGING,
-                                    batteryLevel <= 10 ? POWER_STATE_CRITICAL : POWER_STATE_GOOD);
+                                    powerLevel);
         Serial.printf("Battery %d%% - plugged in, charging\n", batteryLevel);
     }
     else
@@ -145,7 +209,7 @@ void stepBattery()
         bleGamepad.setPowerStateAll(POWER_STATE_PRESENT,
                                     POWER_STATE_DISCHARGING,
                                     POWER_STATE_NOT_CHARGING,
-                                    POWER_STATE_GOOD);
+                                    powerLevel);
         Serial.printf("Battery %d%% - on battery, discharging\n", batteryLevel);
     }
 
@@ -192,29 +256,50 @@ void serviceNus()
     {
         lastNusStatus = millis();
         String line = statusLine();
-        nus->println(line);
         Serial.println(line);
+        if (nusSubscribed) // don't spray TX at nobody
+        {
+            nus->println(line);
+        }
     }
 }
 
 void loop()
 {
+    static unsigned long lastHeartbeat = 0;
     bool connected = bleGamepad.isConnected();
+    unsigned long now = millis();
 
     if (connected != wasConnected)
     {
-        Serial.println(connected ? "Host connected" : "Host disconnected");
         wasConnected = connected;
+        Serial.printf("Host %s at %lu ms\n", connected ? "connected" : "disconnected", now);
+        // Run the first step of each activity immediately on connect.
+        lastButtonStep = now - BUTTON_INTERVAL_MS;
+        lastAxisStep = now - AXIS_INTERVAL_MS;
+        lastBatteryStep = now - BATTERY_INTERVAL_MS;
+    }
+
+    if (now - lastHeartbeat >= 1000)
+    {
+        lastHeartbeat = now;
+        Serial.printf("[hb] now=%lu conn=%d dButton=%lu dAxis=%lu dBattery=%lu button=%u\n",
+                      now, connected, now - lastButtonStep, now - lastAxisStep,
+                      now - lastBatteryStep, currentButton);
     }
 
     if (connected)
     {
-        unsigned long now = millis();
-
         if (now - lastButtonStep >= BUTTON_INTERVAL_MS)
         {
             lastButtonStep = now;
             stepButtons();
+        }
+
+        if (now - lastAxisStep >= AXIS_INTERVAL_MS)
+        {
+            lastAxisStep = now;
+            stepAxes();
         }
 
         if (now - lastBatteryStep >= BATTERY_INTERVAL_MS)
