@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read  # download the test-firmware artifacts from the triggering run
 
     steps:
       - name: Checkout tag
@@ -72,6 +73,24 @@ jobs:
               --generate-notes \
               $prerelease_flag
           fi
+
+      - name: Download test firmware artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download "${{ github.event.workflow_run.id }}" \
+            --repo "${{ github.repository }}" \
+            --pattern 'test-firmware-*' \
+            --dir firmware
+
+      - name: Attach test firmware to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Artifacts download into per-artifact subdirs; upload every .bin.
+          find firmware -type f -name '*.bin' -exec \
+            gh release upload "${{ steps.version.outputs.tag }}" {} \
+              --repo "${{ github.repository }}" --clobber ';'
 
       - name: Set up Python
         uses: actions/setup-python@v7
