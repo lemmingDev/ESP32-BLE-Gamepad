@@ -1,0 +1,26 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 0
+
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: All
+
+PointerAlignment: Right
+ReferenceAlignment: Right
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+
+# ESP-IDF/Arduino headers are often order-sensitive (macros defined before
+# a later #include changes its behavior), so don't reorder them.
+SortIncludes: Never

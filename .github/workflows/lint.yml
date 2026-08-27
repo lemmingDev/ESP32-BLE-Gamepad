@@ -1,0 +1,59 @@
+---
+name: Lint
+
+'on':
+  push:
+    branches:
+      - "master"
+      - "ci-builds-*"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  whitespace:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # The codebase is still catching up (see CONTRIBUTING.md), so this
+      # reports issues without blocking merges.
+      - name: Check line endings and indentation
+        continue-on-error: true
+        run: |
+          echo "Checking for CRLF line endings (should be LF, see .gitattributes)..."
+          if grep -rl $'\r' --include='*.cpp' --include='*.h' --include='*.hpp' --include='*.ino' . | grep -v '^\./test/'; then
+            echo "::warning::CRLF line endings found in the file(s) listed above. Run 'git add --renormalize .' after .gitattributes is respected, or convert with dos2unix."
+          else
+            echo "None found."
+          fi
+
+          echo "Checking for tab characters (should be spaces, see .editorconfig)..."
+          if grep -rl $'\t' --include='*.cpp' --include='*.h' --include='*.hpp' --include='*.ino' . | grep -v '^\./test/'; then
+            echo "::warning::Tab characters found in the file(s) listed above."
+          else
+            echo "None found."
+          fi
+
+  clang-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Style is still catching up across the codebase (see CONTRIBUTING.md),
+      # so this check reports issues without blocking merges.
+      - name: Check formatting with clang-format
+        continue-on-error: true
+        run: |
+          find . \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' -o -name '*.ino' \) \
+            -not -path './test/*' \
+            -print0 | xargs -0 clang-format --dry-run --Werror -style=file
