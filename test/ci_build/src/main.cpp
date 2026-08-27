@@ -3,8 +3,8 @@
  *
  * Needs no wiring and no extra libraries. It brings up the full BLE profile the
  * library offers so a host can be checked against a known-good build:
- *   - the gamepad HID service (24 buttons, the right thumbstick, and one
- *     never-touched hat switch so Android still registers it as a gamepad);
+ *   - the gamepad HID service (BUTTON_COUNT buttons, the right thumbstick, and
+ *     one never-touched hat switch so Android still registers it as a gamepad);
  *   - every Device Information Service characteristic, filled with an
  *     identifiable value;
  *   - the Nordic UART Service (NUS): on connect it greets, then pushes a status
@@ -12,11 +12,9 @@
  *     echoed back).
  *
  * Once a host connects it, on its own:
- *   - presses one button every ~250 ms, cycling BUTTON_25..BUTTON_32. The first
- *     16 buttons are skipped on purpose: Android maps them to named controls
- *     (A/B/X/Y, the shoulders and triggers, start/select, stick clicks), so
- *     auto-pressing them fires UI navigation on the host. Buttons 17+ land on
- *     Android's generic KEYCODE_BUTTON_* range, which nothing acts on.
+ *   - presses one button every ~2.5 s, holding each for ~350 ms, cycling
+ *     FIRST_TEST_BUTTON..LAST_TEST_BUTTON. See the note on that #define for how
+ *     the range interacts with Android's button mapping.
  *   - sweeps the right thumbstick (Z / RZ axes) around a small circle. The right
  *     stick is used rather than the left, and the deflection kept under ~50%, so
  *     it doesn't drive Android's on-screen focus.
@@ -48,11 +46,12 @@
 #define BLE_GAMEPAD_BUILD_TIME __DATE__ " " __TIME__
 #endif
 
-// The Linux/Android HID layer maps gamepad HID buttons 1..16 onto the named
-// BTN_GAMEPAD codes (A/B/X/Y, shoulders, triggers, start/select, stick clicks),
-// which Android TV uses for UI navigation. Buttons 17+ fall through to
+// Which buttons to auto-press, and how many to declare. The range matters on a
+// host: the Linux/Android HID layer maps gamepad HID buttons 1..16 onto the
+// named BTN_GAMEPAD codes (A/B/X/Y, shoulders, triggers, start/select, stick
+// clicks) that Android TV navigates its UI with; buttons 17+ fall through to
 // BTN_TRIGGER_HAPPY -> KEYCODE_BUTTON_1.., which testers still show but the UI
-// ignores - so auto-press well above 16.
+// ignores. Move FIRST/LAST to suit the host you're testing against.
 #define BUTTON_COUNT 12
 #define FIRST_TEST_BUTTON 8
 #define LAST_TEST_BUTTON 11
@@ -280,6 +279,9 @@ void loop()
         lastBatteryStep = now - BATTERY_INTERVAL_MS;
     }
 
+    // Heartbeat: once a second, print connection state and how long since each
+    // timed step last ran, so the sequence is visible on serial even with no
+    // host connected.
     if (now - lastHeartbeat >= 1000)
     {
         lastHeartbeat = now;
