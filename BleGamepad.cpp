@@ -73,11 +73,12 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _dischargingState(0),
   _chargingState(0),
   _powerLevel(0),
+  nusInitialized(false),
+  pServer(nullptr),
+  nus(nullptr),
   hid(0),
   pCharacteristic_Power_State(0),
-  configuration(),
-  pServer(nullptr), 
-  nus(nullptr)
+  configuration()
 {
   this->resetButtons();
   this->deviceName = deviceName;
@@ -94,8 +95,6 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   outputReportLength = 64;
   enableFeatureReport = false;
   featureReportLength = 64;
-
-  nusInitialized = false;
 }
 
 void BleGamepad::resetButtons()
@@ -2235,7 +2234,8 @@ void BleGamepad::taskServer(void *pvParameter)
   #endif
   
   BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
-  BleGamepadInstance->hid->startServices();
+  // Deprecated in NimBLE-Arduino >=2.0: Services are auto-started by the server
+  // BleGamepadInstance->hid->startServices();
 
   BleGamepadInstance->onStarted(pServer);
 
