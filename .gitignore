@@ -34,3 +34,6 @@ desktop.ini
 *.tmp
 *.swp
 *~
+
+# hardware-in-the-loop run output pulled back by scripts/hil.sh
+hil-results/
