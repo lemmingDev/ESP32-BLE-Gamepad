@@ -319,6 +319,8 @@ Gamepads designed for Android use a different button mapping. This affects analo
 
 Right thumbstick on Windows is usually z, rz, whereas on Android, this may be z, rx, so you may want to set them separately with setZ and setRX, instead of using setRightThumb(z, rz), or use setRightThumbAndroid(z, rx)
 
+For the most consistent behavior across Windows, macOS, and Linux, use **XInput mode** (emulates an Xbox controller — universally recognized by games and OSes) or **SInput mode** (native SDL3 support with full button/axis/rumble/RGB mapping). Generic mode relies on each OS's HID stack to interpret the descriptor, so axis ordering, trigger behavior, and button naming can vary between platforms and drivers. See [XInputMode.md](docs/XInputMode.md) and [SInputMode.md](docs/SInputMode.md) for setup details.
+
 You might also be interested in:
 - [ESP32-BLE-Mouse](https://github.com/T-vK/ESP32-BLE-Mouse)
 - [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard)
