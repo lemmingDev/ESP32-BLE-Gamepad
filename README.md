@@ -339,6 +339,6 @@ Credits to [chegewara](https://github.com/chegewara) as the ESP32-BLE-Mouse libr
 
 Credits to [wakwak-koba](https://github.com/wakwak-koba) for the NimBLE [code](https://github.com/wakwak-koba/ESP32-NimBLE-Gamepad) that he provided.
 
-Credits to [LeeNX](https://github.com/LeeNX) for the initial SInput research, pull requests, and extensive help with GitHub issues. Their contributions were instrumental in driving the SInput implementation forward and keeping the project moving.
+Credits to [LeeNX](https://github.com/LeeNX) for the initial SInput research, pull requests, extensive help with GitHub issues, and building the [ESP32-BLE-Gamepad-HIL](https://github.com/LeeNX/ESP32-BLE-Gamepad-HIL) hardware-in-the-loop test rig. Their contributions were instrumental in driving the SInput implementation forward and keeping the project moving.
 
 Credits to [Mystfit](https://github.com/Mystfit) for the [ESP32-BLE-CompositeHID](https://github.com/Mystfit/ESP32-BLE-CompositeHID) library, which served as a reference for the XInput implementation and Xbox HID descriptors.
