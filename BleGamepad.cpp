@@ -1134,6 +1134,17 @@ void BleGamepad::sendReport(void)
   }
 }
 
+void BleGamepad::setButtons32(uint32_t states) {
+ 
+   
+    memcpy(_buttons, &states, sizeof(states));
+
+    if (configuration.getAutoReport()) {
+      sendReport();
+    }
+  }
+
+
 void BleGamepad::press(uint8_t b)
 {
   uint8_t index = (b - 1) / 8;
