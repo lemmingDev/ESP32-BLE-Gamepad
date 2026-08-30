@@ -173,6 +173,9 @@ enterPairingMode	KEYWORD2
 getPeerInfo	KEYWORD2
 getDeviceName	KEYWORD2
 getDeviceManufacturer	KEYWORD2
+getHidReportSize	KEYWORD2
+getHidReportDescriptorSize	KEYWORD2
+getHidReportDescriptor	KEYWORD2
 getTXPowerLevel	KEYWORD2
 setTXPowerLevel	KEYWORD2
 setGyroscope	KEYWORD2

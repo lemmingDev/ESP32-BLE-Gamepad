@@ -190,7 +190,8 @@ logged in locally can open `/dev/input/event*` without being in `input` at
 all (the seat ACL is doing the work), while the identical account over SSH
 gets `Permission denied` unless it's also in the `input` group, which is a
 static permission that doesn't depend on having a seat. That's very likely
-what's different between your local testing on cylon and testing over SSH.
+what's different between testing at a local desktop login and testing the same
+box over SSH.
 
 ```bash
 evtest /dev/input/eventN   # find N via: cat /proc/bus/input/devices
