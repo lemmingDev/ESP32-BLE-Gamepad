@@ -109,12 +109,12 @@
 #define SINPUT_IN_IDX_IMU_GYRO_Z    32
 
 // Touchpad Input Report offsets (within the same 63-byte report)
-#define SINPUT_IN_IDX_TOUCH1_X  35
-#define SINPUT_IN_IDX_TOUCH1_Y  37
-#define SINPUT_IN_IDX_TOUCH1_P  39
-#define SINPUT_IN_IDX_TOUCH2_X  41
-#define SINPUT_IN_IDX_TOUCH2_Y  43
-#define SINPUT_IN_IDX_TOUCH2_P  45
+#define SINPUT_IN_IDX_TOUCH1_X  34
+#define SINPUT_IN_IDX_TOUCH1_Y  36
+#define SINPUT_IN_IDX_TOUCH1_P  38
+#define SINPUT_IN_IDX_TOUCH2_X  40
+#define SINPUT_IN_IDX_TOUCH2_Y  42
+#define SINPUT_IN_IDX_TOUCH2_P  44
 
 // SINPUT_IN_IDX_PLUG_STATUS values (SDL_hidapi_sinput.c's HandleStatePacket switch)
 #define SINPUT_PLUG_STATUS_UNKNOWN    0 // also anything SDL doesn't recognize
