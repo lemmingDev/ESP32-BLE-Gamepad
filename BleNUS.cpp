@@ -40,7 +40,8 @@ void BleNUS::begin() {
     pTxCharacteristic->setCallbacks(this); // Logs which peer subscribes to the NUS profile
     
     NIMBLE_LOGD(LOG_TAG, "Starting Nordic UART Service");
-    pService->start();
+    // Deprecated in NimBLE-Arduino >=2.0: NimBLEService::start() has no effect, services are started when the server is started
+    // pService->start();
     
     // Can't add Nordic UART Service UUID to the main advertisement as it makes it larger than 31 bytes
     // It's not strictly needed anyway
