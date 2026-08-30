@@ -39,8 +39,8 @@ void loop()
         // Calculate the average
         potValue = potValue / numberOfPotSamples;
 
-        // Map analog reading from 0 ~ 4095 to 32737 ~ 0 for use as an axis reading
-        int adjustedValue = map(potValue, 0, 4095, 32737, 0);
+        // Map analog reading from 0 ~ 4095 to 32767 ~ 0 for use as an axis reading
+        int adjustedValue = map(potValue, 0, 4095, 32767, 0);
 
         // Update X axis and auto-send report
         bleGamepad.setX(adjustedValue);

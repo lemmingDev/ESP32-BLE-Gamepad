@@ -87,7 +87,7 @@ void loop()
         bleGamepad.sendReport();
         delay(100);
         
-        Serial.println("Move x axis from center to max");
+        Serial.println("Move x axis from center to min");
         for (int i = 0; i > -32767; i -= 256)
         {
             bleGamepad.setX(i);
@@ -113,7 +113,7 @@ void loop()
         bleGamepad.setX(0);
         bleGamepad.sendReport();
 
-        Serial.println("Move y axis from center to max");
+        Serial.println("Move y axis from center to min");
         for (int i = 0; i > -32767; i -= 256)
         {
             bleGamepad.setY(i);

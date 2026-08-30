@@ -1,4 +1,5 @@
 #include "BleSInput.h"
+#include "BleReportUtils.h"
 #include <string.h>
 
 BleSInputReceiver::BleSInputReceiver(BleGamepadConfiguration *configuration, NimBLECharacteristic *cmdInputReport)
@@ -20,7 +21,14 @@ void BleSInputReceiver::sendFeaturesResponse()
     report[SINPUT_FEAT_IDX_PROTOCOL_VERSION] = 1;
     report[SINPUT_FEAT_IDX_PROTOCOL_VERSION + 1] = 0;
 
-    uint8_t caps0 = SINPUT_FEAT_CAP_PLAYERLED; // the only command this library actually acts on today
+    uint8_t caps0 = SINPUT_FEAT_CAP_PLAYERLED;
+    if (configuration->getEnableRumble())
+        caps0 |= SINPUT_FEAT_CAP_RUMBLE;
+    if (configuration->getEnableSInputIMU())
+    {
+        caps0 |= SINPUT_FEAT_CAP_ACCELEROMETER;
+        caps0 |= SINPUT_FEAT_CAP_GYROSCOPE;
+    }
     if (configuration->getIncludeXAxis() && configuration->getIncludeYAxis())
         caps0 |= SINPUT_FEAT_CAP_LEFT_STICK;
     if (configuration->getIncludeZAxis() && configuration->getIncludeRzAxis())
@@ -31,9 +39,33 @@ void BleSInputReceiver::sendFeaturesResponse()
         caps0 |= SINPUT_FEAT_CAP_RIGHT_TRIGGER;
     report[SINPUT_FEAT_IDX_CAPS0] = caps0;
 
-    // report[SINPUT_FEAT_IDX_CAPS1] (touchpad/RGB/handheld), TYPE, STYLE, POLL_US,
-    // ACCEL_RANGE, GYRO_RANGE all stay 0 -- unsupported/unclassified, and SDL only
-    // reads POLL_US/*_RANGE when the corresponding capability bit above is set.
+    uint8_t caps1 = 0;
+    if (configuration->getEnableSInputRGB())
+        caps1 |= SINPUT_FEAT_CAP_JOYSTICKRGB;
+    if (configuration->getEnableTouchpad())
+        caps1 |= SINPUT_FEAT_CAP_TOUCHPAD;
+    report[SINPUT_FEAT_IDX_CAPS1] = caps1;
+
+    report[SINPUT_FEAT_IDX_TYPE] = configuration->getSInputGamepadType();
+    report[SINPUT_FEAT_IDX_STYLE] = configuration->getSInputFaceStyle();
+
+    if (configuration->getEnableTouchpad())
+    {
+        report[SINPUT_FEAT_IDX_TOUCHPAD_COUNT] = configuration->getTouchpadCount();
+        report[SINPUT_FEAT_IDX_TOUCHPAD_FINGER_COUNT] = configuration->getTouchpadFingerCount();
+    }
+
+    // IMU polling rate and ranges -- only read by SDL when the corresponding
+    // capability bits above are set. 5000us = 200Hz, +/-8g accel, +/-2000dps gyro.
+    if (configuration->getEnableSInputIMU())
+    {
+        report[SINPUT_FEAT_IDX_POLL_US] = 0x88;     // 5000us = 200Hz (uint16 LE)
+        report[SINPUT_FEAT_IDX_POLL_US + 1] = 0x13;
+        report[SINPUT_FEAT_IDX_ACCEL_RANGE] = 8;     // +/-8g (uint16 LE)
+        report[SINPUT_FEAT_IDX_ACCEL_RANGE + 1] = 0;
+        report[SINPUT_FEAT_IDX_GYRO_RANGE] = 0xD0;   // 2000dps (uint16 LE)
+        report[SINPUT_FEAT_IDX_GYRO_RANGE + 1] = 0x07;
+    }
 
     uint8_t usageMask0 = 0;
     if (configuration->getButtonCount() >= 1) usageMask0 |= SINPUT_BTN0_SOUTH;
@@ -49,11 +81,13 @@ void BleSInputReceiver::sendFeaturesResponse()
     if (configuration->getButtonCount() >= 6) usageMask1 |= SINPUT_BTN1_RSHOULDER;
     report[SINPUT_FEAT_IDX_USAGE_MASK_1] = usageMask1;
 
-    // report[SINPUT_FEAT_IDX_USAGE_MASK_2] (Start/Back/Guide/...) stays 0 -- this
-    // library's special buttons don't have a fixed bit position to map from (their
-    // position depends on which ones are enabled, see specialButtonBitPosition() in
-    // BleGamepad.cpp), so they aren't represented in SInput's usage mask yet.
-    // USAGE_MASK_3 (Power/Misc) and touchpad count/finger-count also stay 0.
+    uint8_t usageMask2 = 0;
+    if (configuration->getIncludeStart()) usageMask2 |= SINPUT_BTN2_START;
+    if (configuration->getIncludeBack() || configuration->getIncludeSelect()) usageMask2 |= SINPUT_BTN2_BACK;
+    if (configuration->getIncludeHome()) usageMask2 |= SINPUT_BTN2_GUIDE;
+    report[SINPUT_FEAT_IDX_USAGE_MASK_2] = usageMask2;
+
+    // USAGE_MASK_3 (Power/Misc) and touchpad count/finger-count stay 0.
 
     cmdInputReport->setValue(report, sizeof(report));
     cmdInputReport->notify();
@@ -64,17 +98,9 @@ void BleSInputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECon
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
 
-    // Some hosts (e.g. macOS's BLE HID bridge) prepend the Report ID byte to
-    // Output Report writes even though the GATT characteristic already
-    // identifies the report; strip it if present (same pattern as
-    // BleOutputReceiver::onWrite / BleFeatureReceiver::onWrite).
-    const uint8_t* data = (const uint8_t*)value.c_str();
-    size_t length = value.length();
-    if (length == (size_t)SINPUT_REPORT_LEN_OUTPUT + 1)
-    {
-        data++;
-        length--;
-    }
+    const uint8_t* raw = (const uint8_t*)value.c_str();
+    size_t length = 0;
+    const uint8_t* data = stripReportIdIfPresent(raw, value.length(), SINPUT_REPORT_LEN_OUTPUT, length);
 
     if (length < 1)
     {
@@ -95,9 +121,25 @@ void BleSInputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECon
             }
             break;
 
-        // SINPUT_COMMAND_HAPTIC and SINPUT_COMMAND_JOYSTICKRGB: the write still
-        // succeeds (no error returned to the host), but this library doesn't have
-        // a rumble motor or RGB LED to drive, so the payload is just dropped.
+        case SINPUT_COMMAND_HAPTIC:
+            if (length >= 6 && data[1] == 0x02) // type 2 = ERM simulation
+            {
+                rumbleLeftAmplitude = data[2];   // left motor (weak)
+                rumbleRightAmplitude = data[4];  // right motor (strong)
+                rumbleFlag = true;
+            }
+            break;
+
+        case SINPUT_COMMAND_JOYSTICKRGB:
+            if (length >= 5)
+            {
+                rgbRed = data[2];
+                rgbGreen = data[3];
+                rgbBlue = data[4];
+                rgbFlag = true;
+            }
+            break;
+
         default:
             break;
     }

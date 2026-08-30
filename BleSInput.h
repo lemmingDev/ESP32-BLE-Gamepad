@@ -90,14 +90,6 @@
 // Joystick Input Report (0x01) payload offsets
 #define SINPUT_IN_IDX_PLUG_STATUS   0
 #define SINPUT_IN_IDX_CHARGE_LEVEL  1
-
-// SINPUT_IN_IDX_PLUG_STATUS values (SDL_hidapi_sinput.c's HandleStatePacket switch)
-#define SINPUT_PLUG_STATUS_UNKNOWN    0 // also anything SDL doesn't recognize
-#define SINPUT_PLUG_STATUS_NO_BATTERY 1 // wired / no battery -- SDL forces charge level to 0
-#define SINPUT_PLUG_STATUS_CHARGING   2
-#define SINPUT_PLUG_STATUS_CHARGED    3 // SDL forces charge level to 100
-#define SINPUT_PLUG_STATUS_ON_BATTERY 4
-
 #define SINPUT_IN_IDX_BUTTONS_0     2
 #define SINPUT_IN_IDX_BUTTONS_1     3
 #define SINPUT_IN_IDX_BUTTONS_2     4
@@ -108,8 +100,28 @@
 #define SINPUT_IN_IDX_RIGHT_Y       12
 #define SINPUT_IN_IDX_LEFT_TRIGGER  14
 #define SINPUT_IN_IDX_RIGHT_TRIGGER 16
-// Bytes 18-62 (IMU timestamp/accel/gyro, up to 2 touchpads, reserved) are left at 0 --
-// this library doesn't have motion or touch input to report through SInput yet.
+#define SINPUT_IN_IDX_IMU_TIMESTAMP 18
+#define SINPUT_IN_IDX_IMU_ACCEL_X   22
+#define SINPUT_IN_IDX_IMU_ACCEL_Y   24
+#define SINPUT_IN_IDX_IMU_ACCEL_Z   26
+#define SINPUT_IN_IDX_IMU_GYRO_X    28
+#define SINPUT_IN_IDX_IMU_GYRO_Y    30
+#define SINPUT_IN_IDX_IMU_GYRO_Z    32
+
+// Touchpad Input Report offsets (within the same 63-byte report)
+#define SINPUT_IN_IDX_TOUCH1_X  35
+#define SINPUT_IN_IDX_TOUCH1_Y  37
+#define SINPUT_IN_IDX_TOUCH1_P  39
+#define SINPUT_IN_IDX_TOUCH2_X  41
+#define SINPUT_IN_IDX_TOUCH2_Y  43
+#define SINPUT_IN_IDX_TOUCH2_P  45
+
+// SINPUT_IN_IDX_PLUG_STATUS values (SDL_hidapi_sinput.c's HandleStatePacket switch)
+#define SINPUT_PLUG_STATUS_UNKNOWN    0 // also anything SDL doesn't recognize
+#define SINPUT_PLUG_STATUS_NO_BATTERY 1 // wired / no battery -- SDL forces charge level to 0
+#define SINPUT_PLUG_STATUS_CHARGING   2
+#define SINPUT_PLUG_STATUS_CHARGED    3 // SDL forces charge level to 100
+#define SINPUT_PLUG_STATUS_ON_BATTERY 4
 
 // Digital button usage-mask bits, buttons_0 (payload byte SINPUT_IN_IDX_BUTTONS_0).
 //
@@ -139,11 +151,17 @@
 #define SINPUT_BTN1_LSHOULDER (1 << 2)
 #define SINPUT_BTN1_RSHOULDER (1 << 3)
 
+// buttons_2 (payload byte SINPUT_IN_IDX_BUTTONS_2) -- Start/Back/Guide/Capture
+#define SINPUT_BTN2_START   (1 << 0)
+#define SINPUT_BTN2_BACK    (1 << 1)
+#define SINPUT_BTN2_GUIDE   (1 << 2)
+#define SINPUT_BTN2_CAPTURE (1 << 3)
+#define SINPUT_BTN2_TOUCHPAD1 (1 << 6)
+#define SINPUT_BTN2_TOUCHPAD2 (1 << 7)
+
 // Handles the Output Report (0x03) this library's SInput mode receives commands on,
-// and owns the Input Report (0x02) it replies to a FEATURES request on. PlayerLED is
-// the only command actually acted on right now -- HAPTIC and JOYSTICKRGB are accepted
-// (the write succeeds) but not driven, since this library has no rumble motor or RGB
-// LED output today. See GattVsHid.md for extending this.
+// and owns the Input Report (0x02) it replies to a FEATURES request on. PlayerLED,
+// HAPTIC, and JOYSTICKRGB commands are acted on. See GattVsHid.md for extending this.
 class BleSInputReceiver : public NimBLECharacteristicCallbacks
 {
 public:
@@ -152,6 +170,17 @@ public:
 
     bool playerLedFlag = false;
     uint8_t playerLedIndex = 0;
+
+    // Rumble state (SInput Haptic command, type 2 = ERM simulation)
+    bool rumbleFlag = false;
+    uint8_t rumbleLeftAmplitude = 0;   // weak motor, 0-255
+    uint8_t rumbleRightAmplitude = 0;  // strong motor, 0-255
+
+    // RGB LED state (SInput JoystickRGB command)
+    bool rgbFlag = false;
+    uint8_t rgbRed = 0;
+    uint8_t rgbGreen = 0;
+    uint8_t rgbBlue = 0;
 
 private:
     BleGamepadConfiguration *configuration;

@@ -13,7 +13,7 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _vid(0xe502),
                                                      _pid(0xbbab),
                                                      _guidVersion(0x0110),
-                                                     _axesMin(0x0000),
+                                                     _axesMin(0x8000),
                                                      _axesMax(0x7FFF),
                                                      _simulationMin(0x0000),
                                                      _simulationMax(0x7FFF),
@@ -30,13 +30,21 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _enableRumble(false),
                                                      _enablePlayerLED(false),
                                                      _enableSInput(false),
+                                                     _enableSInputIMU(false),
+                                                     _enableSInputRGB(false),
+                                                     _gamepadMode(GamepadMode::Generic),
                                                      _outputReportLength(64),
                                                      _featureReportLength(64),
-                                                     _transmitPowerLevel(9)
+                                                     _transmitPowerLevel(9),
+                                                     _sinputGamepadType(1),
+                                                     _sinputFaceStyle(1),
+                                                     _enableTouchpad(false),
+                                                     _touchpadCount(0),
+                                                     _touchpadFingerCount(1)
 {
 }
 
-uint8_t BleGamepadConfiguration::getTotalSpecialButtonCount()
+uint8_t BleGamepadConfiguration::getTotalSpecialButtonCount() const
 {
     int count = 0;
     for (int i = 0; i < POSSIBLESPECIALBUTTONS; i++)
@@ -47,7 +55,7 @@ uint8_t BleGamepadConfiguration::getTotalSpecialButtonCount()
     return count;
 }
 
-uint8_t BleGamepadConfiguration::getDesktopSpecialButtonCount()
+uint8_t BleGamepadConfiguration::getDesktopSpecialButtonCount() const
 {
     int count = 0;
     for (int i = 0; i < 3; i++)
@@ -58,7 +66,7 @@ uint8_t BleGamepadConfiguration::getDesktopSpecialButtonCount()
     return count;
 }
 
-uint8_t BleGamepadConfiguration::getConsumerSpecialButtonCount()
+uint8_t BleGamepadConfiguration::getConsumerSpecialButtonCount() const
 {
     int count = 0;
     for (int i = 3; i < 8; i++)
@@ -69,7 +77,7 @@ uint8_t BleGamepadConfiguration::getConsumerSpecialButtonCount()
     return count;
 }
 
-uint8_t BleGamepadConfiguration::getAxisCount()
+uint8_t BleGamepadConfiguration::getAxisCount() const
 {
     int count = 0;
     for (int i = 0; i < POSSIBLEAXES; i++)
@@ -80,7 +88,7 @@ uint8_t BleGamepadConfiguration::getAxisCount()
     return count;
 }
 
-uint8_t BleGamepadConfiguration::getSimulationCount()
+uint8_t BleGamepadConfiguration::getSimulationCount() const
 {
     int count = 0;
     for (int i = 0; i < POSSIBLESIMULATIONCONTROLS; i++)
@@ -91,60 +99,63 @@ uint8_t BleGamepadConfiguration::getSimulationCount()
     return count;
 }
 
-uint16_t BleGamepadConfiguration::getVid(){ return _vid; }
-uint16_t BleGamepadConfiguration::getPid(){ return _pid; }
-uint16_t BleGamepadConfiguration::getGuidVersion(){ return _guidVersion; }
-int16_t BleGamepadConfiguration::getAxesMin(){ return _axesMin; }
-int16_t BleGamepadConfiguration::getAxesMax(){ return _axesMax; }
-int16_t BleGamepadConfiguration::getSimulationMin(){ return _simulationMin; }
-int16_t BleGamepadConfiguration::getSimulationMax(){ return _simulationMax; }
-int16_t BleGamepadConfiguration::getMotionMin(){ return _motionMin; }
-int16_t BleGamepadConfiguration::getMotionMax(){ return _motionMax; }
-uint8_t BleGamepadConfiguration::getControllerType() { return _controllerType; }
-uint8_t BleGamepadConfiguration::getHidReportId() { return _hidReportId; }
-uint16_t BleGamepadConfiguration::getButtonCount() { return _buttonCount; }
-uint8_t BleGamepadConfiguration::getHatSwitchCount() { return _hatSwitchCount; }
-bool BleGamepadConfiguration::getAutoReport() { return _autoReport; }
-bool BleGamepadConfiguration::getIncludeStart() { return _whichSpecialButtons[START_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeSelect() { return _whichSpecialButtons[SELECT_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeMenu() { return _whichSpecialButtons[MENU_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeHome() { return _whichSpecialButtons[HOME_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeBack() { return _whichSpecialButtons[BACK_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeVolumeInc() { return _whichSpecialButtons[VOLUME_INC_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeVolumeDec() { return _whichSpecialButtons[VOLUME_DEC_BUTTON]; }
-bool BleGamepadConfiguration::getIncludeVolumeMute() { return _whichSpecialButtons[VOLUME_MUTE_BUTTON]; }
+uint16_t BleGamepadConfiguration::getVid() const { return _vid; }
+uint16_t BleGamepadConfiguration::getPid() const { return _pid; }
+uint16_t BleGamepadConfiguration::getGuidVersion() const { return _guidVersion; }
+int16_t BleGamepadConfiguration::getAxesMin() const { return _axesMin; }
+int16_t BleGamepadConfiguration::getAxesMax() const { return _axesMax; }
+int16_t BleGamepadConfiguration::getSimulationMin() const { return _simulationMin; }
+int16_t BleGamepadConfiguration::getSimulationMax() const { return _simulationMax; }
+int16_t BleGamepadConfiguration::getMotionMin() const { return _motionMin; }
+int16_t BleGamepadConfiguration::getMotionMax() const { return _motionMax; }
+uint8_t BleGamepadConfiguration::getControllerType() const { return _controllerType; }
+uint8_t BleGamepadConfiguration::getHidReportId() const { return _hidReportId; }
+uint16_t BleGamepadConfiguration::getButtonCount() const { return _buttonCount; }
+uint8_t BleGamepadConfiguration::getHatSwitchCount() const { return _hatSwitchCount; }
+bool BleGamepadConfiguration::getAutoReport() const { return _autoReport; }
+bool BleGamepadConfiguration::getIncludeStart() const { return _whichSpecialButtons[START_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeSelect() const { return _whichSpecialButtons[SELECT_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeMenu() const { return _whichSpecialButtons[MENU_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeHome() const { return _whichSpecialButtons[HOME_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeBack() const { return _whichSpecialButtons[BACK_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeVolumeInc() const { return _whichSpecialButtons[VOLUME_INC_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeVolumeDec() const { return _whichSpecialButtons[VOLUME_DEC_BUTTON]; }
+bool BleGamepadConfiguration::getIncludeVolumeMute() const { return _whichSpecialButtons[VOLUME_MUTE_BUTTON]; }
 const bool *BleGamepadConfiguration::getWhichSpecialButtons() const { return _whichSpecialButtons; }
-bool BleGamepadConfiguration::getIncludeXAxis() { return _whichAxes[X_AXIS]; }
-bool BleGamepadConfiguration::getIncludeYAxis() { return _whichAxes[Y_AXIS]; }
-bool BleGamepadConfiguration::getIncludeZAxis() { return _whichAxes[Z_AXIS]; }
-bool BleGamepadConfiguration::getIncludeRxAxis() { return _whichAxes[RX_AXIS]; }
-bool BleGamepadConfiguration::getIncludeRyAxis() { return _whichAxes[RY_AXIS]; }
-bool BleGamepadConfiguration::getIncludeRzAxis() { return _whichAxes[RZ_AXIS]; }
-bool BleGamepadConfiguration::getIncludeSlider1() { return _whichAxes[SLIDER1]; }
-bool BleGamepadConfiguration::getIncludeSlider2() { return _whichAxes[SLIDER2]; }
+bool BleGamepadConfiguration::getIncludeXAxis() const { return _whichAxes[X_AXIS]; }
+bool BleGamepadConfiguration::getIncludeYAxis() const { return _whichAxes[Y_AXIS]; }
+bool BleGamepadConfiguration::getIncludeZAxis() const { return _whichAxes[Z_AXIS]; }
+bool BleGamepadConfiguration::getIncludeRxAxis() const { return _whichAxes[RX_AXIS]; }
+bool BleGamepadConfiguration::getIncludeRyAxis() const { return _whichAxes[RY_AXIS]; }
+bool BleGamepadConfiguration::getIncludeRzAxis() const { return _whichAxes[RZ_AXIS]; }
+bool BleGamepadConfiguration::getIncludeSlider1() const { return _whichAxes[SLIDER1]; }
+bool BleGamepadConfiguration::getIncludeSlider2() const { return _whichAxes[SLIDER2]; }
 const bool *BleGamepadConfiguration::getWhichAxes() const { return _whichAxes; }
-bool BleGamepadConfiguration::getIncludeRudder() { return _whichSimulationControls[RUDDER]; }
-bool BleGamepadConfiguration::getIncludeThrottle() { return _whichSimulationControls[THROTTLE]; }
-bool BleGamepadConfiguration::getIncludeAccelerator() { return _whichSimulationControls[ACCELERATOR]; }
-bool BleGamepadConfiguration::getIncludeBrake() { return _whichSimulationControls[BRAKE]; }
-bool BleGamepadConfiguration::getIncludeSteering() { return _whichSimulationControls[STEERING]; }
+bool BleGamepadConfiguration::getIncludeRudder() const { return _whichSimulationControls[RUDDER]; }
+bool BleGamepadConfiguration::getIncludeThrottle() const { return _whichSimulationControls[THROTTLE]; }
+bool BleGamepadConfiguration::getIncludeAccelerator() const { return _whichSimulationControls[ACCELERATOR]; }
+bool BleGamepadConfiguration::getIncludeBrake() const { return _whichSimulationControls[BRAKE]; }
+bool BleGamepadConfiguration::getIncludeSteering() const { return _whichSimulationControls[STEERING]; }
 const bool *BleGamepadConfiguration::getWhichSimulationControls() const { return _whichSimulationControls; }
-bool BleGamepadConfiguration::getIncludeGyroscope() { return _includeGyroscope; }
-bool BleGamepadConfiguration::getIncludeAccelerometer() { return _includeAccelerometer; }
-const char *BleGamepadConfiguration::getModelNumber(){ return _modelNumber; }
-const char *BleGamepadConfiguration::getSoftwareRevision(){ return _softwareRevision; }
-const char *BleGamepadConfiguration::getSerialNumber(){ return _serialNumber; }
-const char *BleGamepadConfiguration::getFirmwareRevision(){ return _firmwareRevision; }
-const char *BleGamepadConfiguration::getHardwareRevision(){ return _hardwareRevision; }
-bool BleGamepadConfiguration::getEnableOutputReport(){ return _enableOutputReport; }
-bool BleGamepadConfiguration::getEnableFeatureReport(){ return _enableFeatureReport; }
-bool BleGamepadConfiguration::getEnableNordicUARTService(){ return _enableNordicUARTService; }
-bool BleGamepadConfiguration::getEnableRumble(){ return _enableRumble; }
-bool BleGamepadConfiguration::getEnablePlayerLED(){ return _enablePlayerLED; }
-bool BleGamepadConfiguration::getEnableSInput(){ return _enableSInput; }
-uint16_t BleGamepadConfiguration::getOutputReportLength(){ return _outputReportLength; }
-uint16_t BleGamepadConfiguration::getFeatureReportLength(){ return _featureReportLength; }
-int8_t BleGamepadConfiguration::getTXPowerLevel(){ return _transmitPowerLevel; }	// Returns the power level that was set as the server started
+bool BleGamepadConfiguration::getIncludeGyroscope() const { return _includeGyroscope; }
+bool BleGamepadConfiguration::getIncludeAccelerometer() const { return _includeAccelerometer; }
+const char *BleGamepadConfiguration::getModelNumber() const { return _modelNumber; }
+const char *BleGamepadConfiguration::getSoftwareRevision() const { return _softwareRevision; }
+const char *BleGamepadConfiguration::getSerialNumber() const { return _serialNumber; }
+const char *BleGamepadConfiguration::getFirmwareRevision() const { return _firmwareRevision; }
+const char *BleGamepadConfiguration::getHardwareRevision() const { return _hardwareRevision; }
+bool BleGamepadConfiguration::getEnableOutputReport() const { return _enableOutputReport; }
+bool BleGamepadConfiguration::getEnableFeatureReport() const { return _enableFeatureReport; }
+bool BleGamepadConfiguration::getEnableNordicUARTService() const { return _enableNordicUARTService; }
+bool BleGamepadConfiguration::getEnableRumble() const { return _enableRumble; }
+bool BleGamepadConfiguration::getEnablePlayerLED() const { return _enablePlayerLED; }
+bool BleGamepadConfiguration::getEnableSInput() const { return _enableSInput; }
+bool BleGamepadConfiguration::getEnableSInputIMU() const { return _enableSInputIMU; }
+bool BleGamepadConfiguration::getEnableSInputRGB() const { return _enableSInputRGB; }
+GamepadMode BleGamepadConfiguration::getGamepadMode() const { return _gamepadMode; }
+uint16_t BleGamepadConfiguration::getOutputReportLength() const { return _outputReportLength; }
+uint16_t BleGamepadConfiguration::getFeatureReportLength() const { return _featureReportLength; }
+int8_t BleGamepadConfiguration::getTXPowerLevel() const { return _transmitPowerLevel; }	// Returns the power level that was set as the server started
 
 void BleGamepadConfiguration::setWhichSpecialButtons(bool start, bool select, bool menu, bool home, bool back, bool volumeInc, bool volumeDec, bool volumeMute)
 {
@@ -233,13 +244,83 @@ void BleGamepadConfiguration::setEnableSInput(bool value)
 
     if (value)
     {
+        _gamepadMode = GamepadMode::SInput;
         // SDL's SInput hidapi driver only matches this exact VID/PID pair (see the
         // SINPUT_USB_VID/SINPUT_USB_PID_GENERIC comment above) -- default to it so
         // SInput mode works out of the box. Call setVid()/setPid() after this to override.
         _vid = SINPUT_USB_VID;
         _pid = SINPUT_USB_PID_GENERIC;
     }
+    else if (_gamepadMode == GamepadMode::SInput)
+    {
+        _gamepadMode = GamepadMode::Generic;
+    }
 }
+
+void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
+{
+    _gamepadMode = mode;
+
+    if (mode == GamepadMode::SInput)
+    {
+        _enableSInput = true;
+        _vid = SINPUT_USB_VID;
+        _pid = SINPUT_USB_PID_GENERIC;
+        _buttonCount = 6;
+        _hatSwitchCount = 1;
+        _whichSimulationControls[RUDDER] = false;
+        _whichSimulationControls[THROTTLE] = false;
+        _whichSimulationControls[ACCELERATOR] = false;
+        _whichSimulationControls[BRAKE] = false;
+        _whichSimulationControls[STEERING] = false;
+        _whichAxes[SLIDER1] = false;
+        _whichAxes[SLIDER2] = false;
+        _includeGyroscope = false;
+        _includeAccelerometer = false;
+        _enableOutputReport = false;
+        _enableFeatureReport = false;
+        _enableRumble = true;
+        _enableTouchpad = true;
+        _touchpadCount = 1;
+        _touchpadFingerCount = 2;
+    }
+    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    {
+        _enableSInput = false;
+        _vid = XINPUT_USB_VID;
+        _pid = (mode == GamepadMode::XInputSeriesX) ? XINPUT_PID_XBOX_SERIES_X : XINPUT_PID_XBOX_ONE_S;
+        _buttonCount = 11;
+        _hatSwitchCount = 1;
+        _whichSimulationControls[RUDDER] = false;
+        _whichSimulationControls[THROTTLE] = false;
+        _whichSimulationControls[ACCELERATOR] = false;
+        _whichSimulationControls[BRAKE] = false;
+        _whichSimulationControls[STEERING] = false;
+        _whichAxes[SLIDER1] = false;
+        _whichAxes[SLIDER2] = false;
+        _includeGyroscope = false;
+        _includeAccelerometer = false;
+        _enableOutputReport = false;
+        _enableFeatureReport = false;
+    }
+    else if (mode == GamepadMode::Generic)
+    {
+        _enableSInput = false;
+    }
+}
+
+void BleGamepadConfiguration::setEnableSInputIMU(bool value) { _enableSInputIMU = value; }
+void BleGamepadConfiguration::setEnableSInputRGB(bool value) { _enableSInputRGB = value; }
 void BleGamepadConfiguration::setOutputReportLength(uint16_t value) { _outputReportLength = value; }
 void BleGamepadConfiguration::setFeatureReportLength(uint16_t value) { _featureReportLength = value; }
 void BleGamepadConfiguration::setTXPowerLevel(int8_t value) { _transmitPowerLevel = value; }
+uint8_t BleGamepadConfiguration::getSInputGamepadType() const { return _sinputGamepadType; }
+uint8_t BleGamepadConfiguration::getSInputFaceStyle() const { return _sinputFaceStyle; }
+void BleGamepadConfiguration::setSInputGamepadType(uint8_t value) { _sinputGamepadType = value; }
+void BleGamepadConfiguration::setSInputFaceStyle(uint8_t value) { _sinputFaceStyle = value; }
+bool BleGamepadConfiguration::getEnableTouchpad() const { return _enableTouchpad; }
+uint8_t BleGamepadConfiguration::getTouchpadCount() const { return _touchpadCount; }
+uint8_t BleGamepadConfiguration::getTouchpadFingerCount() const { return _touchpadFingerCount; }
+void BleGamepadConfiguration::setEnableTouchpad(bool value) { _enableTouchpad = value; }
+void BleGamepadConfiguration::setTouchpadCount(uint8_t value) { _touchpadCount = value; }
+void BleGamepadConfiguration::setTouchpadFingerCount(uint8_t value) { _touchpadFingerCount = value; }

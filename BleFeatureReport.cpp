@@ -1,4 +1,5 @@
 #include "BleFeatureReport.h"
+#include "BleReportUtils.h"
 
 BleFeatureReceiver::BleFeatureReceiver(uint16_t featureReportLength, BleGamepadConfiguration *configuration)
 {
@@ -51,16 +52,9 @@ void BleFeatureReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECo
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
 
-    // Some hosts (e.g. macOS's BLE HID bridge) prepend the Report ID byte to
-    // Feature Report writes even though the GATT characteristic (and its Report
-    // Reference descriptor) already identifies the report; strip it if present.
-    const uint8_t* data = (const uint8_t*)value.c_str();
-    size_t length = value.length();
-    if (length == (size_t)featureReportLength + 1)
-    {
-        data++;
-        length--;
-    }
+    const uint8_t* raw = (const uint8_t*)value.c_str();
+    size_t length = 0;
+    const uint8_t* data = stripReportIdIfPresent(raw, value.length(), featureReportLength, length);
 
     if (length <= featureReportLength && memcmp(data, featureBuffer, length) != 0)
     {

@@ -1,4 +1,6 @@
 #include "BleOutputReceiver.h"
+#include "BleReportUtils.h"
+#include <algorithm>
 
 BleOutputReceiver::BleOutputReceiver(uint16_t outputReportLength)
 {
@@ -20,16 +22,9 @@ void BleOutputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECon
     // Retrieve data sent from the host
     std::string value = pCharacteristic->getValue();
 
-    // Some hosts (e.g. macOS's BLE HID bridge) prepend the Report ID byte to
-    // Output Report writes even though the GATT characteristic (and its Report
-    // Reference descriptor) already identifies the report; strip it if present.
-    const uint8_t* data = (const uint8_t*)value.c_str();
-    size_t length = value.length();
-    if (length == (size_t)outputReportLength + 1)
-    {
-        data++;
-        length--;
-    }
+    const uint8_t* raw = (const uint8_t*)value.c_str();
+    size_t length = 0;
+    const uint8_t* data = stripReportIdIfPresent(raw, value.length(), outputReportLength, length);
 
     // Store the received data in the buffer
     for (size_t i = 0; i < std::min(length, (size_t)outputReportLength); i++)

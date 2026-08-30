@@ -1,7 +1,7 @@
 /*
  * This example turns the ESP32 into a Bluetooth LE gamepad that presses buttons and moves axis
  *
- * At the moment we are using the default settings, but they can be canged using a BleGamepadConfig instance as parameter for the begin function.
+ * At the moment we are using the default settings, but they can be changed using a BleGamepadConfiguration instance as parameter for the begin function.
  *
  * Possible buttons are:
  * BUTTON_1 through to BUTTON_16

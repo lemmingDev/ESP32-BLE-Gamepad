@@ -13,6 +13,7 @@
 #include "BleOutputReceiver.h"
 #include "BleFeatureReport.h"
 #include "BleSInput.h"
+#include "BleXInput.h"
 #include "BleNUS.h"
 
 // Debug enabled, disabled by default
@@ -39,10 +40,13 @@ class BleGamepad
   private:
     std::string deviceManufacturer;
     std::string deviceName;
-    uint8_t tempHidReportDescriptor[150];
+    uint8_t tempHidReportDescriptor[512];
     int hidReportDescriptorSize;
     uint8_t hidReportSize;
     uint8_t numOfButtonBytes;
+    uint8_t genericButtonPaddingBits;
+    uint8_t genericSpecialButtonPaddingBits;
+    uint8_t _specialButtonPositions[POSSIBLESPECIALBUTTONS];
     bool enableOutputReport;
     uint16_t outputReportLength;
     bool enableFeatureReport;
@@ -73,6 +77,12 @@ class BleGamepad
     int16_t _aX;
     int16_t _aY;
     int16_t _aZ;
+    int16_t _touch1X;
+    int16_t _touch1Y;
+    uint16_t _touch1Pressure;
+    int16_t _touch2X;
+    int16_t _touch2Y;
+    uint16_t _touch2Pressure;
     uint8_t _batteryPowerInformation;
     uint8_t _dischargingState;
     uint8_t _chargingState;
@@ -80,9 +90,10 @@ class BleGamepad
     bool nusInitialized;
     
     BleConnectionStatus *connectionStatus;
-    BleOutputReceiver *outputReceiver;
-    BleFeatureReceiver *featureReceiver;
-    BleSInputReceiver *sInputReceiver;
+    BleOutputReceiver *outputReceiver = nullptr;
+    BleFeatureReceiver *featureReceiver = nullptr;
+    BleSInputReceiver *sInputReceiver = nullptr;
+    BleXInputReceiver *xInputReceiver = nullptr;
     NimBLEServer *pServer;
     BleNUS* nus;
 
@@ -93,20 +104,28 @@ class BleGamepad
     NimBLECharacteristic *sInputGamepad;       // SInput Input Report 0x01 (regular gamepad state)
     NimBLECharacteristic *sInputCmdGamepad;    // SInput Input Report 0x02 (command/feature response)
     NimBLECharacteristic *sInputOutputGamepad; // SInput Output Report 0x03 (host -> device commands)
+    NimBLECharacteristic *xInputGamepad;       // XInput Input Report 0x01 (gamepad state)
+    NimBLECharacteristic *xInputOutputGamepad; // XInput Output Report 0x03 (rumble)
     NimBLECharacteristic *pCharacteristic_Power_State;
 
-    uint8_t *outputBackupBuffer;
-    uint8_t *featureBackupBuffer;
+    uint8_t *outputBackupBuffer = nullptr;
+    uint8_t *featureBackupBuffer = nullptr;
 
     void rawAction(uint8_t msg[], char msgSize);
     static void taskServer(void *pvParameter);
     uint8_t specialButtonBitPosition(uint8_t specialButton);
+    void buildGenericDescriptor();
+    void buildSInputDescriptor();
+    void buildXInputDescriptor();
+    void sendSInputReport();
+    void sendXInputReport();
+    void sendGenericReport();
 
   public:
     BleGamepadConfiguration configuration;
     
     BleGamepad(std::string deviceName = "ESP32 BLE Gamepad", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100, bool delayAdvertising = false);
-    void begin(BleGamepadConfiguration *config = new BleGamepadConfiguration());
+    void begin(BleGamepadConfiguration *config = nullptr);
     void end(void);
     void setAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rX = 0, int16_t rY = 0, int16_t rZ = 0, int16_t slider1 = 0, int16_t slider2 = 0);
     void setHIDAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0);
@@ -179,6 +198,18 @@ class BleGamepad
     void setFeatureBuffer(const uint8_t* data, uint16_t length);
     bool isPlayerLedReceived();
     uint8_t getPlayerLedIndex();
+    bool isRumbleReceived();
+    uint8_t getRumbleLeftAmplitude();
+    uint8_t getRumbleRightAmplitude();
+    bool isRgbReceived();
+    uint8_t getRgbRed();
+    uint8_t getRgbGreen();
+    uint8_t getRgbBlue();
+    bool isXInputRumbleReceived();
+    uint8_t getXInputStrongMotor();
+    uint8_t getXInputWeakMotor();
+    uint8_t getXInputLeftTriggerMagnitude();
+    uint8_t getXInputRightTriggerMagnitude();
     bool deleteBond(bool resetBoard = false);
     bool deleteAllBonds(bool resetBoard = false);
     bool enterPairingMode();
@@ -190,6 +221,7 @@ class BleGamepad
     void setGyroscope(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0);
     void setAccelerometer(int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
     void setMotionControls(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0, int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
+    void setTouchpad(uint8_t pad, int16_t x = 0, int16_t y = 0, uint16_t pressure = 0);
     void beginNUS();
     void sendDataOverNUS(const uint8_t* data, size_t length);
     void setNUSDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length));

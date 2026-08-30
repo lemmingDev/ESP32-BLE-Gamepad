@@ -210,12 +210,30 @@
 #define POWER_STATE_CHARGING        3 // 0b11
 #define POWER_STATE_CRITICAL        3 // 0b11
 
+// Gamepad mode: determines VID/PID, HID report descriptor, and output protocol.
+// Runtime switching is not possible (VID/PID and HID descriptor are set once at
+// begin()), so this is effectively a compile-time choice via configuration.
+enum class GamepadMode : uint8_t
+{
+    Generic = 0,        // Classic HID gamepad (default)
+    SInput = 1,         // SInput protocol (SDL3 hidapi)
+    XInput = 2,         // Xbox One S — VID 0x045E, PID 0x02FD (broad Linux compat)
+    XInputSeriesX = 3   // Xbox Series X — VID 0x045E, PID 0x0B13 (Share button)
+};
+
 // SDL's hidapi driver only recognizes SInput (https://github.com/HandHeldLegend/SInput-HID)
 // devices advertising this exact VID/PID pair (hardcoded allowlist, not negotiated) -- see
 // GattVsHid.md. setEnableSInput(true) sets these automatically; call setVid()/setPid()
 // afterwards if you need to override them.
 #define SINPUT_USB_VID         0x2E8A
 #define SINPUT_USB_PID_GENERIC 0x10C6
+
+// XInput VID/PID — Microsoft Xbox controllers.
+// XInput (default) uses One S PID for maximum Linux compatibility (kernel < 6.5).
+// XInputSeriesX uses Series X PID for Share button support (requires Linux 6.5+).
+#define XINPUT_USB_VID             0x045E
+#define XINPUT_PID_XBOX_ONE_S      0x02FD
+#define XINPUT_PID_XBOX_SERIES_X   0x0B13
 
 class BleGamepadConfiguration
 {
@@ -250,72 +268,85 @@ private:
     bool _enableRumble;
     bool _enablePlayerLED;
     bool _enableSInput;
+    bool _enableSInputIMU;
+    bool _enableSInputRGB;
+    GamepadMode _gamepadMode;
     uint16_t _outputReportLength;
     uint16_t _featureReportLength;
     int8_t _transmitPowerLevel;
+    uint8_t _sinputGamepadType;
+    uint8_t _sinputFaceStyle;
+    bool _enableTouchpad;
+    uint8_t _touchpadCount;
+    uint8_t _touchpadFingerCount;
 
 public:
     BleGamepadConfiguration();
 
-    bool getAutoReport();
-    uint8_t getControllerType();
-    uint8_t getHidReportId();
-    uint16_t getButtonCount();
-    uint8_t getTotalSpecialButtonCount();
-    uint8_t getDesktopSpecialButtonCount();
-    uint8_t getConsumerSpecialButtonCount();
-    uint8_t getHatSwitchCount();
-    uint8_t getAxisCount();
-    uint8_t getSimulationCount();
-    bool getIncludeStart();
-    bool getIncludeSelect();
-    bool getIncludeMenu();
-    bool getIncludeHome();
-    bool getIncludeBack();
-    bool getIncludeVolumeInc();
-    bool getIncludeVolumeDec();
-    bool getIncludeVolumeMute();
+    bool getAutoReport() const;
+    uint8_t getControllerType() const;
+    uint8_t getHidReportId() const;
+    uint16_t getButtonCount() const;
+    uint8_t getTotalSpecialButtonCount() const;
+    uint8_t getDesktopSpecialButtonCount() const;
+    uint8_t getConsumerSpecialButtonCount() const;
+    uint8_t getHatSwitchCount() const;
+    uint8_t getAxisCount() const;
+    uint8_t getSimulationCount() const;
+    bool getIncludeStart() const;
+    bool getIncludeSelect() const;
+    bool getIncludeMenu() const;
+    bool getIncludeHome() const;
+    bool getIncludeBack() const;
+    bool getIncludeVolumeInc() const;
+    bool getIncludeVolumeDec() const;
+    bool getIncludeVolumeMute() const;
     const bool *getWhichSpecialButtons() const;
-    bool getIncludeXAxis();
-    bool getIncludeYAxis();
-    bool getIncludeZAxis();
-    bool getIncludeRxAxis();
-    bool getIncludeRyAxis();
-    bool getIncludeRzAxis();
-    bool getIncludeSlider1();
-    bool getIncludeSlider2();
+    bool getIncludeXAxis() const;
+    bool getIncludeYAxis() const;
+    bool getIncludeZAxis() const;
+    bool getIncludeRxAxis() const;
+    bool getIncludeRyAxis() const;
+    bool getIncludeRzAxis() const;
+    bool getIncludeSlider1() const;
+    bool getIncludeSlider2() const;
     const bool *getWhichAxes() const;
-    bool getIncludeRudder();
-    bool getIncludeThrottle();
-    bool getIncludeAccelerator();
-    bool getIncludeBrake();
-    bool getIncludeSteering();
+    bool getIncludeRudder() const;
+    bool getIncludeThrottle() const;
+    bool getIncludeAccelerator() const;
+    bool getIncludeBrake() const;
+    bool getIncludeSteering() const;
     const bool *getWhichSimulationControls() const;
-    bool getIncludeAccelerometer();
-    bool getIncludeGyroscope();
-    uint16_t getVid();
-    uint16_t getPid();
-    uint16_t getGuidVersion();
-    int16_t getAxesMin();
-    int16_t getAxesMax();
-    int16_t getSimulationMin();
-    int16_t getSimulationMax();
-    int16_t getMotionMin();
-    int16_t getMotionMax();
-    const char *getModelNumber();
-    const char *getSoftwareRevision();
-    const char *getSerialNumber();
-    const char *getFirmwareRevision();
-    const char *getHardwareRevision();
-    bool getEnableOutputReport();
-    bool getEnableFeatureReport();
-    bool getEnableNordicUARTService();
-    bool getEnableRumble();
-    bool getEnablePlayerLED();
-    bool getEnableSInput();
-    uint16_t getOutputReportLength();
-    uint16_t getFeatureReportLength();
-    int8_t getTXPowerLevel();
+    bool getIncludeAccelerometer() const;
+    bool getIncludeGyroscope() const;
+    uint16_t getVid() const;
+    uint16_t getPid() const;
+    uint16_t getGuidVersion() const;
+    int16_t getAxesMin() const;
+    int16_t getAxesMax() const;
+    int16_t getSimulationMin() const;
+    int16_t getSimulationMax() const;
+    int16_t getMotionMin() const;
+    int16_t getMotionMax() const;
+    const char *getModelNumber() const;
+    const char *getSoftwareRevision() const;
+    const char *getSerialNumber() const;
+    const char *getFirmwareRevision() const;
+    const char *getHardwareRevision() const;
+    bool getEnableOutputReport() const;
+    bool getEnableFeatureReport() const;
+    bool getEnableNordicUARTService() const;
+    bool getEnableRumble() const;
+    bool getEnablePlayerLED() const;
+    bool getEnableSInput() const;
+    bool getEnableSInputIMU() const;
+    bool getEnableSInputRGB() const;
+    GamepadMode getGamepadMode() const;
+    uint16_t getOutputReportLength() const;
+    uint16_t getFeatureReportLength() const;
+    int8_t getTXPowerLevel() const;
+    uint8_t getSInputGamepadType() const;
+    uint8_t getSInputFaceStyle() const;
 
     void setControllerType(uint8_t controllerType);
     void setAutoReport(bool value);
@@ -368,9 +399,20 @@ public:
     void setEnableRumble(bool value);
     void setEnablePlayerLED(bool value);
     void setEnableSInput(bool value);
+    void setEnableSInputIMU(bool value);
+    void setEnableSInputRGB(bool value);
+    void setGamepadMode(GamepadMode mode);
     void setOutputReportLength(uint16_t value);
     void setFeatureReportLength(uint16_t value);
     void setTXPowerLevel(int8_t value);
+    void setSInputGamepadType(uint8_t value);
+    void setSInputFaceStyle(uint8_t value);
+    bool getEnableTouchpad() const;
+    uint8_t getTouchpadCount() const;
+    uint8_t getTouchpadFingerCount() const;
+    void setEnableTouchpad(bool value);
+    void setTouchpadCount(uint8_t value);
+    void setTouchpadFingerCount(uint8_t value);
 };
 
 #endif

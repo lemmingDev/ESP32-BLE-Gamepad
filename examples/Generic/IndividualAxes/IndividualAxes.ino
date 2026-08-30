@@ -3,7 +3,7 @@
  *
  * Possible buttons are:
  * BUTTON_1 through to BUTTON_128 (Windows gamepad tester only visualises the first 32)
- ^ Use http://www.planetpointy.co.uk/joystick-test-application/ to visualise all of them
+ * Use http://www.planetpointy.co.uk/joystick-test-application/ to visualise all of them
  * Whenever you adjust the amount of buttons/axes etc, make sure you unpair and repair the BLE device
  *
  * Possible DPAD/HAT switch position values are:
@@ -53,7 +53,7 @@ void loop()
 {
     if (bleGamepad.isConnected())
     {
-        Serial.println("Press buttons 1, 32, 64 and 128. Set hat 1 to down right and hat 2 to up left");
+        Serial.println("Press buttons 5, 32, 64 and 128. Set hat 1 to down right and hat 2 to up left");
 
         // Press buttons 5, 32, 64 and 128
         bleGamepad.press(BUTTON_5);
