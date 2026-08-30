@@ -34,3 +34,10 @@ desktop.ini
 *.tmp
 *.swp
 *~
+
+# ========================
+# Python (test scripts, e.g. examples/SInputPlayerLED)
+# ========================
+__pycache__/
+*.pyc
+.venv/

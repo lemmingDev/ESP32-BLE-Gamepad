@@ -39,6 +39,7 @@ It would be great however if any improvements are fed back into this version.
  - [x] Uses efficient NimBLE bluetooth library
  - [x] HID Output Report function
  - [x] HID Feature Report function
+ - [x] SInput (https://github.com/HandHeldLegend/SInput-HID) support for native SDL3 recognition -- buttons/axes and Player LED today. See [GattVsHid.md](GattVsHid.md) and the SInputPlayerLED example
  - [x] Functions available for force pairing/ignore current client and/or delete pairings
  - [x] Nordic UART Service (NUS) functionality at same time as gamepad. See examples
  - [x] Compatible with Windows
@@ -163,7 +164,8 @@ Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](Tro
 ## Testing on Linux
 For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
 
-For how this library exposes the ESP32 over BLE (HID-over-GATT vs. the plain NUS GATT service) and how to extend it with extra features, see [GattVsHid](GattVsHid.md)
+## GATT vs HID-over-GATT
+For an explanation of how this library's HID Service and NUS service differ, how SDL/game engines and the Linux input stack actually reach each one, and how to extend it with features like rumble or RGB/player LEDs, see [GattVsHid](GattVsHid.md)
 
 ## Credits
 Credits to [T-vK](https://github.com/T-vK) as this library is based on his ESP32-BLE-Mouse library (https://github.com/T-vK/ESP32-BLE-Mouse) that he provided.
