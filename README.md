@@ -20,7 +20,7 @@ Other BLE-capable variants (e.g. ESP32-C2, ESP32-H2) are likely to work too, but
 
 | Feature | Generic | SInput | XInput |
 |---------|:-------:|:------:|:------:|
-| Buttons | 1-128 | 6 face + shoulders | 11 (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home) |
+| Buttons | 1-128 | Up to 25 (face, shoulders, stick clicks, triggers, paddles, capture, touchpad clicks, power, misc) | 11 (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home) |
 | Thumbsticks | 2 (configurable axes) | 2 (left/right) | 2 (left/right) |
 | Triggers | 2 (analog) | 2 (analog) | 2 (analog) |
 | D-pad | Up to 4 hat switches | 1 hat switch | 1 hat switch |

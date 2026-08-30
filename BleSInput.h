@@ -68,7 +68,7 @@
 #define SINPUT_FEAT_IDX_USAGE_MASK_0 13 // South, East, West, North, DUp, DDown, DLeft, DRight
 #define SINPUT_FEAT_IDX_USAGE_MASK_1 14 // StickL, StickR, LShoulder, RShoulder, LTrigger, RTrigger, LPaddle1, RPaddle1
 #define SINPUT_FEAT_IDX_USAGE_MASK_2 15 // Start, Back, Guide, Capture, LPaddle2, RPaddle2, TouchpadL, TouchpadR
-#define SINPUT_FEAT_IDX_USAGE_MASK_3 16 // Power, Misc4-10
+#define SINPUT_FEAT_IDX_USAGE_MASK_3 16 // Power, Misc1-7
 #define SINPUT_FEAT_IDX_TOUCHPAD_COUNT        17
 #define SINPUT_FEAT_IDX_TOUCHPAD_FINGER_COUNT 18
 // report[19..24]: 6-byte MAC-style serial SDL reads for its device serial string --
@@ -144,20 +144,35 @@
 #define SINPUT_BTN0_DLEFT  (1 << 6)
 #define SINPUT_BTN0_DRIGHT (1 << 7)
 
-// buttons_1 (payload byte SINPUT_IN_IDX_BUTTONS_1) -- only shoulders are
-// mapped today. Same scan-order rule as buttons_0 above applies; these two
-// being the lowest 2 enabled bits in buttons_1 is what matters, not their
-// absolute bit position.
+// buttons_1 (payload byte SINPUT_IN_IDX_BUTTONS_1)
+#define SINPUT_BTN1_LSTICK   (1 << 0)
+#define SINPUT_BTN1_RSTICK   (1 << 1)
 #define SINPUT_BTN1_LSHOULDER (1 << 2)
 #define SINPUT_BTN1_RSHOULDER (1 << 3)
+#define SINPUT_BTN1_LTRIGGER (1 << 4)
+#define SINPUT_BTN1_RTRIGGER (1 << 5)
+#define SINPUT_BTN1_LPADDLE1 (1 << 6)
+#define SINPUT_BTN1_RPADDLE1 (1 << 7)
 
-// buttons_2 (payload byte SINPUT_IN_IDX_BUTTONS_2) -- Start/Back/Guide/Capture
-#define SINPUT_BTN2_START   (1 << 0)
-#define SINPUT_BTN2_BACK    (1 << 1)
-#define SINPUT_BTN2_GUIDE   (1 << 2)
-#define SINPUT_BTN2_CAPTURE (1 << 3)
+// buttons_2 (payload byte SINPUT_IN_IDX_BUTTONS_2)
+#define SINPUT_BTN2_START    (1 << 0)
+#define SINPUT_BTN2_BACK     (1 << 1)
+#define SINPUT_BTN2_GUIDE    (1 << 2)
+#define SINPUT_BTN2_CAPTURE  (1 << 3)
+#define SINPUT_BTN2_LPADDLE2 (1 << 4)
+#define SINPUT_BTN2_RPADDLE2 (1 << 5)
 #define SINPUT_BTN2_TOUCHPAD1 (1 << 6)
 #define SINPUT_BTN2_TOUCHPAD2 (1 << 7)
+
+// buttons_3 (payload byte SINPUT_IN_IDX_BUTTONS_3) -- Power + Misc1-7
+#define SINPUT_BTN3_POWER (1 << 0)
+#define SINPUT_BTN3_MISC1 (1 << 1)
+#define SINPUT_BTN3_MISC2 (1 << 2)
+#define SINPUT_BTN3_MISC3 (1 << 3)
+#define SINPUT_BTN3_MISC4 (1 << 4)
+#define SINPUT_BTN3_MISC5 (1 << 5)
+#define SINPUT_BTN3_MISC6 (1 << 6)
+#define SINPUT_BTN3_MISC7 (1 << 7)
 
 // Handles the Output Report (0x03) this library's SInput mode receives commands on,
 // and owns the Input Report (0x02) it replies to a FEATURES request on. PlayerLED,

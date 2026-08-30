@@ -966,7 +966,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     configuration.setHatSwitchCount(1);
 
     if (mode == GamepadMode::SInput)
-      configuration.setButtonCount(6);
+      configuration.setButtonCount(25);
     else
       configuration.setButtonCount(11);
 
@@ -1238,11 +1238,17 @@ void BleGamepad::sendSInputReport()
   m[SINPUT_IN_IDX_BUTTONS_0] = buttons0;
 
   uint8_t buttons1 = 0;
-  if (configuration.getButtonCount() >= 5 && isPressed(BUTTON_5)) buttons1 |= SINPUT_BTN1_LSHOULDER;
-  if (configuration.getButtonCount() >= 6 && isPressed(BUTTON_6)) buttons1 |= SINPUT_BTN1_RSHOULDER;
+  if (configuration.getButtonCount() >= 7  && isPressed(BUTTON_7))  buttons1 |= SINPUT_BTN1_LSTICK;
+  if (configuration.getButtonCount() >= 8  && isPressed(BUTTON_8))  buttons1 |= SINPUT_BTN1_RSTICK;
+  if (configuration.getButtonCount() >= 5  && isPressed(BUTTON_5))  buttons1 |= SINPUT_BTN1_LSHOULDER;
+  if (configuration.getButtonCount() >= 6  && isPressed(BUTTON_6))  buttons1 |= SINPUT_BTN1_RSHOULDER;
+  if (configuration.getButtonCount() >= 9  && isPressed(BUTTON_9))  buttons1 |= SINPUT_BTN1_LTRIGGER;
+  if (configuration.getButtonCount() >= 10 && isPressed(BUTTON_10)) buttons1 |= SINPUT_BTN1_RTRIGGER;
+  if (configuration.getButtonCount() >= 11 && isPressed(BUTTON_11)) buttons1 |= SINPUT_BTN1_LPADDLE1;
+  if (configuration.getButtonCount() >= 12 && isPressed(BUTTON_12)) buttons1 |= SINPUT_BTN1_RPADDLE1;
   m[SINPUT_IN_IDX_BUTTONS_1] = buttons1;
 
-  // buttons_2: map special buttons to SInput's fixed bit positions
+  // buttons_2: map special buttons + regular buttons to SInput's fixed bit positions
   uint8_t buttons2 = 0;
   if (configuration.getIncludeStart())
   {
@@ -1262,7 +1268,24 @@ void BleGamepad::sendSInputReport()
       uint8_t bit = specialButtonBitPosition(HOME_BUTTON);
       if (_specialButtons & (1 << bit)) buttons2 |= SINPUT_BTN2_GUIDE;
   }
+  if (configuration.getButtonCount() >= 13 && isPressed(BUTTON_13)) buttons2 |= SINPUT_BTN2_CAPTURE;
+  if (configuration.getButtonCount() >= 14 && isPressed(BUTTON_14)) buttons2 |= SINPUT_BTN2_LPADDLE2;
+  if (configuration.getButtonCount() >= 15 && isPressed(BUTTON_15)) buttons2 |= SINPUT_BTN2_RPADDLE2;
+  if (configuration.getButtonCount() >= 16 && isPressed(BUTTON_16)) buttons2 |= SINPUT_BTN2_TOUCHPAD1;
+  if (configuration.getButtonCount() >= 17 && isPressed(BUTTON_17)) buttons2 |= SINPUT_BTN2_TOUCHPAD2;
   m[SINPUT_IN_IDX_BUTTONS_2] = buttons2;
+
+  // buttons_3: Power + Misc1-7
+  uint8_t buttons3 = 0;
+  if (configuration.getButtonCount() >= 18 && isPressed(BUTTON_18)) buttons3 |= SINPUT_BTN3_POWER;
+  if (configuration.getButtonCount() >= 19 && isPressed(BUTTON_19)) buttons3 |= SINPUT_BTN3_MISC1;
+  if (configuration.getButtonCount() >= 20 && isPressed(BUTTON_20)) buttons3 |= SINPUT_BTN3_MISC2;
+  if (configuration.getButtonCount() >= 21 && isPressed(BUTTON_21)) buttons3 |= SINPUT_BTN3_MISC3;
+  if (configuration.getButtonCount() >= 22 && isPressed(BUTTON_22)) buttons3 |= SINPUT_BTN3_MISC4;
+  if (configuration.getButtonCount() >= 23 && isPressed(BUTTON_23)) buttons3 |= SINPUT_BTN3_MISC5;
+  if (configuration.getButtonCount() >= 24 && isPressed(BUTTON_24)) buttons3 |= SINPUT_BTN3_MISC6;
+  if (configuration.getButtonCount() >= 25 && isPressed(BUTTON_25)) buttons3 |= SINPUT_BTN3_MISC7;
+  m[SINPUT_IN_IDX_BUTTONS_3] = buttons3;
 
   if (configuration.getIncludeXAxis() && configuration.getIncludeYAxis())
   {

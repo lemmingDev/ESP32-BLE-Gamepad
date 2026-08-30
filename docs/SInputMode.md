@@ -211,7 +211,7 @@ config.setGamepadMode(GamepadMode::SInput);
 
 This automatically:
 - Sets VID/PID to 0x2E8A/0x10C6
-- Sets button count to 6 (face + shoulders)
+- Sets button count to 25 (all SInput buttons)
 - Sets hat switch count to 1
 - Enables rumble
 - Disables output/feature reports (SInput owns those Report IDs)
@@ -229,7 +229,7 @@ This automatically:
 | `setTouchpadFingerCount()` | 2 | Fingers per touchpad (1-2) |
 | `setSInputGamepadType()` | 1 (Standard) | SDL gamepad type hint |
 | `setSInputFaceStyle()` | 1 (ABXY) | Face button layout hint |
-| `setButtonCount()` | 6 | Number of face/shoulder buttons |
+| `setButtonCount()` | 25 | Number of buttons (face, shoulders, stick clicks, triggers, paddles, capture, touchpad clicks, power, misc) |
 | `setHatSwitchCount()` | 1 | D-pad |
 
 ## API Reference
@@ -240,7 +240,16 @@ All standard `BleGamepad` input methods work in SInput mode. The library maps th
 
 | Method | SInput Mapping |
 |--------|---------------|
-| `press(BUTTON_1..6)` | Buttons 0-5 (South/East/West/North/LB/RB) |
+| `press(BUTTON_1..4)` | South/East/West/North (buttons_0 bits 0-3) |
+| `press(BUTTON_5..6)` | Left/Right Shoulder (buttons_1 bits 2-3) |
+| `press(BUTTON_7..8)` | Left/Right Stick Click (buttons_1 bits 0-1) |
+| `press(BUTTON_9..10)` | Left/Right Trigger digital (buttons_1 bits 4-5) |
+| `press(BUTTON_11..12)` | Left/Right Paddle 1 (buttons_1 bits 6-7) |
+| `press(BUTTON_13)` | Capture/Share (buttons_2 bit 3) |
+| `press(BUTTON_14..15)` | Left/Right Paddle 2 (buttons_2 bits 4-5) |
+| `press(BUTTON_16..17)` | Touchpad 1/2 Click (buttons_2 bits 6-7) |
+| `press(BUTTON_18)` | Power (buttons_3 bit 0) |
+| `press(BUTTON_19..25)` | Misc 1-7 (buttons_3 bits 1-7) |
 | `setLeftThumb(x, y)` | Left stick X/Y |
 | `setRightThumb(z, rz)` | Right stick X/Y |
 | `setLeftTrigger(rx)` | Left trigger |
@@ -580,7 +589,7 @@ See the [examples/SInput/](../examples/SInput/) directory:
 - **SInputPlayerLED.ino** -- Rumble + player LED + battery ramp
 - **SInputPlayerLED_RGB.ino** -- Rumble + player LED + RGB LED
 - **SInputPlayerLED_NeoPixel.ino** -- Rumble + player LED + NeoPixel strip
-- **SInputFullGamepad.ino** -- All inputs (6 buttons, 2 sticks, 2 triggers, D-pad, Start/Back/Home)
+- **SInputFullGamepad.ino** -- All inputs (25 buttons, 2 sticks, 2 triggers, D-pad, Start/Back/Home)
 - **SInputIMU.ino** -- Gyroscope + accelerometer with simulated data
 - **SInputTouchpad.ino** -- Dual touchpad with simulated circular touch
 
@@ -600,7 +609,7 @@ See the [examples/SInput/](../examples/SInput/) directory:
 ### Limitations
 - Fixed VID/PID (0x2E8A/0x10C6) -- cannot be customized
 - Fixed report layout -- not configurable like Generic mode
-- Maximum 6 face/shoulder buttons (plus Start/Back/Guide)
+- Up to 25 regular buttons (face, shoulders, stick clicks, trigger digital, paddles, capture, touchpad clicks, power, misc) plus Start/Back/Guide and D-pad
 - Only 1 hat switch
 - No sliders or simulation controls
 - No iOS support

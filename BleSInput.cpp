@@ -77,17 +77,37 @@ void BleSInputReceiver::sendFeaturesResponse()
     report[SINPUT_FEAT_IDX_USAGE_MASK_0] = usageMask0;
 
     uint8_t usageMask1 = 0;
-    if (configuration->getButtonCount() >= 5) usageMask1 |= SINPUT_BTN1_LSHOULDER;
-    if (configuration->getButtonCount() >= 6) usageMask1 |= SINPUT_BTN1_RSHOULDER;
+    if (configuration->getButtonCount() >= 7)  usageMask1 |= SINPUT_BTN1_LSTICK;
+    if (configuration->getButtonCount() >= 8)  usageMask1 |= SINPUT_BTN1_RSTICK;
+    if (configuration->getButtonCount() >= 5)  usageMask1 |= SINPUT_BTN1_LSHOULDER;
+    if (configuration->getButtonCount() >= 6)  usageMask1 |= SINPUT_BTN1_RSHOULDER;
+    if (configuration->getButtonCount() >= 9)  usageMask1 |= SINPUT_BTN1_LTRIGGER;
+    if (configuration->getButtonCount() >= 10) usageMask1 |= SINPUT_BTN1_RTRIGGER;
+    if (configuration->getButtonCount() >= 11) usageMask1 |= SINPUT_BTN1_LPADDLE1;
+    if (configuration->getButtonCount() >= 12) usageMask1 |= SINPUT_BTN1_RPADDLE1;
     report[SINPUT_FEAT_IDX_USAGE_MASK_1] = usageMask1;
 
     uint8_t usageMask2 = 0;
     if (configuration->getIncludeStart()) usageMask2 |= SINPUT_BTN2_START;
     if (configuration->getIncludeBack() || configuration->getIncludeSelect()) usageMask2 |= SINPUT_BTN2_BACK;
     if (configuration->getIncludeHome()) usageMask2 |= SINPUT_BTN2_GUIDE;
+    if (configuration->getButtonCount() >= 13) usageMask2 |= SINPUT_BTN2_CAPTURE;
+    if (configuration->getButtonCount() >= 14) usageMask2 |= SINPUT_BTN2_LPADDLE2;
+    if (configuration->getButtonCount() >= 15) usageMask2 |= SINPUT_BTN2_RPADDLE2;
+    if (configuration->getButtonCount() >= 16) usageMask2 |= SINPUT_BTN2_TOUCHPAD1;
+    if (configuration->getButtonCount() >= 17) usageMask2 |= SINPUT_BTN2_TOUCHPAD2;
     report[SINPUT_FEAT_IDX_USAGE_MASK_2] = usageMask2;
 
-    // USAGE_MASK_3 (Power/Misc) and touchpad count/finger-count stay 0.
+    uint8_t usageMask3 = 0;
+    if (configuration->getButtonCount() >= 18) usageMask3 |= SINPUT_BTN3_POWER;
+    if (configuration->getButtonCount() >= 19) usageMask3 |= SINPUT_BTN3_MISC1;
+    if (configuration->getButtonCount() >= 20) usageMask3 |= SINPUT_BTN3_MISC2;
+    if (configuration->getButtonCount() >= 21) usageMask3 |= SINPUT_BTN3_MISC3;
+    if (configuration->getButtonCount() >= 22) usageMask3 |= SINPUT_BTN3_MISC4;
+    if (configuration->getButtonCount() >= 23) usageMask3 |= SINPUT_BTN3_MISC5;
+    if (configuration->getButtonCount() >= 24) usageMask3 |= SINPUT_BTN3_MISC6;
+    if (configuration->getButtonCount() >= 25) usageMask3 |= SINPUT_BTN3_MISC7;
+    report[SINPUT_FEAT_IDX_USAGE_MASK_3] = usageMask3;
 
     cmdInputReport->setValue(report, sizeof(report));
     cmdInputReport->notify();

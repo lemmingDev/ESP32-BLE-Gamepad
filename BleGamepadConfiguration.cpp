@@ -250,6 +250,7 @@ void BleGamepadConfiguration::setEnableSInput(bool value)
         // SInput mode works out of the box. Call setVid()/setPid() after this to override.
         _vid = SINPUT_USB_VID;
         _pid = SINPUT_USB_PID_GENERIC;
+        _buttonCount = 25;
     }
     else if (_gamepadMode == GamepadMode::SInput)
     {
@@ -266,7 +267,7 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _enableSInput = true;
         _vid = SINPUT_USB_VID;
         _pid = SINPUT_USB_PID_GENERIC;
-        _buttonCount = 6;
+        _buttonCount = 25;
         _hatSwitchCount = 1;
         _whichSimulationControls[RUDDER] = false;
         _whichSimulationControls[THROTTLE] = false;

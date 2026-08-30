@@ -4,11 +4,21 @@
  * Comprehensive demo of ALL SInput features:
  *
  * Inputs:
- *   - 6 face/shoulder buttons (South/East/West/North/LB/RB)
+ *   - 25 buttons:
+ *       BUTTON_1-4:   Face (South/East/West/North)
+ *       BUTTON_5-6:   Left/Right Shoulder
+ *       BUTTON_7-8:   Left/Right Stick Click
+ *       BUTTON_9-10:  Left/Right Trigger (digital)
+ *       BUTTON_11-12: Left/Right Paddle 1
+ *       BUTTON_13:    Capture/Share
+ *       BUTTON_14-15: Left/Right Paddle 2
+ *       BUTTON_16-17: Touchpad 1/2 Click
+ *       BUTTON_18:    Power
+ *       BUTTON_19-25: Misc 1-7
+ *   - Plus Start/Back/Guide via pressStart()/pressBack()/pressHome()
+ *   - Plus D-pad via setHat1()
  *   - 2 thumbsticks (left and right, circular + figure-eight motion)
  *   - 2 analog triggers (L2/R2, ramping)
- *   - D-pad (hat switch, cycling 8 directions)
- *   - Special buttons (Start, Back, Home)
  *
  * Outputs:
  *   - Rumble (haptic/vibration)
@@ -151,7 +161,7 @@ void loop()
       hatDir = (hatDir + 1) % 8;
     }
 
-    // --- Buttons: cycle through 6 face/shoulder buttons every 300ms ---
+    // --- Buttons: cycle through all 25 buttons every 300ms ---
     static unsigned long lastBtnTime = 0;
     static uint8_t btnIdx = 0;
     if (now - lastBtnTime >= 300)
@@ -161,7 +171,7 @@ void loop()
       bleGamepad.sendReport();
       delay(50);
       bleGamepad.release(btnIdx + 1);
-      btnIdx = (btnIdx + 1) % 6;
+      btnIdx = (btnIdx + 1) % 25;
     }
 
     // --- Special buttons: cycle Start, Back, Home every 800ms ---
