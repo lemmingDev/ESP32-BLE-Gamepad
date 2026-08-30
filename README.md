@@ -271,9 +271,39 @@ It would be great however if any improvements are fed back into this version.
 
 Troubleshooting guide and suggestions can be found in [TroubleshootingGuide](TroubleshootingGuide.md)
 
-## Testing on Linux
+## Testing Your Gamepad
 
-For testing Input/Output/Feature Reports on Linux (Ubuntu/Debian) via the OS's HID subsystem, see [LinuxHIDTesting](LinuxHIDTesting.md)
+### Cross-Platform Gamepad Testers
+
+These free tools visualize all gamepad inputs (buttons, axes, triggers, D-pad) in real time and work on Windows, macOS, and Linux:
+
+| Tool | Platform | Source | Notes |
+|------|----------|--------|-------|
+| [HIDTester](https://github.com/rhunecke/HIDTester) | Windows, macOS, Linux | [Source](https://github.com/rhunecke/HIDTester) | Lightweight, no install needed. Shows buttons, axes, D-pad, deadzone analysis, signal curves, polling rate. Built on SDL3. |
+| [Gamepad_Tester](https://github.com/zoltcode/Gamepad_Tester) | Windows, macOS, Linux | [Source](https://github.com/zoltcode/Gamepad_Tester) | C++23/SDL3/ImGui. Latency measurement, polling rate analysis, rumble testing, input visualization. Pre-built binaries available. |
+| [gamepad-tester.net](https://gamepad-tester.net) | Browser (all OS) | N/A | Browser-based, no install. Works in Chrome/Edge/Firefox. Shows all buttons/axes/triggers. |
+
+Both HIDTester and Gamepad_Tester are built on SDL3, so they recognize SInput controllers natively (VID `0x2E8A`/PID `0x10C6`) and map buttons/axes correctly. The browser-based tester works with any mode but shows raw button indices instead of named buttons.
+
+### Platform-Specific Testing
+
+- **Linux**: See [LinuxHIDTesting.md](LinuxHIDTesting.md) for testing Input/Output/Feature Reports via hidraw/hidapi, `jstest`, and `evtest`.
+- **macOS**: Gamepad appears in System Settings > Bluetooth. Use Chrome or Firefox for browser-based testing (Safari has partial Gamepad API support).
+- **Windows**: Gamepad appears in Settings > Bluetooth & devices > Controllers. Use [HIDTester](https://github.com/rhunecke/HIDTester) or [Gamepad_Tester](https://github.com/zoltcode/Gamepad_Tester) for detailed input visualization.
+
+### Hardware-in-the-Loop Testing (HIL)
+
+[ESP32-BLE-Gamepad-HIL](https://github.com/LeeNX/ESP32-BLE-Gamepad-HIL) is a hardware-in-the-loop test rig that automates end-to-end validation of the library. An ESP32 runs test firmware; the harness drives it over USB serial and asserts the resulting BLE HID behavior on a Linux host (typically a Raspberry Pi). It tests:
+
+- **Buttons** — every configured button produces one distinct evdev key event
+- **Axes** — each axis maps to the correct ABS code with exact min/centre/max endpoints
+- **Hats** — 8 directions + centre
+- **HID descriptor** — golden file comparison per profile
+- **Device Information / PnP / Battery** — GATT service validation
+- **Feature / Output reports** — bidirectional round-trip
+- **Latency / throughput** — ~18.6ms median button press, burst testing
+
+The rig uses a builder/tester split (builder needs PlatformIO; tester needs only esptool + pytest) and runs in CI via GitHub Actions + Tailscale SSH. See the [HIL README](https://github.com/LeeNX/ESP32-BLE-Gamepad-HIL) for setup instructions.
 
 ## GATT vs HID-over-GATT
 
@@ -283,7 +313,7 @@ For an explanation of how this library's HID Service and NUS service differ, how
 
 This library allows you to make the ESP32 act as a Bluetooth Gamepad and control what it does. Relies on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino)
 
-Use [this](http://www.planetpointy.co.uk/joystick-test-application/) Windows test app to test/see all of the buttons. Ensure you have Direct X 9 installed.
+For Windows testing, use [HIDTester](https://github.com/rhunecke/HIDTester) or [Gamepad_Tester](https://github.com/zoltcode/Gamepad_Tester) — both are cross-platform and don't require DirectX.
 
 Gamepads designed for Android use a different button mapping. This affects analog triggers, where the standard left and right trigger axes are not detected. Android calls the HID report for right trigger `"GAS"` and left trigger `"BRAKE"`. Enabling the `"Accelerator"` and `"Brake"` simulation controls allows them to be used instead of right and left trigger.
 
