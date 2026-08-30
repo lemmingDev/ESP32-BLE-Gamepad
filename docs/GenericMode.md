@@ -107,7 +107,7 @@ Each hat switch uses 4 bits. Values: `HAT_CENTERED`, `HAT_UP`, `HAT_UP_RIGHT`, `
 | `setVid()` | 0xE502 | USB Vendor ID |
 | `setPid()` | 0xBBAB | USB Product ID |
 
-Custom VID/PID values affect how the OS identifies the device. Some games use VID/PID matching for controller-specific features.
+Custom VID/PID values affect how the OS identifies the device. Some games use VID/PID matching for controller-specific features. This is only meaningful in Generic mode — SInput and XInput modes use fixed VID/PIDs that must not be changed.
 
 ### BLE Characteristics
 

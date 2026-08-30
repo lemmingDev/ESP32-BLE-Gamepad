@@ -32,7 +32,9 @@ SInput uses three HID Report IDs, all within the standard HID-over-GATT transpor
 
 ### Fixed VID/PID
 
-SInput mode sets VID/PID to `0x2E8A`/`0x10C6`. SDL's SInput driver hardcodes this pair in its allowlist. If you've previously paired with a different VID/PID, remove the old bond first (`bluetoothctl remove <address>`).
+SInput mode automatically sets VID to `0x2E8A` and PID to `0x10C6`. The host OS identifies Bluetooth devices by their VID/PID and loads the appropriate driver. SDL's SInput `hidapi` driver hardcodes this exact VID/PID pair in its allowlist — if you change it, SDL won't recognize the device and you'll lose native `SDL_GameController` support.
+
+**Do not call `setVid()`/`setPid()` after `setGamepadMode(GamepadMode::SInput)`** — the VID/PID is intentionally fixed. If you've previously paired with a different VID/PID, remove the old bond first (`bluetoothctl remove <address>`).
 
 ## Input Report 0x01 -- Gamepad State
 

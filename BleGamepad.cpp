@@ -969,6 +969,17 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
       configuration.setButtonCount(6);
     else
       configuration.setButtonCount(11);
+
+    if (mode == GamepadMode::SInput)
+    {
+      if (configuration.getVid() != SINPUT_USB_VID || configuration.getPid() != SINPUT_USB_PID_GENERIC)
+        Serial.println("WARNING: SInput mode requires VID 0x2E8A / PID 0x10C6 for host recognition. Do not override setVid()/setPid().");
+    }
+    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    {
+      if (configuration.getVid() != XINPUT_USB_VID)
+        Serial.println("WARNING: XInput mode requires VID 0x045E for Xbox driver recognition. Do not override setVid()/setPid().");
+    }
   }
 
   enableOutputReport = configuration.getEnableOutputReport();

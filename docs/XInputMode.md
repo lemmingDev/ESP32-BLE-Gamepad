@@ -420,7 +420,7 @@ See the [examples/XInput/](../examples/XInput/) directory:
 - No battery reporting
 - No iOS support
 - Share button requires Linux 6.5+ (Series X PID)
-- Cannot customize VID/PID (must match Xbox for driver compatibility)
+- **Cannot customize VID/PID** — XInput mode uses Microsoft's VID (`0x045E`) and Xbox PIDs (`0x02FD` / `0x0B13`). The host OS matches on VID/PID to load the correct driver: `xpad` on Linux, the native Xbox driver on Windows and macOS. **Do not call `setVid()`/`setPid()` after selecting XInput mode** — changing the VID/PID means the OS won't load the Xbox driver and the device won't work as an XInput controller.
 - No social buttons (Share, View, Menu are partially mapped)
 
 ## Comparison with Mystfit/ESP32-BLE-CompositeHID

@@ -44,6 +44,8 @@ Other BLE-capable variants (e.g. ESP32-C2, ESP32-H2) are likely to work too, but
 - **SInput** -- Use this for SDL3 games, Steam, or any `SDL_GameController`-aware app. Gets you native recognition, rumble, player LED, RGB, IMU, and touchpad without per-VID/PID driver support.
 - **XInput** -- Use this for Windows games that expect an Xbox controller. Broad compatibility with games that use XInput/DirectInput. Also works natively on macOS (Xbox controllers are supported since macOS Big Sur) and Linux (via `xpad` driver).
 
+> **Note on VID/PID**: SInput and XInput modes automatically set a specific USB Vendor ID and Product ID that host drivers expect. **Do not override `setVid()`/`setPid()` in these modes** — the host OS identifies the device by VID/PID and loads the matching driver (SDL's SInput driver for `0x2E8A:0x10C6`, Xbox drivers for `0x045E:*`). Changing the VID/PID silently breaks driver recognition. `setVid()`/`setPid()` are only intended for Generic mode, where any VID/PID is fine.
+
 ## Quick Start
 
 ### Generic Mode (default)
