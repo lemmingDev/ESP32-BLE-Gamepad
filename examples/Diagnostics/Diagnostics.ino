@@ -90,7 +90,7 @@ void setup()
 
     bleGamepadConfig.setButtonCount(8); // covers BUTTON_1..BUTTON_8
     //bleGamepadConfig.setHatSwitchCount(0);
-    // Need one HAT or else gaempad is not registered on Android. The hat is never used, so just leave it at 1.
+    // Need one HAT or else gamepad is not registered on AndroidTV. The hat is never used, so just leave it at 1.
     bleGamepadConfig.setHatSwitchCount(1);
     bleGamepadConfig.setWhichAxes(false, false, false, false, false, false, false, false);
 
