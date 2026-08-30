@@ -58,9 +58,33 @@ scripts/hil.sh --profiles default -- -k buttons                   # args after -
 
 Env: `HIL_REPO`, `HIL_SSH_HOST`, `HIL_SSH_USER`, `HIL_SSH_KEY`, `HIL_PIO`. To
 run it from GitHub Actions, point `HIL_SSH_HOST` at a runner-reachable name for
-the tester (e.g. a Tailscale MagicDNS name) — nothing else changes. The rig
-repo also has a `.github/workflows/hil.yml` that does the same build→ssh→test
-flow from CI, triggerable by `repository_dispatch`.
+the tester (e.g. a Tailscale MagicDNS name) — nothing else changes.
+
+## From CI
+
+The rig repo's `.github/workflows/hil.yml` does the same build→ssh→test flow
+from GitHub-hosted runners: it builds the firmware bundles, joins the tailnet as
+an ephemeral node (`tailscale/github-action`), and ssh-es to the tester by its
+MagicDNS name — no self-hosted runner, no inbound ports. It accepts a
+`repository_dispatch` of type `hil` with `client_payload.lib_repo` /
+`lib_ref`, so this library repo can hand it a ref to test.
+
+This repo's `.github/workflows/hil.yml` is that trigger. It runs on push to
+`master`, on PRs that touch the HID/report/GATT source (path-filtered), weekly,
+and on demand (`workflow_dispatch` with an optional `lib_ref`). It fires the
+`repository_dispatch`, then blocks until the rig run finishes and takes on its
+pass/fail, linking the rig run in the job summary. Fork PRs are skipped (the rig
+can't reach a fork, and they get no secrets).
+
+Setup:
+
+| Where | What |
+|---|---|
+| rig repo secrets | `TS_OAUTH_CLIENT_ID` / `TS_OAUTH_SECRET` (Tailscale OAuth client, `tag:ci`, "Auth Keys" write); `HIL_TESTER_HOST` (tester MagicDNS name), `HIL_TESTER_USER`, `HIL_TESTER_SSH_KEY` |
+| rig tailnet ACL | `tag:ci` → tester `tcp:22` |
+| tester | `tailscale up` (tagged for the ACL); CI public key in `~/.ssh/authorized_keys`; `tester/bootstrap-host.sh` installs Tailscale |
+| this repo secret | `HIL_DISPATCH_TOKEN` — PAT for the rig repo with **Contents: write** (POST `repository_dispatch`) + **Actions: read** (poll the run). Classic PAT: `repo` scope |
+| rig repo default branch | `hil.yml` must be on it — `repository_dispatch` only runs the workflow file version on the default branch |
 
 ## What it covers
 
