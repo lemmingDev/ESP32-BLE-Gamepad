@@ -49,7 +49,7 @@ SInput mode automatically sets VID to `0x2E8A` and PID to `0x10C6`. The host OS 
 | 2 | uint8 | Buttons 0 | South, East, West, North, DUp, DDown, DLeft, DRight |
 | 3 | uint8 | Buttons 1 | StickL, StickR, LShoulder, RShoulder, LTrigger, RTrigger, LPaddle1, RPaddle1 |
 | 4 | uint8 | Buttons 2 | Start, Back, Guide, Capture, LPaddle2, RPaddle2, TouchpadL, TouchpadR |
-| 5 | uint8 | Buttons 3 | Power, Misc1-7, reserved |
+| 5 | uint8 | Buttons 3 | Power, Misc1-7 |
 | 6-7 | int16 | Left Stick X | -32768..32767 |
 | 8-9 | int16 | Left Stick Y | -32768..32767 |
 | 10-11 | int16 | Right Stick X | -32768..32767 |
@@ -112,6 +112,19 @@ SInput mode automatically sets VID to `0x2E8A` and PID to `0x10C6`. The host OS 
 | 5 | Right Paddle 2 |
 | 6 | Touchpad 1 (click) |
 | 7 | Touchpad 2 (click) |
+
+**Buttons 3 (byte 5):**
+
+| Bit | Button |
+|-----|--------|
+| 0 | Power |
+| 1 | Misc 1 |
+| 2 | Misc 2 |
+| 3 | Misc 3 |
+| 4 | Misc 4 |
+| 5 | Misc 5 |
+| 6 | Misc 6 |
+| 7 | Misc 7 |
 
 ## Feature Response Report 0x02
 
@@ -587,8 +600,8 @@ For games that need custom mappings:
 See the [examples/SInput/](../examples/SInput/) directory:
 
 - **SInputPlayerLED.ino** -- Rumble + player LED + battery ramp
-- **SInputPlayerLED_RGB.ino** -- Rumble + player LED + RGB LED
-- **SInputPlayerLED_NeoPixel.ino** -- Rumble + player LED + NeoPixel strip
+- **SInputRGB.ino** -- RGB LED via discrete PWM pins
+- **SInputRGB_NeoPixel.ino** -- RGB LED via WS2812/NeoPixel strip
 - **SInputFullGamepad.ino** -- All inputs (25 buttons, 2 sticks, 2 triggers, D-pad, Start/Back/Home)
 - **SInputIMU.ino** -- Gyroscope + accelerometer with simulated data
 - **SInputTouchpad.ino** -- Dual touchpad with simulated circular touch
