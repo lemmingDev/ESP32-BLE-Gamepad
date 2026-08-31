@@ -285,7 +285,7 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _touchpadCount = 1;
         _touchpadFingerCount = 2;
     }
-    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    else if (mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
     {
         _enableSInput = false;
         _vid = XINPUT_USB_VID;

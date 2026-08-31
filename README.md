@@ -42,7 +42,7 @@ Other BLE-capable variants (e.g. ESP32-C2, ESP32-H2) are likely to work too, but
 
 - **Generic** -- Default. Works everywhere as a standard HID gamepad. Use this if you're building a custom app or need maximum configurability.
 - **SInput** -- Use this for SDL3 games, Steam, or any `SDL_GameController`-aware app. Gets you native recognition, rumble, player LED, RGB, IMU, and touchpad without per-VID/PID driver support.
-- **XInput** -- Use this for Windows games that expect an Xbox controller. Broad compatibility with games that use XInput/DirectInput. Also works natively on macOS (Xbox controllers are supported since macOS Big Sur) and Linux (via `xpad` driver).
+- **XInput** -- Use this for Windows games that expect an Xbox controller. **Windows users should use `GamepadMode::XInputSeriesX` (PID 0x0B13, Share button) for native XInput over BLE** — `XInputOneS` (PID 0x02FD) shows as Generic HID on Win11 22H2+ (WGI only allowlists Series X, One S is for `xpad<6.5`/broad compat, like Mystfit). Also works natively on macOS (Xbox controllers are supported since macOS Big Sur) and Linux (via `xpad` driver).
 
 > **Note on VID/PID**: SInput and XInput modes automatically set a specific USB Vendor ID and Product ID that host drivers expect. **Do not override `setVid()`/`setPid()` in these modes** — the host OS identifies the device by VID/PID and loads the matching driver (SDL's SInput driver for `0x2E8A:0x10C6`, Xbox drivers for `0x045E:*`). Changing the VID/PID silently breaks driver recognition. `setVid()`/`setPid()` are only intended for Generic mode, where any VID/PID is fine.
 
@@ -109,7 +109,7 @@ BleGamepad bleGamepad;
 BleGamepadConfiguration config;
 
 void setup() {
-  config.setGamepadMode(GamepadMode::XInput);
+  config.setGamepadMode(GamepadMode::XInputOneS);
   bleGamepad.begin(&config);
 }
 
@@ -182,7 +182,7 @@ PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to 
 ### XInput Examples
 | Example | Description |
 |---------|-------------|
-| [XInputGamepad](examples/XInput/XInputGamepad/XInputGamepad.ino) | Xbox One S mode with rumble |
+| [XInputOneS](examples/XInput/XInputOneS/XInputOneS.ino) | Xbox One S mode with rumble |
 | [XInputSeriesX](examples/XInput/XInputSeriesX/XInputSeriesX.ino) | Xbox Series X mode with Share button |
 
 ## OS Compatibility

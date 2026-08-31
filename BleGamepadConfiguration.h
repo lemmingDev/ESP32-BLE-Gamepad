@@ -217,7 +217,7 @@ enum class GamepadMode : uint8_t
 {
     Generic = 0,        // Classic HID gamepad (default)
     SInput = 1,         // SInput protocol (SDL3 hidapi)
-    XInput = 2,         // Xbox One S — VID 0x045E, PID 0x02FD (broad Linux compat)
+    XInputOneS = 2,     // Xbox One S — VID 0x045E, PID 0x02FD (broad Linux compat)
     XInputSeriesX = 3   // Xbox Series X — VID 0x045E, PID 0x0B13 (Share button)
 };
 
@@ -229,7 +229,7 @@ enum class GamepadMode : uint8_t
 #define SINPUT_USB_PID_GENERIC 0x10C6
 
 // XInput VID/PID — Microsoft Xbox controllers.
-// XInput (default) uses One S PID for maximum Linux compatibility (kernel < 6.5).
+// XInputOneS (default) uses One S PID for maximum Linux compatibility (kernel < 6.5).
 // XInputSeriesX uses Series X PID for Share button support (requires Linux 6.5+).
 #define XINPUT_USB_VID             0x045E
 #define XINPUT_PID_XBOX_ONE_S      0x02FD

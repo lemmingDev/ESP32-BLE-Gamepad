@@ -780,11 +780,20 @@ void BleGamepad::buildGenericDescriptor()
 
 void BleGamepad::buildXInputDescriptor()
 {
-  // Xbox One S (1708) Bluetooth HID descriptor, taken verbatim from
-  // Mystfit/ESP32-BLE-CompositeHID (MIT license), reverse engineered
-  // from real Xbox One S BLE captures.
-  memcpy(tempHidReportDescriptor, XboxOneSDescriptor, XboxOneSDescriptorSize);
-  hidReportDescriptorSize = XboxOneSDescriptorSize;
+  // Xbox descriptors taken verbatim from Mystfit pr-74 (570d6da):
+  //  - XInputOneS  -> 1708 (AC Back 0x0A,0x24,0x02, 0x02/0x04 present) — Generic on Win11 22H2+ WGI, XInput on linux<6.5 xpad
+  //  - XInputSeriesX -> 1914 (Record/Share 0x0A,0xB2,0x00, 0x01+0x03 only) — XInput on Win11 WGI (Series X ok)
+  GamepadMode mode = configuration.getGamepadMode();
+  if (mode == GamepadMode::XInputSeriesX)
+  {
+    memcpy(tempHidReportDescriptor, XboxOneS_1914_HIDDescriptor, XboxOneS_1914_DescriptorSize);
+    hidReportDescriptorSize = XboxOneS_1914_DescriptorSize;
+  }
+  else
+  {
+    memcpy(tempHidReportDescriptor, XboxOneS_1708_HIDDescriptor, XboxOneS_1708_DescriptorSize);
+    hidReportDescriptorSize = XboxOneS_1708_DescriptorSize;
+  }
 }
 
 void BleGamepad::begin(BleGamepadConfiguration *config)
@@ -793,7 +802,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   configuration = config ? *config : defaultConfig;
 
   GamepadMode mode = configuration.getGamepadMode();
-  if (mode == GamepadMode::SInput || mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+  if (mode == GamepadMode::SInput || mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
   {
     configuration.setIncludeSlider1(false);
     configuration.setIncludeSlider2(false);
@@ -810,7 +819,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
     if (mode == GamepadMode::SInput)
       configuration.setButtonCount(25);
-    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    else if (mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
     {
       configuration.setButtonCount(11);
       deviceName = "Xbox Wireless Controller";
@@ -828,10 +837,10 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
       if (configuration.getVid() != SINPUT_USB_VID || configuration.getPid() != SINPUT_USB_PID_GENERIC)
         Serial.println("WARNING: SInput mode requires VID 0x2E8A / PID 0x10C6 for host recognition. Do not override setVid()/setPid().");
     }
-    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    else if (mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
     {
       if (configuration.getVid() != XINPUT_USB_VID)
-        Serial.println("WARNING: XInput mode requires VID 0x045E for Xbox driver recognition. Do not override setVid()/setPid().");
+        Serial.println("WARNING: XInputOneS/XInputSeriesX mode requires VID 0x045E for Xbox driver recognition. Do not override setVid()/setPid().");
     }
   }
 
@@ -894,7 +903,7 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
     enableSInput = true;
     buildSInputDescriptor();
   }
-  else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+  else if (mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
   {
     enableSInput = false;
     buildXInputDescriptor();
@@ -1037,7 +1046,7 @@ void BleGamepad::sendReport(void)
   {
     sendSInputReport();
   }
-  else if (configuration.getGamepadMode() == GamepadMode::XInput ||
+  else if (configuration.getGamepadMode() == GamepadMode::XInputOneS ||
            configuration.getGamepadMode() == GamepadMode::XInputSeriesX)
   {
     sendXInputReport();
@@ -2081,7 +2090,7 @@ uint8_t BleGamepad::getRgbBlue()
 bool BleGamepad::isXInputRumbleReceived()
 {
   GamepadMode mode = configuration.getGamepadMode();
-  if ((mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
+  if ((mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
   {
     if (xInputReceiver->rumbleFlag)
     {
@@ -2095,7 +2104,7 @@ bool BleGamepad::isXInputRumbleReceived()
 uint8_t BleGamepad::getXInputStrongMotor()
 {
   GamepadMode mode = configuration.getGamepadMode();
-  if ((mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
+  if ((mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
   {
     return xInputReceiver->strongMotor;
   }
@@ -2105,7 +2114,7 @@ uint8_t BleGamepad::getXInputStrongMotor()
 uint8_t BleGamepad::getXInputWeakMotor()
 {
   GamepadMode mode = configuration.getGamepadMode();
-  if ((mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
+  if ((mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
   {
     return xInputReceiver->weakMotor;
   }
@@ -2115,7 +2124,7 @@ uint8_t BleGamepad::getXInputWeakMotor()
 uint8_t BleGamepad::getXInputLeftTriggerMagnitude()
 {
   GamepadMode mode = configuration.getGamepadMode();
-  if ((mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
+  if ((mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
   {
     return xInputReceiver->leftTriggerMagnitude;
   }
@@ -2125,7 +2134,7 @@ uint8_t BleGamepad::getXInputLeftTriggerMagnitude()
 uint8_t BleGamepad::getXInputRightTriggerMagnitude()
 {
   GamepadMode mode = configuration.getGamepadMode();
-  if ((mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
+  if ((mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX) && xInputReceiver)
   {
     return xInputReceiver->rightTriggerMagnitude;
   }
@@ -2539,16 +2548,27 @@ void BleGamepad::taskServer(void *pvParameter)
     uint8_t v3[] = {SINPUT_REPORT_ID_OUTPUT_CMDDAT, 0x02}; d3->setValue(v3, 2);
     BleGamepadInstance->sInputOutputGamepad->setCallbacks(BleGamepadInstance->sInputReceiver);
   }
-  else if (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInput ||
+  else if (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputOneS ||
            BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputSeriesX)
   {
-    // XInput owns Report IDs 0x01 (input) and 0x03 (output/rumble).
-    // Report IDs 0x02 (Consumer Control) and 0x04 (Battery) are in the
-    // descriptor but their characteristics are NOT created — matching Mystfit's
-    // working implementation. Windows Xbox driver reads them from the Report Map.
+    // XInput: 0x01 Input + 0x03 Output are common to both.
+    // One S 1708 also declares 0x02 Consumer (AC Home) + 0x04 Battery in the
+    // Report Map — for 1708 we must create those Input characteristics or
+    // Windows enumerates a Report Reference for every REPORT_ID and rejects
+    // the service when GATT DB is missing them (shows as generic pad).
+    // Series X 1914 has only 0x01/0x03 and matches Mystfit pr-74 570d6da.
     BleGamepadInstance->xInputGamepad = BleGamepadInstance->hid->getInputReport(XINPUT_REPORT_ID_INPUT);
     BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->xInputGamepad;
     BleGamepadInstance->xInputGamepad->setCallbacks(BleGamepadInstance->connectionStatus);
+
+    if (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputOneS)
+    {
+      BleGamepadInstance->xInputConsumer = BleGamepadInstance->hid->getInputReport(0x02);
+      BleGamepadInstance->xInputConsumer->setCallbacks(BleGamepadInstance->connectionStatus);
+      BleGamepadInstance->xInputBattery = BleGamepadInstance->hid->getInputReport(0x04);
+      BleGamepadInstance->xInputBattery->setCallbacks(BleGamepadInstance->connectionStatus);
+      uint8_t batt = 0; BleGamepadInstance->xInputBattery->setValue(&batt, 1);
+    }
 
     BleGamepadInstance->xInputReceiver = new BleXInputReceiver();
     BleGamepadInstance->xInputOutputGamepad = BleGamepadInstance->hid->getOutputReport(XINPUT_REPORT_ID_OUTPUT);
@@ -2623,7 +2643,7 @@ void BleGamepad::taskServer(void *pvParameter)
   pCharacteristic_Hardware_Revision->setValue(std::string(BleGamepadInstance->configuration.getHardwareRevision()));
 
   // VID Source 0x02 = USB (required for Windows Xbox driver matching; Mystfit uses this)
-  uint8_t vidSource = (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInput ||
+  uint8_t vidSource = (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputOneS ||
                        BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputSeriesX) ? 0x02 : 0x01;
   BleGamepadInstance->hid->setPnp(vidSource, BleGamepadInstance->configuration.getVid(), BleGamepadInstance->configuration.getPid(), BleGamepadInstance->configuration.getGuidVersion());
   BleGamepadInstance->hid->setHidInfo(0x00, 0x01);

@@ -10,7 +10,7 @@ BleGamepadConfiguration config;
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting XInput All-Inputs Test...");
-  config.setGamepadMode(GamepadMode::XInput);
+  config.setGamepadMode(GamepadMode::XInputOneS);
   config.setButtonCount(11);
   config.setHatSwitchCount(1);
   config.setWhichAxes(true, true, true, true, true, true, false, false);

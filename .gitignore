@@ -36,6 +36,17 @@ desktop.ini
 *~
 
 # ========================
+# .NET host_test artifacts (XInputTest.exe)
+# ========================
+examples/XInput/XInputAllTest/host_test/*.exe
+examples/XInput/XInputAllTest/host_test/*.dll
+examples/XInput/XInputAllTest/host_test/*.pdb
+examples/XInput/XInputAllTest/host_test/*.deps.json
+examples/XInput/XInputAllTest/host_test/*.runtimeconfig.json
+bin/
+obj/
+
+# ========================
 # Python (test scripts, e.g. examples/SInputPlayerLED)
 # ========================
 __pycache__/

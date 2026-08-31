@@ -1,13 +1,15 @@
 # XInput Mode
 
-XInput mode emulates an Xbox One S or Xbox Series X controller over BLE. Windows recognizes it natively as an XInput device, giving broad compatibility with games that use XInput or DirectInput.
+XInput mode emulates an Xbox One S or Xbox Series X controller over BLE.
+
+> **Windows users: use `GamepadMode::XInputSeriesX` (PID 0x0B13, Share button) for native XInput over BLE.** On Win11 22H2+ WGI (`Windows.Gaming.Input`) only allowlists Series X (1914 Record/Share, `BTHLE\VID_045E&PID_0B13`) as XInput over BLE; One S (1708 AC Back, PID 0x02FD) shows as Generic HID (`Bluetooth HID Device`, DInput `joy.cpl` OK but not `XInputGetState`) — One S is kept for broad Linux `xpad<6.5` compat (like Mystfit), not Win11 XInput.
 
 ## Overview
 
 XInput is Microsoft's API for Xbox controller input on Windows. By emulating the Xbox HID protocol, the ESP32 appears as a genuine Xbox controller to the OS. This library supports two variants:
 
-- **Xbox One S** (PID 0x02FD) -- Default. Broad Linux compatibility via the `xpad` kernel driver.
-- **Xbox Series X** (PID 0x0B13) -- Adds Share button support. Requires Linux 6.5+ for full compatibility.
+- **Xbox One S** (PID 0x02FD) -- Broad Linux compatibility via the `xpad` kernel driver. Shows as Generic HID on Win11 WGI (use Series X for Win11 XInput).
+- **Xbox Series X** (PID 0x0B13) -- **Recommended for Windows** (native XInput over BLE). Adds Share button support. Requires Linux 6.5+ for full compatibility.
 
 Use XInput mode when:
 - You're targeting Windows games that use XInput/DirectInput
@@ -103,7 +105,7 @@ The D-pad is encoded as part of the hat switch, mapped to the hat1 value in the 
 
 ```cpp
 BleGamepadConfiguration config;
-config.setGamepadMode(GamepadMode::XInput);           // Xbox One S (PID 0x02FD)
+config.setGamepadMode(GamepadMode::XInputOneS);           // Xbox One S (PID 0x02FD)
 // OR
 config.setGamepadMode(GamepadMode::XInputSeriesX);    // Xbox Series X (PID 0x0B13)
 ```
@@ -118,10 +120,10 @@ This automatically:
 
 ### PID Differences
 
-| Mode | PID | Share Button | Linux Support |
-|------|-----|:------------:|---------------|
-| `GamepadMode::XInput` | 0x02FD | No | `xpad` driver, broad compatibility |
-| `GamepadMode::XInputSeriesX` | 0x0B13 | Yes (Button 11) | Linux 6.5+ for full support |
+| Mode | PID | Share Button | Windows | Linux Support |
+|------|-----|:------------:|---------|---------------|
+| `GamepadMode::XInputOneS` | 0x02FD | No | Generic HID (DInput `joy.cpl` OK, not `XInputGetState` on Win11 22H2+ WGI) | `xpad` driver, broad compatibility (`linux<6.5`) |
+| `GamepadMode::XInputSeriesX` | 0x0B13 | Yes (Button 11) | **Native XInput** (`BTHLE\VID_045E&PID_0B13`, `XInputGetState`/`WGI`) | Linux 6.5+ for full support |
 
 ### Configuration Options
 
@@ -315,7 +317,7 @@ macOS natively supports Xbox Wireless Controllers with Bluetooth. This library's
 ### Pairing
 
 1. Open System Settings > Bluetooth
-2. Put the ESP32 into pairing mode (call `begin()` with `GamepadMode::XInput` or `GamepadMode::XInputSeriesX`)
+2. Put the ESP32 into pairing mode (call `begin()` with `GamepadMode::XInputOneS` or `GamepadMode::XInputSeriesX`)
 3. The device appears as "Xbox Wireless Controller"
 4. Click "Connect"
 
@@ -395,7 +397,7 @@ Steam on macOS uses SDL and GCController. XInput mode works:
 
 See the [examples/XInput/](../examples/XInput/) directory:
 
-- **XInputGamepad.ino** -- Xbox One S mode, left stick demo, rumble reception
+- **XInputOneS.ino** -- Xbox One S mode, left stick demo, rumble reception
 - **XInputSeriesX.ino** -- Xbox Series X mode, Share button, all inputs + rumble
 
 ## Features & Limitations
