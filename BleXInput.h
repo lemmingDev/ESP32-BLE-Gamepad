@@ -14,8 +14,8 @@
 #define XINPUT_REPORT_ID_INPUT  0x01
 #define XINPUT_REPORT_ID_OUTPUT 0x03
 
-// XInput input report size (18 bytes on wire, excluding Report ID)
-#define XINPUT_REPORT_LEN_INPUT 18
+// XInput input report size (16 bytes on wire, excluding Report ID)
+#define XINPUT_REPORT_LEN_INPUT 16
 
 // XInput output report size (8 bytes on wire, excluding Report ID)
 #define XINPUT_REPORT_LEN_OUTPUT 8
@@ -48,7 +48,7 @@
 #define XBOX_DPAD_NORTHWEST 8
 
 // Thumbstick range
-#define XBOX_STICK_MIN -32767
+#define XBOX_STICK_MIN -32768
 #define XBOX_STICK_MAX  32767
 #define XBOX_AXIS_CENTER_OFFSET 0x8000
 
@@ -56,7 +56,7 @@
 #define XBOX_TRIGGER_MIN 0
 #define XBOX_TRIGGER_MAX 1023
 
-// XInput Input Report (Report ID 0x01, 18 bytes)
+// XInput Input Report (Report ID 0x01, 16 bytes)
 #pragma pack(push, 1)
 struct XInputInputReport
 {
@@ -69,7 +69,6 @@ struct XInputInputReport
     uint8_t hat;           // D-pad hat    (4-bit: 0-8, lower nibble; upper nibble pad)
     uint16_t buttons;      // 15 buttons   (1 bit each, bit 15 pad)
     uint8_t share;         // Share button (bit 0; bits 1-7 pad)
-    uint8_t _pad[2];       // Alignment padding to reach 18 bytes on wire
 };
 #pragma pack(pop)
 

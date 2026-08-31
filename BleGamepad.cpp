@@ -17,7 +17,7 @@
 // Verify wire-format sizes of packed report structs match the protocol spec.
 // If these fail, the struct padding or packing is wrong on this platform.
 static_assert(sizeof(XInputInputReport) == XINPUT_REPORT_LEN_INPUT,
-              "XInputInputReport must be 18 bytes on wire");
+              "XInputInputReport must be 16 bytes on wire");
 static_assert(sizeof(XInputOutputReport) == XINPUT_REPORT_LEN_OUTPUT,
               "XInputOutputReport must be 8 bytes on wire");
 
@@ -86,6 +86,8 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _powerLevel(0),
   nusInitialized(false),
   xInputReceiver(nullptr),
+  xInputConsumer(nullptr),
+  xInputBattery(nullptr),
   pServer(nullptr),
   nus(nullptr),
   hid(0),
@@ -127,179 +129,22 @@ void BleGamepad::resetButtons()
 
 void BleGamepad::buildSInputDescriptor()
 {
-  // SInput owns Report IDs 0x01-0x03 outright (see BleSInput.h) -- it doesn't
-  // layer on top of the configurable report below, it replaces it. One
-  // collection with three fixed-size reports: Input 0x01 (regular gamepad
-  // state), Input 0x02 (command/feature response), Output 0x03 (host ->
-  // device commands). SDL's SInput driver reads/writes these by fixed byte
-  // offset and doesn't parse this descriptor's field-level contents at all --
-  // see GattVsHid.md.
-  //
-  // The top-level Usage Page/Usage below is Generic Desktop/Gamepad, NOT
-  // Vendor Defined, and that part *does* matter, confirmed against a live
-  // SDL3 build: SDL_HIDAPI_ShouldIgnoreDevice() (src/hidapi/SDL_hidapi.c)
-  // discards any device from hidapi enumeration entirely -- before its VID/PID
-  // is even checked against SDL_IsJoystickSInputController() -- unless its top
-  // -level usage is Generic Desktop Joystick/Gamepad/MultiAxisController (this
-  // is gated by the SDL_HINT_JOYSTICK_HIDAPI_CONTROLLERS hint, default on). A
-  // Vendor Defined top-level usage here means the device never reaches SDL's
-  // gamepad layer at all, regardless of everything else being correct.
-
-  // USAGE_PAGE (Generic Desktop)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-
-  // USAGE (Gamepad)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05;
-
-  // COLLECTION (Application)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0xa1;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-
-  // Input Report 0x01 (regular gamepad state). Unlike Reports 0x02/0x03
-  // below, this one's buttons/axes fields carry real HID usages (Button,
-  // Generic Desktop X/Y/Z/Rz/Rx/Ry) over the exact same bytes SDL's SInput
-  // driver already reads by fixed offset -- SDL ignores usage annotations
-  // entirely, but the kernel's hid-generic/hid-input driver needs them to
-  // map fields to evdev BTN_*/ABS_* codes. Without this, SDL still works
-  // (confirmed), but nothing else does -- no /dev/input/js*, no plain
-  // jstest/evtest, no non-SInput-aware app. With it, both paths work off
-  // the same bytes.
-  HID_DESC_CHECK(128); // Reserve margin for Report 0x01 (regular gamepad state)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
-  tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT;
-
-  // Bytes 0-1 (plug status, charge level): no generic meaning, pad them out
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (2)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Const,Var,Abs)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
-
-  // Bytes 2-5 (buttons_0..3): 32 generic buttons, matching this library's
-  // classic descriptor's own button block above
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05; // USAGE_PAGE (Button)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x25; // LOGICAL_MAXIMUM (1)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (1)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x19; // USAGE_MINIMUM (Button 1)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x29; // USAGE_MAXIMUM (Button 32)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x20;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (32)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x20;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-
-  // Bytes 6-17 (left X/Y, right X/Y, left/right trigger): 6 signed 16-bit
-  // axes, same X/Y/Z/Rz/Rx/Ry usage codes and ordering this library's
-  // classic descriptor/setHIDAxes() already use
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x05; // USAGE_PAGE (Generic Desktop)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x01;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x16; // LOGICAL_MINIMUM (-32768)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x80;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (32767)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x7F;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (16)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x10;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (X) -- left stick X
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x30;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Y) -- left stick Y
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x31;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Z) -- right stick X
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x32;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Rz) -- right stick Y
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x35;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Rx) -- left trigger
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x33;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x09; // USAGE (Ry) -- right trigger
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x34;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (6)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x06;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-
-  // Bytes 18+ (IMU/touchpad/reserved): when IMU is enabled, describe the
-  // timestamp+accel+gyro as opaque padding (16 bytes), then pad the rest.
-  // SDL reads by fixed offset, not HID usages, so field-level annotations
-  // here are only for the kernel's hid-generic driver.
-  uint8_t imuPadBytes = configuration.getEnableSInputIMU() ? 16 : 0;
-  uint8_t remainingPad = SINPUT_REPORT_LEN_INPUT - 2 - 4 - 12 - imuPadBytes;
-
-  if (imuPadBytes > 0)
-  {
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT (16)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = imuPadBytes;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Const,Var,Abs)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
-  }
-
-  if (remainingPad > 0)
-  {
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
-    tempHidReportDescriptor[hidReportDescriptorSize++] = remainingPad;
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Const,Var,Abs)
-    tempHidReportDescriptor[hidReportDescriptorSize++] = 0x03;
-  }
-
-  // Input Report 0x02 (command/feature response) and Output Report 0x03
-  // (host -> device commands): plain opaque blobs, no field-level usages.
-  // Only SDL's SInput driver (or an app speaking the same protocol) ever
-  // touches these -- see BleSInput.h -- so there's nothing for the kernel's
-  // generic HID input mapping to usefully do with them either way.
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x15; // LOGICAL_MINIMUM (0)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x26; // LOGICAL_MAXIMUM (255)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0xFF;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x00;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x75; // REPORT_SIZE (8)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x08;
-
-  HID_DESC_CHECK(16); // Reserve margin for Report 0x02 (command response)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
-  tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_INPUT_CMDDAT;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
-  tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_INPUT;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x81; // INPUT (Data,Var,Abs)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-
-  HID_DESC_CHECK(16); // Reserve margin for Report 0x03 (output commands)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x85; // REPORT_ID
-  tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_ID_OUTPUT_CMDDAT;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x95; // REPORT_COUNT
-  tempHidReportDescriptor[hidReportDescriptorSize++] = SINPUT_REPORT_LEN_OUTPUT;
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x91; // OUTPUT (Data,Var,Abs)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0x02;
-
-  // END_COLLECTION (Application)
-  tempHidReportDescriptor[hidReportDescriptorSize++] = 0xc0;
+  // Verbatim 139-byte report descriptor from HandHeldLegend/SINPUT-LIB-HID
+  // (sinput_lib_hid.c:k_sinput_hid_report_descriptor). Using it 1:1 ensures
+  // wDescriptorLength 0x8B matches and Windows' HID parser sees the exact
+  // Vendor usages (0xFF00:0x20/0x21/0x22) the official library ships.
+  static const uint8_t k_sinput_hid_report_descriptor[139] = {
+      0x05, 0x01, 0x09, 0x05, 0xA1, 0x01, 0x85, 0x01, 0x06, 0x00, 0xFF, 0x09, 0x01, 0x15, 0x00, 0x25,
+      0xFF, 0x75, 0x08, 0x95, 0x02, 0x81, 0x02, 0x05, 0x09, 0x19, 0x01, 0x29, 0x20, 0x15, 0x00, 0x25,
+      0x01, 0x75, 0x01, 0x95, 0x20, 0x81, 0x02, 0x05, 0x01, 0x09, 0x30, 0x09, 0x31, 0x09, 0x32, 0x09,
+      0x35, 0x09, 0x33, 0x09, 0x34, 0x16, 0x00, 0x80, 0x26, 0xFF, 0x7F, 0x75, 0x10, 0x95, 0x06, 0x81,
+      0x02, 0x06, 0x00, 0xFF, 0x09, 0x20, 0x15, 0x00, 0x26, 0xFF, 0xFF, 0x75, 0x20, 0x95, 0x01, 0x81,
+      0x02, 0x09, 0x21, 0x16, 0x00, 0x80, 0x26, 0xFF, 0x7F, 0x75, 0x10, 0x95, 0x06, 0x81, 0x02, 0x09,
+      0x22, 0x15, 0x00, 0x26, 0xFF, 0x00, 0x75, 0x08, 0x95, 0x1D, 0x81, 0x02, 0x85, 0x02, 0x09, 0x23,
+      0x15, 0x00, 0x26, 0xFF, 0x00, 0x75, 0x08, 0x95, 0x3F, 0x81, 0x02, 0x85, 0x03, 0x09, 0x24, 0x15,
+      0x00, 0x26, 0xFF, 0x00, 0x75, 0x08, 0x95, 0x2F, 0x91, 0x02, 0xC0};
+  memcpy(tempHidReportDescriptor, k_sinput_hid_report_descriptor, sizeof(k_sinput_hid_report_descriptor));
+  hidReportDescriptorSize = sizeof(k_sinput_hid_report_descriptor);
 }
 
 void BleGamepad::buildGenericDescriptor()
@@ -935,13 +780,11 @@ void BleGamepad::buildGenericDescriptor()
 
 void BleGamepad::buildXInputDescriptor()
 {
-  // Xbox One S / Series X Bluetooth HID descriptor.
-  // Adapted from Mystfit/ESP32-BLE-CompositeHID (MIT license), itself reverse
-  // engineered from real Xbox controller BLE captures. Both Xbox One S
-  // (PID 0x02FD) and Xbox Series X (PID 0x0B13) share this same descriptor
-  // layout; only the PnP PID differs.
-  memcpy(tempHidReportDescriptor, XboxInputDescriptor, XboxInputDescriptorSize);
-  hidReportDescriptorSize = XboxInputDescriptorSize;
+  // Xbox One S (1708) Bluetooth HID descriptor, taken verbatim from
+  // Mystfit/ESP32-BLE-CompositeHID (MIT license), reverse engineered
+  // from real Xbox One S BLE captures.
+  memcpy(tempHidReportDescriptor, XboxOneSDescriptor, XboxOneSDescriptorSize);
+  hidReportDescriptorSize = XboxOneSDescriptorSize;
 }
 
 void BleGamepad::begin(BleGamepadConfiguration *config)
@@ -967,8 +810,18 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
     if (mode == GamepadMode::SInput)
       configuration.setButtonCount(25);
-    else
+    else if (mode == GamepadMode::XInput || mode == GamepadMode::XInputSeriesX)
+    {
       configuration.setButtonCount(11);
+      deviceName = "Xbox Wireless Controller";
+      deviceManufacturer = "Microsoft";
+      // Mystfit's XBOX_1708_SERIAL / XBOX_1914_SERIAL — ASCII hex serials
+      // from real controller BLE captures, used by the Xbox driver for matching.
+      if (mode == GamepadMode::XInputSeriesX)
+        configuration.setSerialNumber("3039373130303637313034303231");
+      else
+        configuration.setSerialNumber("3033363030343037323136373239");
+    }
 
     if (mode == GamepadMode::SInput)
     {
@@ -2652,7 +2505,7 @@ void BleGamepad::taskServer(void *pvParameter)
   BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
 
   NimBLEDevice::init(BleGamepadInstance->deviceName);
-  NimBLEDevice::setPower(BleGamepadInstance->configuration.getTXPowerLevel()); // Set transmit power for advertising (Range: -12 to +9 dBm)
+  NimBLEDevice::setDefaultPhy(BLE_GAP_LE_PHY_2M_MASK, BLE_GAP_LE_PHY_2M_MASK);
   NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
   pServer->advertiseOnDisconnect(true);
@@ -2661,23 +2514,38 @@ void BleGamepad::taskServer(void *pvParameter)
 
   if (BleGamepadInstance->enableSInput)
   {
-    // SInput owns Report IDs 0x01-0x03 outright -- see the matching branch in
-    // begin() and BleSInput.h -- so the classic Input/Output/Feature Report
-    // characteristics below aren't created at all in this mode.
-    BleGamepadInstance->sInputGamepad = BleGamepadInstance->hid->getInputReport(SINPUT_REPORT_ID_INPUT);
-    BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->sInputGamepad;
-    BleGamepadInstance->sInputGamepad->setCallbacks(BleGamepadInstance->connectionStatus); // Logs which peer subscribes to the gamepad profile
+    // SInput owns Report IDs 0x01-0x03 outright. Create the Report
+    // characteristics without READ_ENC/WRITE_ENC so Windows' generic BLE HID
+    // driver can read the Report Reference descriptors (0x2908) without
+    // bonding — unlike the Xbox driver it won't auto-initiate encryption.
+    NimBLEService *pHidService = BleGamepadInstance->hid->getHidService();
 
-    BleGamepadInstance->sInputCmdGamepad = BleGamepadInstance->hid->getInputReport(SINPUT_REPORT_ID_INPUT_CMDDAT);
+    BleGamepadInstance->sInputGamepad = pHidService->createCharacteristic(
+        NimBLEUUID((uint16_t)0x2A4D), NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    NimBLEDescriptor *d1 = BleGamepadInstance->sInputGamepad->createDescriptor(NimBLEUUID((uint16_t)0x2908), NIMBLE_PROPERTY::READ);
+    uint8_t v1[] = {SINPUT_REPORT_ID_INPUT, 0x01}; d1->setValue(v1, 2);
+    BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->sInputGamepad;
+    BleGamepadInstance->sInputGamepad->setCallbacks(BleGamepadInstance->connectionStatus);
+
+    BleGamepadInstance->sInputCmdGamepad = pHidService->createCharacteristic(
+        NimBLEUUID((uint16_t)0x2A4D), NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    NimBLEDescriptor *d2 = BleGamepadInstance->sInputCmdGamepad->createDescriptor(NimBLEUUID((uint16_t)0x2908), NIMBLE_PROPERTY::READ);
+    uint8_t v2[] = {SINPUT_REPORT_ID_INPUT_CMDDAT, 0x01}; d2->setValue(v2, 2);
 
     BleGamepadInstance->sInputReceiver = new BleSInputReceiver(&BleGamepadInstance->configuration, BleGamepadInstance->sInputCmdGamepad);
-    BleGamepadInstance->sInputOutputGamepad = BleGamepadInstance->hid->getOutputReport(SINPUT_REPORT_ID_OUTPUT_CMDDAT);
+    BleGamepadInstance->sInputOutputGamepad = pHidService->createCharacteristic(
+        NimBLEUUID((uint16_t)0x2A4D), NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
+    NimBLEDescriptor *d3 = BleGamepadInstance->sInputOutputGamepad->createDescriptor(NimBLEUUID((uint16_t)0x2908), NIMBLE_PROPERTY::READ);
+    uint8_t v3[] = {SINPUT_REPORT_ID_OUTPUT_CMDDAT, 0x02}; d3->setValue(v3, 2);
     BleGamepadInstance->sInputOutputGamepad->setCallbacks(BleGamepadInstance->sInputReceiver);
   }
   else if (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInput ||
            BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputSeriesX)
   {
     // XInput owns Report IDs 0x01 (input) and 0x03 (output/rumble).
+    // Report IDs 0x02 (Consumer Control) and 0x04 (Battery) are in the
+    // descriptor but their characteristics are NOT created — matching Mystfit's
+    // working implementation. Windows Xbox driver reads them from the Report Map.
     BleGamepadInstance->xInputGamepad = BleGamepadInstance->hid->getInputReport(XINPUT_REPORT_ID_INPUT);
     BleGamepadInstance->connectionStatus->inputGamepad = BleGamepadInstance->xInputGamepad;
     BleGamepadInstance->xInputGamepad->setCallbacks(BleGamepadInstance->connectionStatus);
@@ -2708,6 +2576,17 @@ void BleGamepad::taskServer(void *pvParameter)
       BleGamepadInstance->featureGamepad->setCallbacks(BleGamepadInstance->featureReceiver);
     }
   }
+
+  // --- setReportMap BEFORE setManufacturer (matches Mystfit's working order) ---
+  uint8_t *customHidReportDescriptor = new uint8_t[BleGamepadInstance->hidReportDescriptorSize];
+  memcpy(customHidReportDescriptor, BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
+
+  #if BLE_GAMEPAD_DEBUG == 1
+    dumpHidReportDescriptor( BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
+  #endif
+  
+  BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
+  delete[] customHidReportDescriptor;
 
   BleGamepadInstance->hid->setManufacturer(BleGamepadInstance->deviceManufacturer);
 
@@ -2742,32 +2621,14 @@ void BleGamepad::taskServer(void *pvParameter)
         NIMBLE_PROPERTY::READ
       );
   pCharacteristic_Hardware_Revision->setValue(std::string(BleGamepadInstance->configuration.getHardwareRevision()));
-  
-  NimBLECharacteristic* pCharacteristic_Power_State = BleGamepadInstance->hid->getBatteryService()->createCharacteristic(
-        CHARACTERISTIC_UUID_BATTERY_POWER_STATE,
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
-      );
-  BleGamepadInstance->pCharacteristic_Power_State = pCharacteristic_Power_State; // Assign the created characteristic
-  BleGamepadInstance->pCharacteristic_Power_State->setValue(0b00000000); // Now it's safe to call setValue <- Set all to unknown by default
 
-  BleGamepadInstance->hid->setPnp(0x01, BleGamepadInstance->configuration.getVid(), BleGamepadInstance->configuration.getPid(), BleGamepadInstance->configuration.getGuidVersion());
+  // VID Source 0x02 = USB (required for Windows Xbox driver matching; Mystfit uses this)
+  uint8_t vidSource = (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInput ||
+                       BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputSeriesX) ? 0x02 : 0x01;
+  BleGamepadInstance->hid->setPnp(vidSource, BleGamepadInstance->configuration.getVid(), BleGamepadInstance->configuration.getPid(), BleGamepadInstance->configuration.getGuidVersion());
   BleGamepadInstance->hid->setHidInfo(0x00, 0x01);
 
-  // NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_BOND);
   NimBLEDevice::setSecurityAuth(true, false, false); // enable bonding, no MITM, no SC
-
-
-  uint8_t *customHidReportDescriptor = new uint8_t[BleGamepadInstance->hidReportDescriptorSize];
-  memcpy(customHidReportDescriptor, BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
-
-  #if BLE_GAMEPAD_DEBUG == 1
-    // Print HidReportDescriptor to Serial
-    dumpHidReportDescriptor( BleGamepadInstance->tempHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
-  #endif
-  
-  BleGamepadInstance->hid->setReportMap((uint8_t *)customHidReportDescriptor, BleGamepadInstance->hidReportDescriptorSize);
-  // Deprecated in NimBLE-Arduino >=2.0: Services are auto-started by the server
-  // BleGamepadInstance->hid->startServices();
 
   BleGamepadInstance->onStarted(pServer);
 

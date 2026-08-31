@@ -105,6 +105,8 @@ class BleGamepad
     NimBLECharacteristic *sInputCmdGamepad;    // SInput Input Report 0x02 (command/feature response)
     NimBLECharacteristic *sInputOutputGamepad; // SInput Output Report 0x03 (host -> device commands)
     NimBLECharacteristic *xInputGamepad;       // XInput Input Report 0x01 (gamepad state)
+    NimBLECharacteristic *xInputConsumer;      // XInput Input Report 0x02 (Consumer Control - Home/Guide)
+    NimBLECharacteristic *xInputBattery;       // XInput Input Report 0x04 (Battery Strength)
     NimBLECharacteristic *xInputOutputGamepad; // XInput Output Report 0x03 (rumble)
     NimBLECharacteristic *pCharacteristic_Power_State;
 

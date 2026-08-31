@@ -290,6 +290,7 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _enableSInput = false;
         _vid = XINPUT_USB_VID;
         _pid = (mode == GamepadMode::XInputSeriesX) ? XINPUT_PID_XBOX_SERIES_X : XINPUT_PID_XBOX_ONE_S;
+        _guidVersion = (mode == GamepadMode::XInputSeriesX) ? 0x0509 : 0x0408;
         _buttonCount = 11;
         _hatSwitchCount = 1;
         _whichSimulationControls[RUDDER] = false;
