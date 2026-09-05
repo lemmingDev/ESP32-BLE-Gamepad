@@ -134,7 +134,8 @@ void loop() {
 2. [Download the latest release of this library from the release page.](https://github.com/lemmingDev/ESP32-BLE-Gamepad/releases)
 3. In the Arduino IDE go to "Sketch" -> "Include Library" -> "Add .ZIP Library..." and select the file you just downloaded.
 4. In the Arduino IDE go to "Tools" -> "Manage Libraries..." -> Filter for "NimBLE-Arduino" by h2zero and install.
-5. You can now go to "File" -> "Examples" -> "ESP32 BLE Gamepad" and select an example to get started.
+5. (Optional, only for the `examples/NuS/` sketches) Install "NuS-NimBLE-Serial" by afpineda from the Library Manager as well.
+6. You can now go to "File" -> "Examples" -> "ESP32 BLE Gamepad" and select an example to get started.
 
 PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to your platform.
 
@@ -161,7 +162,6 @@ PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to 
 | [GetPeerInfo](examples/Generic/GetPeerInfo/GetPeerInfo.ino) | Query connected peer |
 | [SetBatteryLevel](examples/Generic/SetBatteryLevel/SetBatteryLevel.ino) | Set battery percentage |
 | [SetBatteryPowerState](examples/Generic/SetBatteryPowerState/SetBatteryPowerState.ino) | Set battery power state |
-| [Diagnostics](examples/Generic/Diagnostics/Diagnostics.ino) | Connection diagnostics |
 | [SingleButton](examples/Generic/SingleButton/SingleButton.ino) | Single button debounce |
 | [SingleButtonDebounce](examples/Generic/SingleButtonDebounce/SingleButtonDebounce.ino) | Debounced single button |
 | [MultipleButtonsDebounce](examples/Generic/MultipleButtonsDebounce/MultipleButtonsDebounce.ino) | Debounced multiple buttons |
@@ -184,6 +184,16 @@ PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to 
 |---------|-------------|
 | [XInputOneS](examples/XInput/XInputOneS/XInputOneS.ino) | Xbox One S mode with rumble |
 | [XInputSeriesX](examples/XInput/XInputSeriesX/XInputSeriesX.ino) | Xbox Series X mode with Share button |
+
+### NuS Examples (require [NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial))
+| Example | Description |
+|---------|-------------|
+| [NuSSerialDiag](examples/NuS/NuSSerialDiag/NuSSerialDiag.ino) | Connection diagnostics over BLE serial (replaces removed `Diagnostics`) |
+| [NuSGenericBridge](examples/NuS/NuSGenericBridge/NuSGenericBridge.ino) | Drive a Generic pad from a BLE terminal |
+| [NuSSInputBridge](examples/NuS/NuSSInputBridge/NuSSInputBridge.ino) | Drive an SInput pad from a BLE terminal, surface player LED/rumble/RGB |
+| [NuSXInputBridge](examples/NuS/NuSXInputBridge/NuSXInputBridge.ino) | Drive an Xbox pad from a BLE terminal, surface host rumble |
+
+See [examples/NuS/README.md](examples/NuS/README.md) and [docs/NuSCompatibility.md](docs/NuSCompatibility.md).
 
 ## OS Compatibility
 
@@ -241,6 +251,7 @@ If you prefer XInput mode, Steam Input maps Xbox controllers by default -- it wi
 - **[SInput Mode](docs/SInputMode.md)** -- SInput protocol, SDL3 integration, touchpad, IMU, haptics, RGB
 - **[XInput Mode](docs/XInputMode.md)** -- Xbox emulation protocol, rumble, PID differences
 - **[GATT vs HID-over-GATT](GattVsHid.md)** -- Architecture, how SDL/game engines reach each service
+- **[NuS Compatibility](docs/NuSCompatibility.md)** -- Using this library alongside NuS-NimBLE-Serial for a BLE serial side channel
 - **[Linux HID Testing](LinuxHIDTesting.md)** -- Testing with hidraw/hidapi on Linux
 - **[Troubleshooting Guide](TroubleshootingGuide.md)** -- Common issues and fixes
 
@@ -266,6 +277,11 @@ This version endeavors to be compatible with the latest released version of NimB
 Published under the MIT license. Please see license.txt.
 
 It would be great however if any improvements are fed back into this version.
+
+The `examples/NuS/` sketches and `docs/NuSCompatibility.md` build on the third-party
+[NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial) library by Ángel Fernández Pineda,
+which is licensed separately under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+(see the attribution notice in license.txt). That license covers the NuS library itself, not this library.
 
 ## Troubleshooting Guide
 

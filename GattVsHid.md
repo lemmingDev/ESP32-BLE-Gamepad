@@ -193,17 +193,26 @@ directly against its own protocol, just not for SDL's SInput recognition.
   Report bytes; without one, `hid-generic` won't expose an `EV_FF` capable
   `/dev/input/eventN` at all.
 
-### C. Outside HID entirely (NUS — removed on this branch)
+### C. Outside HID entirely (NUS via NuS-NimBLE-Serial)
 
-Previously, `beginNUS()` opened a second, ordinary GATT service with no HID
-semantics — free-form bytes, no Report Descriptor, no Report ID framing,
-reachable from any general-purpose GATT client (companion app, `bleak`
-script) but not from SDL/`hidapi`/any OS input API. That entire path
-(`BleNUS`, `beginNUS()`/`sendDataOverNUS()`, the Diagnostics example) has
-been removed on this branch as the first step toward replacing it with the
-external [NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial)
-library. This section is kept as a placeholder so the A/B/C numbering still
-makes sense.
+A second, ordinary GATT service with no HID semantics — free-form bytes, no
+Report Descriptor, no Report ID framing — provided by the external
+[NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial) library
+(CC BY 4.0, © Ángel Fernández Pineda; install from the Arduino Library
+Manager, not bundled here). This library's own hand-rolled NUS (`BleNUS`,
+`beginNUS()`/`sendDataOverNUS()`) was removed in favor of it; the two
+coexist on the same NimBLE stack and GATT server with no changes to either
+library. Reachable from any Nordic-UART-capable GATT client (companion app,
+BLE terminal, `bleak` script) but not from SDL/`hidapi`/any OS input API —
+same reachability split as the old built-in path, now maintained upstream.
+
+The setup is: start the gamepad with `delayAdvertising=true`, wait for the
+NimBLE server to exist, call `NuSerial.start(false)` (never `begin()` — its
+automatic advertising would stomp the HID advertising setup), then start
+advertising manually once for both services. Full sequence, gotchas, and the
+old-API mapping table: [docs/NuSCompatibility.md](docs/NuSCompatibility.md).
+Working sketches: [examples/NuS/](examples/NuS/) (diagnostics plus one
+bidirectional bridge per gamepad mode).
 
 ### Picking one
 
@@ -219,10 +228,10 @@ SInput imposes.
 
 If it's configuration/telemetry meant for a **separate companion app**
 (calibration, firmware info, arbitrary logging) that doesn't need to be
-synchronized with game input timing — a NUS-style path (path C, removed on
-this branch, planned to return via an external library) would be simpler,
-since it has no report-length/ID constraints and doesn't require touching
-the HID Report Descriptor at all, and it can run alongside either A or B.
+synchronized with game input timing — a NUS-style path (path C, via the
+external NuS-NimBLE-Serial library) is simpler, since it has no
+report-length/ID constraints and doesn't require touching the HID Report
+Descriptor at all, and it can run alongside either A or B.
 
 ## Architecture summary
 
@@ -243,8 +252,8 @@ Game / App (SDL3, SInput hint on)
                                                 (BleFeatureReport.cpp etc.)
 
 
-  Companion / config app path (NUS) removed on this branch --
-  HID Service above is the only path currently exposed.
+  Companion / config app path (NuS, via external NuS-NimBLE-Serial) --
+  runs on the same server alongside the HID Service above.
 ```
 
 The top path is what an SInput-aware game already reaches without any

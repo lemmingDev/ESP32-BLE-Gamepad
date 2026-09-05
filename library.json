@@ -24,6 +24,9 @@
   "frameworks": "arduino",
   "platforms": "espressif32",
   "dependencies": {
-    "h2zero/NimBLE-Arduino": "*"
+    // Pinned below 3.x: NuS-NimBLE-Serial (see docs/NuSCompatibility.md) requires
+    // NimBLE-Arduino >=2.1.0 && <3.0.0. RE-CHECK when NimBLE-Arduino 3.x releases
+    // (NimBLEService::start() deprecation) and when NuS-NimBLE-Serial adds 3.x support.
+    "h2zero/NimBLE-Arduino": "^2.5.1"
   }
 }
