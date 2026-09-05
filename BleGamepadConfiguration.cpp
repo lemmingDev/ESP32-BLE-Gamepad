@@ -26,7 +26,6 @@ BleGamepadConfiguration::BleGamepadConfiguration() : _controllerType(CONTROLLER_
                                                      _hardwareRevision("1.0.0"),
                                                      _enableOutputReport(false),
                                                      _enableFeatureReport(false),
-                                                     _enableNordicUARTService(false),
                                                      _enableRumble(false),
                                                      _enablePlayerLED(false),
                                                      _enableSInput(false),
@@ -146,7 +145,6 @@ const char *BleGamepadConfiguration::getFirmwareRevision() const { return _firmw
 const char *BleGamepadConfiguration::getHardwareRevision() const { return _hardwareRevision; }
 bool BleGamepadConfiguration::getEnableOutputReport() const { return _enableOutputReport; }
 bool BleGamepadConfiguration::getEnableFeatureReport() const { return _enableFeatureReport; }
-bool BleGamepadConfiguration::getEnableNordicUARTService() const { return _enableNordicUARTService; }
 bool BleGamepadConfiguration::getEnableRumble() const { return _enableRumble; }
 bool BleGamepadConfiguration::getEnablePlayerLED() const { return _enablePlayerLED; }
 bool BleGamepadConfiguration::getEnableSInput() const { return _enableSInput; }
@@ -234,7 +232,6 @@ void BleGamepadConfiguration::setFirmwareRevision(const char *value) { _firmware
 void BleGamepadConfiguration::setHardwareRevision(const char *value) { _hardwareRevision = value; }
 void BleGamepadConfiguration::setEnableOutputReport(bool value) { _enableOutputReport = value; }
 void BleGamepadConfiguration::setEnableFeatureReport(bool value) { _enableFeatureReport = value; }
-void BleGamepadConfiguration::setEnableNordicUARTService(bool value) { _enableNordicUARTService = value; }
 void BleGamepadConfiguration::setEnableRumble(bool value) { _enableRumble = value; }
 void BleGamepadConfiguration::setEnablePlayerLED(bool value) { _enablePlayerLED = value; }
 

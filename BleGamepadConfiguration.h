@@ -264,7 +264,6 @@ private:
     const char *_hardwareRevision;
     bool _enableOutputReport;
     bool _enableFeatureReport;
-    bool _enableNordicUARTService;
     bool _enableRumble;
     bool _enablePlayerLED;
     bool _enableSInput;
@@ -335,7 +334,6 @@ public:
     const char *getHardwareRevision() const;
     bool getEnableOutputReport() const;
     bool getEnableFeatureReport() const;
-    bool getEnableNordicUARTService() const;
     bool getEnableRumble() const;
     bool getEnablePlayerLED() const;
     bool getEnableSInput() const;
@@ -395,7 +393,6 @@ public:
     void setHardwareRevision(const char *value);
     void setEnableOutputReport(bool value);
     void setEnableFeatureReport(bool value);
-    void setEnableNordicUARTService(bool value);
     void setEnableRumble(bool value);
     void setEnablePlayerLED(bool value);
     void setEnableSInput(bool value);

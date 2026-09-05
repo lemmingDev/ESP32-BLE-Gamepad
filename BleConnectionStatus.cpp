@@ -13,8 +13,8 @@ void BleConnectionStatus::onConnect(NimBLEServer *pServer, NimBLEConnInfo& connI
     NIMBLE_LOGD(LOG_TAG, "onConnect - Connected Address: %s", std::string(connInfo.getAddress()).c_str());
     pServer->updateConnParams(connInfo.getConnHandle(), 6, 7, 0, 600);
 
-    // Keep advertising so additional centrals (e.g. a diagnostics client on the
-    // NUS service) can connect alongside whichever peer is already connected.
+    // Keep advertising so additional centrals can connect alongside whichever
+    // peer is already connected.
     if (pServer->getConnectedCount() < CONFIG_BT_NIMBLE_MAX_CONNECTIONS)
     {
         NIMBLE_LOGD(LOG_TAG, "onConnect - Restarting advertising to allow additional connections");

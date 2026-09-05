@@ -44,7 +44,7 @@ CRLF diffs are misleading with a plain `diff` — the invisible `\r` makes *ever
 though only the line ending differs. Use `git diff --ignore-space-at-eol` instead, which shows nothing if
 CRLF removal is the only change (i.e. confirms the fix is purely cosmetic, no real content touched):
 ```sh
-git diff --no-index --ignore-space-at-eol -- BleNUS.cpp <(sed 's/\r$//' BleNUS.cpp)
+git diff --no-index --ignore-space-at-eol -- BleConnectionStatus.cpp <(sed 's/\r$//' BleConnectionStatus.cpp)
 ```
 
 Tabs don't have that problem, so a plain diff already shows a minimal, readable result:
@@ -56,7 +56,7 @@ To see the raw invisible characters directly instead of a diff, `sed -n 'l'` pri
 and works the same on macOS (BSD sed) and Linux (GNU sed) — unlike `cat -A`, which macOS's built-in `cat`
 doesn't support:
 ```sh
-sed -n 'l' BleNUS.cpp | head                              # \r$ at the end of each line = CRLF
+sed -n 'l' BleConnectionStatus.cpp | head                # \r$ at the end of each line = CRLF
 sed -n '137p' BleGamepadConfiguration.cpp | sed -n 'l'    # \t shown literally
 ```
 
@@ -112,13 +112,12 @@ the `find`/`xargs` check command needs a POSIX-style shell (Git Bash, WSL, or MS
 **Previewing what would change**, without touching the file, as a normal unified diff:
 
 ```sh
-diff -u BleNUS.cpp <(clang-format -style=file BleNUS.cpp)
+diff -u BleGamepad.cpp <(clang-format -style=file BleGamepad.cpp)
 ```
 
 (On Windows, run this from Git Bash or WSL — `<(...)` process substitution isn't available in
-PowerShell/cmd.) This is the easiest way to see *why* two files disagree — e.g. comparing
-`BleConnectionStatus.cpp` against `BleNUS.cpp` shows the former only has reference-alignment issues
-(`NimBLEConnInfo& connInfo` → `NimBLEConnInfo &connInfo`), while the latter also mixes in K&R-style braces
+PowerShell/cmd.) This is the easiest way to see *why* a file disagrees — typical findings are
+reference-alignment issues (`NimBLEConnInfo& connInfo` → `NimBLEConnInfo &connInfo`), K&R-style braces
 (`if (...) {`) instead of Allman (`if (...)` then `{` on its own line), pointer alignment attached to the
 type (`NimBLEServer*` vs `NimBLEServer *`), and trailing whitespace on blank lines — all of which
 `clang-format -i` fixes in one pass.
@@ -139,9 +138,9 @@ This is the same check CI runs, just scoped to your branch. A clean run prints n
 clang-formatted`, followed by the offending line and a `^` pointing at the exact column, e.g.:
 
 ```
-BleGamepad.h:66:11: error: code should be clang-formatted [-Wclang-format-violations]
-    BleNUS* nus;
-          ^
+BleGamepad.h:95:17: error: code should be clang-formatted [-Wclang-format-violations]
+    NimBLEServer* pServer;
+                ^
 ```
 
 You don't need to hand-fix these — run `clang-format -i -style=file <file>` on the flagged file(s) and

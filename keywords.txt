@@ -181,10 +181,6 @@ setTXPowerLevel	KEYWORD2
 setGyroscope	KEYWORD2
 setAccelerometer	KEYWORD2
 setMotionControls KEYWORD2
-beginNUS  KEYWORD2
-sendDataOverNUS KEYWORD2
-setNUSDataReceivedCallback  KEYWORD2
-getNUS  KEYWORD2
 isPlayerLedReceived	KEYWORD2
 getPlayerLedIndex	KEYWORD2
 isRumbleReceived	KEYWORD2
@@ -207,7 +203,6 @@ getAddress	KEYWORD2
 getStringAddress	KEYWORD2
 getEnableOutputReport	KEYWORD2
 getEnableFeatureReport	KEYWORD2
-getEnableNordicUARTService	KEYWORD2
 getEnableRumble	KEYWORD2
 getEnablePlayerLED	KEYWORD2
 getEnableSInput	KEYWORD2

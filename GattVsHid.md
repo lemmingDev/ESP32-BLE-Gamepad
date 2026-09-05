@@ -1,17 +1,17 @@
 # GATT vs HID-over-GATT, and How Extra Features (RGB/Player LEDs, Rumble) Get to an App
 
-This library exposes the ESP32 over BLE in two distinct ways at once, and
-mixing them up is the source of most confusion about "why doesn't my game
-see the LED/rumble feature I added":
+This library exposes the ESP32 over BLE as a HID gamepad (HID-over-GATT).
+A previous revision also offered a second path — a private GATT service
+(NUS) for arbitrary bytes to/from a companion app — but that has been
+removed on this branch (see path C below). Mixing these paths up is the
+source of most confusion about "why doesn't my game see the LED/rumble
+feature I added":
 
 1. **HID-over-GATT (HOGP)** — the standard Bluetooth SIG profile that makes
    this device look like a real gamepad/joystick to the OS. This is what
    `BleGamepad`'s buttons/axes (Input Report), `setFeatureBuffer()`/
    `getFeatureBuffer()` (Feature Report), `getOutputBuffer()` (Output
    Report), and SInput mode (`setEnableSInput()`) all ride on.
-2. **A private GATT service (NUS)** — a plain custom BLE service with no HID
-   semantics at all, for arbitrary bytes to/from a companion app. This is
-   `beginNUS()`/`sendDataOverNUS()`.
 
 These two paths are reachable from completely different kinds of software on
 the host, which is the crux of this doc.
@@ -21,10 +21,10 @@ the host, which is the crux of this doc.
 Every BLE peripheral (this ESP32) exposes a tree of **services**, each
 containing **characteristics** a central (the host) can read, write, and/or
 subscribe to for notifications. This library's GATT server has several
-services: Generic Access, Device Information, Battery Service, the HID
-Service (`0x1812`), and — if `beginNUS()` is called — the Nordic UART
+services: Generic Access, Device Information, Battery Service, and the HID
+Service (`0x1812`). (A previous revision could also add the Nordic UART
 Service (`6e400001-...`, a vendor-defined 128-bit UUID, not a Bluetooth SIG
-standard service).
+standard service) — removed on this branch, see path C below.)
 
 Nothing about "GATT" implies "gamepad" or "input device" on its own — it's
 just a generic key/value RPC mechanism. What turns a GATT server into
@@ -193,22 +193,17 @@ directly against its own protocol, just not for SDL's SInput recognition.
   Report bytes; without one, `hid-generic` won't expose an `EV_FF` capable
   `/dev/input/eventN` at all.
 
-### C. Outside HID entirely (NUS)
+### C. Outside HID entirely (NUS — removed on this branch)
 
-`beginNUS()` opens a second, ordinary GATT service with no HID semantics —
-free-form bytes, no Report Descriptor, no Report ID framing.
-
-- Reachable from: any general-purpose GATT client — a companion
-  configuration app (mobile app, `bleak` script, etc.) connecting directly
-  over BLE.
-- Not reachable from: SDL, `hidapi`, or any OS input/joystick API — the
-  same input-plugin claiming described above means BlueZ's regular
-  `org.bluez.GattService1` D-Bus objects, which `bleak`/NUS clients rely on,
-  do not include the HID service, but NUS itself is unaffected and shows up
-  normally since it isn't part of that claimed service. A game reading
-  input via `hidraw` has no path to NUS at all — it would need its own,
-  separate GATT connection to this device alongside the HID one, which most
-  game engines have no support for.
+Previously, `beginNUS()` opened a second, ordinary GATT service with no HID
+semantics — free-form bytes, no Report Descriptor, no Report ID framing,
+reachable from any general-purpose GATT client (companion app, `bleak`
+script) but not from SDL/`hidapi`/any OS input API. That entire path
+(`BleNUS`, `beginNUS()`/`sendDataOverNUS()`, the Diagnostics example) has
+been removed on this branch as the first step toward replacing it with the
+external [NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial)
+library. This section is kept as a placeholder so the A/B/C numbering still
+makes sense.
 
 ### Picking one
 
@@ -224,9 +219,10 @@ SInput imposes.
 
 If it's configuration/telemetry meant for a **separate companion app**
 (calibration, firmware info, arbitrary logging) that doesn't need to be
-synchronized with game input timing — NUS (path C) is simpler, since it has
-no report-length/ID constraints and doesn't require touching the HID Report
-Descriptor at all, and it can run alongside either A or B.
+synchronized with game input timing — a NUS-style path (path C, removed on
+this branch, planned to return via an external library) would be simpler,
+since it has no report-length/ID constraints and doesn't require touching
+the HID Report Descriptor at all, and it can run alongside either A or B.
 
 ## Architecture summary
 
@@ -247,12 +243,8 @@ Game / App (SDL3, SInput hint on)
                                                 (BleFeatureReport.cpp etc.)
 
 
- Companion / config app
-     |
-     |  general-purpose GATT client (bleak, custom app)
-     v
- NUS Service (custom UUID)  <-------------  BLE  <-----  ESP32 (BleNUS)
- free-form bytes, no HID framing -- can run alongside either option above
+  Companion / config app path (NUS) removed on this branch --
+  HID Service above is the only path currently exposed.
 ```
 
 The top path is what an SInput-aware game already reaches without any

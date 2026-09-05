@@ -132,7 +132,6 @@ Custom VID/PID values affect how the OS identifies the device. Some games use VI
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `setEnableNordicUARTService()` | false | Enable NUS alongside HID |
 | `setTXPowerLevel()` | 9 | BLE transmit power (-12 to 9 dBm) |
 
 ## API Reference
@@ -280,7 +279,6 @@ See the [examples/Generic/](../examples/Generic/) directory. Key examples:
 - Gyroscope and accelerometer
 - Battery level and power state
 - HID Output and Feature Reports
-- Nordic UART Service (NUS) alongside HID
 - Force pairing / bond management
 - Configurable VID/PID and BLE characteristics
 - Works in Steam (may need manual button mapping via Steam Input)

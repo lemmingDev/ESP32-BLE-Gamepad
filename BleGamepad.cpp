@@ -84,12 +84,10 @@ BleGamepad::BleGamepad(std::string deviceName, std::string deviceManufacturer, u
   _dischargingState(0),
   _chargingState(0),
   _powerLevel(0),
-  nusInitialized(false),
   xInputReceiver(nullptr),
   xInputConsumer(nullptr),
   xInputBattery(nullptr),
   pServer(nullptr),
-  nus(nullptr),
   hid(0),
   pCharacteristic_Power_State(0),
   configuration()
@@ -2491,42 +2489,6 @@ static void dumpHIDReport(const uint8_t* report, size_t size)
     Serial.println("\n[BLEGamepad][INFO] End of HID Report Dump");
 }
 #endif
-
-void BleGamepad::beginNUS() 
-{
-    if (!this->nusInitialized) 
-    {
-        // Extrememly important to make sure that the pointer to server is actually valid
-        while(!NimBLEDevice::isInitialized ()){}        // Wait until the server is initialized
-        while(NimBLEDevice::getServer() == nullptr){}   // Ensure pointer to server is actually valid
-        
-        // Now server is nkown to be valid, initialise nus to new BleNUS instance
-        nus = new BleNUS(NimBLEDevice::getServer()); // Pass the existing BLE server
-        nus->begin();
-        nusInitialized = true;
-    }
-}
-
-BleNUS* BleGamepad::getNUS() 
-{
-    return nus;  // Return a pointer instead of a reference
-}
-
-void BleGamepad::sendDataOverNUS(const uint8_t* data, size_t length) 
-{
-  if (nus) 
-  {
-    nus->sendData(data, length);
-  }
-}
-
-void BleGamepad::setNUSDataReceivedCallback(void (*callback)(const uint8_t* data, size_t length)) 
-{
-  if (nus) 
-  {
-    nus->setDataReceivedCallback(callback);
-  }
-}
 
 void BleGamepad::taskServer(void *pvParameter)
 {

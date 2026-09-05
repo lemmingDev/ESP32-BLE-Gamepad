@@ -23,7 +23,7 @@ public:
 
     // Registered as the characteristic callback for the HID input report, so we can
     // log when a peer subscribes to it - the real signal that it wants the gamepad
-    // profile, as opposed to (say) only the NUS service.
+    // profile, as opposed to (say) only a non-HID profile.
     void onSubscribe(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, uint16_t subValue) override;
 
     NimBLECharacteristic *inputGamepad;
