@@ -189,7 +189,8 @@ PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to 
 | Example | Description |
 |---------|-------------|
 | [NuSSerialDiag](examples/NuS/NuSSerialDiag/NuSSerialDiag.ino) | Connection diagnostics over BLE serial (replaces removed `Diagnostics`) |
-| [NuSGenericBridge](examples/NuS/NuSGenericBridge/NuSGenericBridge.ino) | Drive a Generic pad from a BLE terminal |
+| [NuSGenericBridge](examples/NuS/NuSGenericBridge/NuSGenericBridge.ino) | Drive a Generic pad from a BLE terminal (pure defaults) |
+| [NuSGenericAdvanced](examples/NuS/NuSGenericAdvanced/NuSGenericAdvanced.ino) | Generic bridge + start/select specials and HID output/feature reports |
 | [NuSSInputBridge](examples/NuS/NuSSInputBridge/NuSSInputBridge.ino) | Drive an SInput pad from a BLE terminal, surface player LED/rumble/RGB |
 | [NuSXInputBridge](examples/NuS/NuSXInputBridge/NuSXInputBridge.ino) | Drive an Xbox pad from a BLE terminal, surface host rumble |
 

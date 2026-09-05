@@ -168,14 +168,20 @@ orthogonal to the HID report layout. The `examples/NuS/` folder has one
 bidirectional bridge example per mode because the *interesting commands*
 differ:
 
-- **Generic** (`NuSGenericBridge`): `press`/`release`, `axis`, `hat`,
-  `battery` — drive the HID report from the terminal.
-- **SInput** (`NuSSInputBridge`): same gamepad control, plus `led?` /
-  `rumble?` / `rgb?` queries that surface the last SInput Output Report
-  (`0x03`) state the host sent.
-- **XInput** (`NuSXInputBridge`): same gamepad control, plus `rumble?`
-  surfacing strong/weak motors and trigger magnitudes from the Xbox Output
-  Report (`0x03`).
+- **Generic, strict** (`NuSGenericBridge`): pure library defaults —
+  `press`/`release`, `axis` ×8, `hat`, `battery`, `power`, plus bond/TX-power
+  management (`pair`, `unpair`, `txpower`, `addr?`).
+- **Generic, advanced** (`NuSGenericAdvanced`): everything in the strict
+  bridge, plus start/select special buttons and bidirectional HID
+  output/feature reports (`special`, `output?`, `feature get`/`set`).
+- **SInput** (`NuSSInputBridge`): same gamepad control, plus `motion`,
+  `touch`, start/select/home specials, and `led?` / `rumble?` / `rgb?`
+  queries that surface the last SInput Output Report (`0x03`) state the host
+  sent. IMU + RGB capability flags are enabled so SDL advertises full caps.
+- **XInput** (`NuSXInputBridge`): same gamepad control, plus start/select/
+  home/back specials (back = Share), `battery`, and `rumble?` surfacing
+  strong/weak motors and trigger magnitudes from the Xbox Output Report
+  (`0x03`).
 - **All modes** (`NuSSerialDiag`): diagnostics reimplementation — auto-press,
   echo/`help`, proactive status lines, battery ramp, LED blink (see
   `examples/NuS/README.md` for the full tour).

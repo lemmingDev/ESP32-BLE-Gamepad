@@ -1,5 +1,6 @@
 /*
- * Generic-mode gamepad driven from a BLE terminal over NUS.
+ * Generic-mode gamepad driven from a BLE terminal over NUS, extended with
+ * special buttons and HID output/feature reports.
  *
  * Requires the external NuS-NimBLE-Serial library
  * (https://github.com/afpineda/NuS-NimBLE-Serial, CC BY 4.0), installable
@@ -7,15 +8,13 @@
  * terminal app (e.g. "Serial Bluetooth Terminal", nRF Connect) and type
  * "help" for the command list.
  *
- * This is the strict Generic-mode bridge: it runs on the pure library-default
- * configuration (16 buttons, 8 axes, 1 hat, no special buttons, no
- * output/feature reports), so every command below is live on the wire with
- * zero config. Press/release buttons, move axes, set the hat switch, battery
- * level and power state, and manage bonds/TX power from the terminal, with a
- * state summary pushed back every few seconds. For the same bridge plus
- * special buttons and HID output/feature reports, see NuSGenericAdvanced.
- * For the SInput and XInput equivalents, see NuSSInputBridge and
- * NuSXInputBridge in this folder.
+ * This is the advanced Generic-mode bridge: everything NuSGenericBridge does
+ * (buttons, axes, hat, battery, power state, bond/TX-power management), plus
+ * start/select special buttons and bidirectional HID output/feature reports:
+ * host Output Reports are pushed to the terminal as they arrive, and the
+ * Feature Report can be read and written. Enabling those costs three config
+ * lines (see setup()) - for the pure library-default version with nothing
+ * enabled beyond defaults, use NuSGenericBridge instead.
  *
  * Init order matters (see docs/NuSCompatibility.md): delayAdvertising=true,
  * wait for the NimBLE server, NuSerial.start(false), then start advertising
@@ -29,21 +28,37 @@
 #include <NimBLEDevice.h>
 
 #define STATE_INTERVAL_MS 3000 // How often to push a state summary to subscribers
+#define REPORT_LEN 64          // Must match the output/feature report lengths in setup()
 
 // delayAdvertising=true: begin() builds the HID service and configures
 // advertising but does not start it - NuS registers first (see setup()).
-BleGamepad bleGamepad("ESP32 Gamepad NuS Generic", "Espressif", 100, true);
+BleGamepad bleGamepad("ESP32 Gamepad NuS Adv", "Espressif", 100, true);
+BleGamepadConfiguration advConfig;
 
 unsigned long lastStateTime = 0;
 size_t lastNusSubscribers = 0;
 String nusLine; // Accumulates one incoming NUS line
 
+uint8_t lastOutput[REPORT_LEN];
+bool haveOutput = false;
+uint8_t lastFeature[REPORT_LEN];
+bool haveFeature = false;
+
 void setup()
 {
     Serial.begin(115200);
 
-    // Default config: 16 buttons, all 8 axes, 1 hat - everything below is valid.
-    bleGamepad.begin();
+    // Library defaults (16 buttons, 8 axes, 1 hat), plus the three extras
+    // this sketch needs: start/select special buttons (otherwise the
+    // `special` command would set bits no host can see), and the HID output
+    // and feature reports (otherwise `output?`/`feature` have nothing to
+    // talk to). Everything else stays at defaults.
+    advConfig.setWhichSpecialButtons(true, true, false, false, false, false, false, false);
+    advConfig.setEnableOutputReport(true);
+    advConfig.setOutputReportLength(REPORT_LEN);
+    advConfig.setEnableFeatureReport(true);
+    advConfig.setFeatureReportLength(REPORT_LEN);
+    bleGamepad.begin(&advConfig);
 
     // begin() initialises NimBLE asynchronously on its own task. NuSerial
     // needs the stack up first, so wait for the server to exist.
@@ -58,19 +73,23 @@ void setup()
     // Advertise once for both services together.
     NimBLEDevice::getServer()->getAdvertising()->start();
 
-    Serial.println("[NuSGenericBridge] Ready. Connect a BLE terminal and send 'help'.");
+    Serial.println("[NuSGenericAdvanced] Ready. Connect a BLE terminal and send 'help'.");
 }
 
 void printHelp()
 {
-    NuSerial.println("Commands (strict defaults: 16 buttons, 8 axes, 1 hat):");
+    NuSerial.println("Commands (16 buttons, 8 axes, 1 hat + start/select + reports):");
     NuSerial.println("  help                 - show this message");
     NuSerial.println("  press <1..16>        - press a button");
     NuSerial.println("  release <1..16>      - release a button");
+    NuSerial.println("  special <start|select> <on|off>");
     NuSerial.println("  axis <name> <value>  - x y z rx ry rz s1 s2, value -32768..32767");
     NuSerial.println("  hat <0..8>           - 0=centered 1=up 2=up-right ... 8=up-left");
     NuSerial.println("  battery <0..100>     - set reported battery level");
     NuSerial.println("  power <b> <d> <c> <l> - battery power state, each 0..3");
+    NuSerial.println("  output?              - last host Output Report as hex (none yet = no report)");
+    NuSerial.println("  feature get          - last host Feature Report as hex");
+    NuSerial.println("  feature set <hex>    - set Feature Report, e.g. 'feature set 0102ff'");
     NuSerial.println("  pair                 - enter pairing mode (BLOCKS till a new host pairs)");
     NuSerial.println("  unpair               - delete current bond");
     NuSerial.println("  unpairall confirm    - delete ALL bonds (needs the word 'confirm')");
@@ -85,6 +104,39 @@ bool validTxPower(int v)
     return v == -12 || v == -9 || v == -6 || v == -3 || v == 0 || v == 3 || v == 6 || v == 9;
 }
 
+String toHex(const uint8_t *data, uint16_t len)
+{
+    String s;
+    s.reserve(len * 2);
+    for (uint16_t i = 0; i < len; i++)
+    {
+        if (data[i] < 0x10) s += "0";
+        s += String(data[i], HEX);
+    }
+    return s;
+}
+
+// Parses even-length hex (spaces ignored) into buf. Returns byte count or -1.
+int fromHex(const String &hex, uint8_t *buf, uint16_t maxLen)
+{
+    String h;
+    for (unsigned int i = 0; i < hex.length(); i++)
+    {
+        if (hex[i] != ' ') h += hex[i];
+    }
+    if (h.length() == 0 || (h.length() % 2) != 0 || h.length() / 2 > maxLen) return -1;
+    for (unsigned int i = 0; i < h.length(); i++)
+    {
+        char c = h[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) return -1;
+    }
+    for (unsigned int i = 0; i < h.length() / 2; i++)
+    {
+        buf[i] = (uint8_t)strtoul(h.substring(i * 2, i * 2 + 2).c_str(), nullptr, 16);
+    }
+    return h.length() / 2;
+}
+
 bool setAxisByName(const String &name, int16_t value)
 {
     if (name == "x") { bleGamepad.setX(value); return true; }
@@ -96,6 +148,14 @@ bool setAxisByName(const String &name, int16_t value)
     if (name == "s1") { bleGamepad.setSlider1(value); return true; }
     if (name == "s2") { bleGamepad.setSlider2(value); return true; }
     return false;
+}
+
+void setSpecial(const String &which, bool on, bool &ok)
+{
+    ok = true;
+    if (which == "start") { if (on) { bleGamepad.pressStart(); } else { bleGamepad.releaseStart(); } }
+    else if (which == "select") { if (on) { bleGamepad.pressSelect(); } else { bleGamepad.releaseSelect(); } }
+    else { ok = false; }
 }
 
 void pushState()
@@ -112,14 +172,31 @@ void handleCommand(String cmd)
 {
     cmd.toLowerCase();
 
-    if (cmd == "help")
+    if (cmd == "help") { printHelp(); return; }
+    if (cmd == "status") { pushState(); return; }
+    if (cmd == "output?")
     {
-        printHelp();
+        NuSerial.println(haveOutput ? "output " + toHex(lastOutput, REPORT_LEN) : "output none yet");
         return;
     }
-    if (cmd == "status")
+    if (cmd == "feature get")
     {
-        pushState();
+        NuSerial.println(haveFeature ? "feature " + toHex(lastFeature, REPORT_LEN) : "feature none yet");
+        return;
+    }
+    if (cmd.startsWith("feature set "))
+    {
+        uint8_t buf[REPORT_LEN];
+        int n = fromHex(cmd.substring(12), buf, REPORT_LEN);
+        if (n > 0)
+        {
+            bleGamepad.setFeatureBuffer(buf, (uint16_t)n);
+            NuSerial.println("ok feature set " + String(n) + " bytes");
+        }
+        else
+        {
+            NuSerial.println("err usage: feature set <hex>, even digits, max 128 chars");
+        }
         return;
     }
     if (cmd.startsWith("press "))
@@ -147,6 +224,26 @@ void handleCommand(String cmd)
         else
         {
             NuSerial.println("err button must be 1..16");
+        }
+        return;
+    }
+    if (cmd.startsWith("special "))
+    {
+        // special <start|select> <on|off>
+        int sp = cmd.indexOf(' ', 8);
+        if (sp > 0)
+        {
+            bool ok = false;
+            String onoff = cmd.substring(sp + 1);
+            if (onoff == "on" || onoff == "off")
+            {
+                setSpecial(cmd.substring(8, sp), onoff == "on", ok);
+            }
+            NuSerial.println(ok ? "ok " + cmd : "err usage: special <start|select> <on|off>");
+        }
+        else
+        {
+            NuSerial.println("err usage: special <start|select> <on|off>");
         }
         return;
     }
@@ -312,15 +409,42 @@ String readNuSLine()
     return String();
 }
 
+// Surface host-to-device HID reports as they arrive. The flags are
+// consume-on-read, so cache the bytes locally for later `output?` queries.
+void pollHostReports()
+{
+    if (bleGamepad.isOutputReceived())
+    {
+        uint8_t *buf = bleGamepad.getOutputBuffer();
+        if (buf)
+        {
+            memcpy(lastOutput, buf, REPORT_LEN);
+            haveOutput = true;
+            NuSerial.println("event output " + toHex(lastOutput, REPORT_LEN));
+            Serial.println("[HID] output report received");
+        }
+    }
+    if (bleGamepad.isFeatureReceived())
+    {
+        uint8_t *buf = bleGamepad.getFeatureBuffer();
+        if (buf)
+        {
+            memcpy(lastFeature, buf, REPORT_LEN);
+            haveFeature = true;
+            NuSerial.println("event feature " + toHex(lastFeature, REPORT_LEN));
+            Serial.println("[HID] feature report received");
+        }
+    }
+}
+
 void loop()
 {
     // Greet new subscribers (NuSerial is a singleton - no subscribe callback
-    // to override, so poll the count). Writes with no subscriber go nowhere,
-    // so the pushes below are additionally gated on isConnected().
+    // to override, so poll the count).
     size_t subs = NuSerial.subscriberCount();
     if (subs > 0 && lastNusSubscribers == 0)
     {
-        NuSerial.println("[NuS] Generic bridge ready. Send 'help'.");
+        NuSerial.println("[NuS] Advanced Generic bridge ready. Send 'help'.");
     }
     lastNusSubscribers = subs;
 
@@ -330,6 +454,8 @@ void loop()
         Serial.println("[NUS] got: " + cmd);
         handleCommand(cmd);
     }
+
+    pollHostReports();
 
     if (NuSerial.isConnected() && millis() - lastStateTime >= STATE_INTERVAL_MS)
     {

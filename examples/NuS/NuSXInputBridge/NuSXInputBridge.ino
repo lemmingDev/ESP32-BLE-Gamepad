@@ -9,9 +9,10 @@
  * "help" for the command list.
  *
  * This is the XInput-mode bridge (Xbox One S, VID 0x045E / PID 0x02FD):
- * drive A/B/X/Y/LB/RB/sticks/triggers/D-pad from the terminal, and query (or
- * get pushed) the last rumble report the Xbox host sent via Output Report
- * 0x03 (strong/weak motors + trigger magnitudes). Change one line to
+ * drive A/B/X/Y/LB/RB/sticks/triggers/D-pad, special buttons (incl. Back for
+ * Share), battery and bond/TX-power management from the terminal, and query
+ * (or get pushed) the last rumble report the Xbox host sent via Output
+ * Report 0x03 (strong/weak motors + trigger magnitudes). Change one line to
  * GamepadMode::XInputSeriesX for the Series X variant (PID 0x0B13, Share
  * button) - recommended for native XInput over BLE on Win11 22H2+. For the
  * Generic and SInput equivalents, see NuSGenericBridge and NuSSInputBridge
@@ -48,8 +49,11 @@ void setup()
 
     // XInput One S mode: 11 buttons (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home),
     // Xbox VID/PID/serial. Do not override setVid()/setPid() - the host Xbox
-    // driver recognises the device by that exact pair.
+    // driver recognises the device by that exact pair. Start/select/home/back
+    // specials enabled so `special` drives the Xbox buttons (back = Share).
+    // Note BUTTON_9/10/11 set the same Xbox bits as select/start/home.
     config.setGamepadMode(GamepadMode::XInputOneS);
+    config.setWhichSpecialButtons(true, true, false, true, true, false, false, false);
     bleGamepad.begin(&config);
 
     // begin() initialises NimBLE asynchronously on its own task. NuSerial
@@ -78,8 +82,22 @@ void printHelp()
     NuSerial.println("  stick right <x> <y>   - right stick, each -32767..32767");
     NuSerial.println("  trigger <l> <r>       - triggers, each 0..32767");
     NuSerial.println("  hat <0..8>            - D-pad: 0=centered 1=up 2=up-right ... 8=up-left");
+    NuSerial.println("  special <name> <on|off> - start select home back(back=Share)");
+    NuSerial.println("  battery <0..100>      - set reported battery level (std Battery Service)");
+    NuSerial.println("  power <b> <d> <c> <l> - battery power state, each 0..3");
     NuSerial.println("  rumble?               - last rumble report from Xbox host");
+    NuSerial.println("  pair                  - enter pairing mode (BLOCKS till a new host pairs)");
+    NuSerial.println("  unpair                - delete current bond");
+    NuSerial.println("  unpairall confirm     - delete ALL bonds (needs the word 'confirm')");
+    NuSerial.println("  txpower <-12..9>      - set BLE TX power (-12 -9 -6 -3 0 3 6 9)");
+    NuSerial.println("  txpower?              - show BLE TX power");
+    NuSerial.println("  addr?                 - show this device's BLE address");
     NuSerial.println("  status                - reply with current state immediately");
+}
+
+bool validTxPower(int v)
+{
+    return v == -12 || v == -9 || v == -6 || v == -3 || v == 0 || v == 3 || v == 6 || v == 9;
 }
 
 void pushRumble()
@@ -107,6 +125,143 @@ void handleCommand(String cmd)
     if (cmd == "help") { printHelp(); return; }
     if (cmd == "status") { pushState(); return; }
     if (cmd == "rumble?") { pushRumble(); return; }
+    if (cmd.startsWith("special "))
+    {
+        // special <start|select|home|back> <on|off> (back = Share button)
+        int sp = cmd.indexOf(' ', 8);
+        if (sp > 0)
+        {
+            String which = cmd.substring(8, sp);
+            String onoff = cmd.substring(sp + 1);
+            uint8_t btn = 255;
+            if (which == "start") btn = START_BUTTON;
+            else if (which == "select") btn = SELECT_BUTTON;
+            else if (which == "home") btn = HOME_BUTTON;
+            else if (which == "back") btn = BACK_BUTTON;
+            if (btn != 255 && (onoff == "on" || onoff == "off"))
+            {
+                if (onoff == "on") { bleGamepad.pressSpecialButton(btn); }
+                else { bleGamepad.releaseSpecialButton(btn); }
+                NuSerial.println("ok " + cmd);
+            }
+            else
+            {
+                NuSerial.println("err usage: special <start|select|home|back> <on|off>");
+            }
+        }
+        else
+        {
+            NuSerial.println("err usage: special <start|select|home|back> <on|off>");
+        }
+        return;
+    }
+    if (cmd.startsWith("battery "))
+    {
+        int lvl = cmd.substring(8).toInt();
+        if (lvl >= 0 && lvl <= 100)
+        {
+            bleGamepad.setBatteryLevel((uint8_t)lvl);
+            NuSerial.println("ok battery " + String(lvl));
+        }
+        else
+        {
+            NuSerial.println("err battery must be 0..100");
+        }
+        return;
+    }
+    if (cmd.startsWith("power "))
+    {
+        // power <batteryPowerInfo> <discharging> <charging> <level>, each 0..3
+        int p[4];
+        int idx = 6, ok = 1;
+        for (int i = 0; i < 4; i++)
+        {
+            int sp = cmd.indexOf(' ', idx);
+            String tok = (sp > 0 || i == 3) ? cmd.substring(idx, sp > 0 ? sp : cmd.length()) : "";
+            if (tok.length() == 0) { ok = 0; break; }
+            p[i] = tok.toInt();
+            if (p[i] < 0 || p[i] > 3) { ok = 0; break; }
+            idx = sp + 1;
+        }
+        if (ok)
+        {
+            bleGamepad.setPowerStateAll((uint8_t)p[0], (uint8_t)p[1], (uint8_t)p[2], (uint8_t)p[3]);
+            NuSerial.println("ok " + cmd);
+        }
+        else
+        {
+            NuSerial.println("err usage: power <b> <d> <c> <l>, each 0..3");
+        }
+        return;
+    }
+    if (cmd == "pair")
+    {
+        NuSerial.println("pairing mode - waiting for a NEW host to pair (terminal unresponsive till then)...");
+        if (bleGamepad.enterPairingMode())
+        {
+            NuSerial.println("ok paired with new host");
+        }
+        else
+        {
+            NuSerial.println("err pairing failed");
+        }
+        return;
+    }
+    if (cmd == "unpair")
+    {
+        if (bleGamepad.deleteBond(false))
+        {
+            NuSerial.println("ok current bond deleted");
+        }
+        else
+        {
+            NuSerial.println("err no bond to delete");
+        }
+        return;
+    }
+    if (cmd.startsWith("unpairall"))
+    {
+        if (cmd == "unpairall confirm")
+        {
+            if (bleGamepad.deleteAllBonds(false))
+            {
+                NuSerial.println("ok all bonds deleted");
+            }
+            else
+            {
+                NuSerial.println("err delete failed");
+            }
+        }
+        else
+        {
+            NuSerial.println("err usage: unpairall confirm");
+        }
+        return;
+    }
+    if (cmd.startsWith("txpower "))
+    {
+        int v = cmd.substring(8).toInt();
+        if (validTxPower(v))
+        {
+            bleGamepad.setTXPowerLevel((int8_t)v);
+            NuSerial.println("ok txpower " + String(v));
+        }
+        else
+        {
+            NuSerial.println("err txpower must be one of -12 -9 -6 -3 0 3 6 9");
+        }
+        return;
+    }
+    if (cmd == "txpower?")
+    {
+        NuSerial.println("txpower " + String(bleGamepad.getTXPowerLevel()));
+        return;
+    }
+    if (cmd == "addr?")
+    {
+        NuSerial.println("addr " + bleGamepad.getStringAddress());
+        return;
+    }
 
     if (cmd.startsWith("press ") || cmd.startsWith("release "))
     {

@@ -8,9 +8,10 @@
  * terminal app (e.g. "Serial Bluetooth Terminal", nRF Connect) and type
  * "help" for the command list.
  *
- * This is the SInput-mode bridge: drive buttons/sticks/triggers/hat from the
- * terminal, and query (or get pushed) the last player-LED index, rumble
- * amplitudes and RGB colour the SInput host sent via Output Report 0x03.
+ * This is the SInput-mode bridge: drive buttons/sticks/triggers/hat, motion
+ * controls, touchpads and special buttons from the terminal, and query (or
+ * get pushed) the last player-LED index, rumble amplitudes and RGB colour
+ * the SInput host sent via Output Report 0x03.
  * SInput needs an SDL3 host with the SInput hint enabled for those reports;
  * plain button/axis input also works over the normal OS joystick path. For
  * the Generic and XInput equivalents, see NuSGenericBridge and
@@ -44,8 +45,14 @@ void setup()
 
     // SInput mode: fixed 25 buttons, VID 0x2E8A / PID 0x10C6, SInput report
     // layout. Do not override setVid()/setPid() - SDL recognises the device
-    // by that exact pair.
+    // by that exact pair. IMU + RGB caps on so the `motion` command drives
+    // visible fields and SDL advertises the full capability set; touchpad is
+    // auto-enabled by SInput mode (1 pad, 2 fingers). Start/select/home
+    // specials enabled so `special` maps onto the SInput buttons_2 bits.
     config.setGamepadMode(GamepadMode::SInput);
+    config.setEnableSInputIMU(true);
+    config.setEnableSInputRGB(true);
+    config.setWhichSpecialButtons(true, true, false, true, false, false, false, false);
     bleGamepad.begin(&config);
 
     // begin() initialises NimBLE asynchronously on its own task. NuSerial
@@ -75,11 +82,26 @@ void printHelp()
     NuSerial.println("  trigger left <v>        - left trigger 0..32767");
     NuSerial.println("  trigger right <v>       - right trigger 0..32767");
     NuSerial.println("  hat <0..8>              - 0=centered 1=up 2=up-right ... 8=up-left");
+    NuSerial.println("  motion <gx> <gy> <gz> <ax> <ay> <az> - gyro + accel, each -32768..32767");
+    NuSerial.println("  touch <0|1> <x> <y> <pressure> - touchpad finger (fire-and-forget)");
+    NuSerial.println("  special <start|select|home> <on|off>");
     NuSerial.println("  battery <0..100>        - set reported battery level");
+    NuSerial.println("  power <b> <d> <c> <l>   - battery power state, each 0..3");
     NuSerial.println("  led?                    - last player-LED index from host (0=none)");
     NuSerial.println("  rumble?                 - last rumble amplitudes from host");
     NuSerial.println("  rgb?                    - last RGB colour from host");
+    NuSerial.println("  pair                    - enter pairing mode (BLOCKS till a new host pairs)");
+    NuSerial.println("  unpair                  - delete current bond");
+    NuSerial.println("  unpairall confirm       - delete ALL bonds (needs the word 'confirm')");
+    NuSerial.println("  txpower <-12..9>        - set BLE TX power (-12 -9 -6 -3 0 3 6 9)");
+    NuSerial.println("  txpower?                - show BLE TX power");
+    NuSerial.println("  addr?                   - show this device's BLE address");
     NuSerial.println("  status                  - reply with current state immediately");
+}
+
+bool validTxPower(int v)
+{
+    return v == -12 || v == -9 || v == -6 || v == -3 || v == 0 || v == 3 || v == 6 || v == 9;
 }
 
 void pushLed()
@@ -188,6 +210,87 @@ void handleCommand(String cmd)
         }
         return;
     }
+    if (cmd.startsWith("motion "))
+    {
+        // motion <gx> <gy> <gz> <ax> <ay> <az> - fire-and-forget, no getters exist
+        int16_t v[6];
+        int idx = 7, ok = 1;
+        for (int i = 0; i < 6; i++)
+        {
+            int sp = cmd.indexOf(' ', idx);
+            String tok = (sp > 0 || i == 5) ? cmd.substring(idx, sp > 0 ? sp : cmd.length()) : "";
+            if (tok.length() == 0) { ok = 0; break; }
+            v[i] = (int16_t)tok.toInt();
+            idx = sp + 1;
+        }
+        if (ok)
+        {
+            bleGamepad.setMotionControls(v[0], v[1], v[2], v[3], v[4], v[5]);
+            NuSerial.println("ok " + cmd);
+        }
+        else
+        {
+            NuSerial.println("err usage: motion <gx> <gy> <gz> <ax> <ay> <az>");
+        }
+        return;
+    }
+    if (cmd.startsWith("touch "))
+    {
+        // touch <0|1> <x> <y> <pressure> - fire-and-forget, no getters exist
+        int s1 = cmd.indexOf(' ', 6);
+        int s2 = s1 > 0 ? cmd.indexOf(' ', s1 + 1) : -1;
+        int s3 = s2 > 0 ? cmd.indexOf(' ', s2 + 1) : -1;
+        if (s1 > 0 && s2 > 0 && s3 > 0)
+        {
+            int pad = cmd.substring(6, s1).toInt();
+            int16_t x = (int16_t)cmd.substring(s1 + 1, s2).toInt();
+            int16_t y = (int16_t)cmd.substring(s2 + 1, s3).toInt();
+            uint16_t p = (uint16_t)cmd.substring(s3 + 1).toInt();
+            if (pad == 0 || pad == 1)
+            {
+                bleGamepad.setTouchpad((uint8_t)pad, x, y, p);
+                NuSerial.println("ok " + cmd);
+            }
+            else
+            {
+                NuSerial.println("err touch pad must be 0 or 1");
+            }
+        }
+        else
+        {
+            NuSerial.println("err usage: touch <0|1> <x> <y> <pressure>");
+        }
+        return;
+    }
+    if (cmd.startsWith("special "))
+    {
+        // special <start|select|home> <on|off>
+        int sp = cmd.indexOf(' ', 8);
+        if (sp > 0)
+        {
+            String which = cmd.substring(8, sp);
+            String onoff = cmd.substring(sp + 1);
+            uint8_t btn = 255;
+            if (which == "start") btn = START_BUTTON;
+            else if (which == "select") btn = SELECT_BUTTON;
+            else if (which == "home") btn = HOME_BUTTON;
+            if (btn != 255 && (onoff == "on" || onoff == "off"))
+            {
+                if (onoff == "on") { bleGamepad.pressSpecialButton(btn); }
+                else { bleGamepad.releaseSpecialButton(btn); }
+                NuSerial.println("ok " + cmd);
+            }
+            else
+            {
+                NuSerial.println("err usage: special <start|select|home> <on|off>");
+            }
+        }
+        else
+        {
+            NuSerial.println("err usage: special <start|select|home> <on|off>");
+        }
+        return;
+    }
     if (cmd.startsWith("battery "))
     {
         int lvl = cmd.substring(8).toInt();
@@ -200,6 +303,99 @@ void handleCommand(String cmd)
         {
             NuSerial.println("err battery must be 0..100");
         }
+        return;
+    }
+    if (cmd.startsWith("power "))
+    {
+        // power <batteryPowerInfo> <discharging> <charging> <level>, each 0..3
+        int p[4];
+        int idx = 6, ok = 1;
+        for (int i = 0; i < 4; i++)
+        {
+            int sp = cmd.indexOf(' ', idx);
+            String tok = (sp > 0 || i == 3) ? cmd.substring(idx, sp > 0 ? sp : cmd.length()) : "";
+            if (tok.length() == 0) { ok = 0; break; }
+            p[i] = tok.toInt();
+            if (p[i] < 0 || p[i] > 3) { ok = 0; break; }
+            idx = sp + 1;
+        }
+        if (ok)
+        {
+            bleGamepad.setPowerStateAll((uint8_t)p[0], (uint8_t)p[1], (uint8_t)p[2], (uint8_t)p[3]);
+            NuSerial.println("ok " + cmd);
+        }
+        else
+        {
+            NuSerial.println("err usage: power <b> <d> <c> <l>, each 0..3");
+        }
+        return;
+    }
+    if (cmd == "pair")
+    {
+        NuSerial.println("pairing mode - waiting for a NEW host to pair (terminal unresponsive till then)...");
+        if (bleGamepad.enterPairingMode())
+        {
+            NuSerial.println("ok paired with new host");
+        }
+        else
+        {
+            NuSerial.println("err pairing failed");
+        }
+        return;
+    }
+    if (cmd == "unpair")
+    {
+        if (bleGamepad.deleteBond(false))
+        {
+            NuSerial.println("ok current bond deleted");
+        }
+        else
+        {
+            NuSerial.println("err no bond to delete");
+        }
+        return;
+    }
+    if (cmd.startsWith("unpairall"))
+    {
+        if (cmd == "unpairall confirm")
+        {
+            if (bleGamepad.deleteAllBonds(false))
+            {
+                NuSerial.println("ok all bonds deleted");
+            }
+            else
+            {
+                NuSerial.println("err delete failed");
+            }
+        }
+        else
+        {
+            NuSerial.println("err usage: unpairall confirm");
+        }
+        return;
+    }
+    if (cmd.startsWith("txpower "))
+    {
+        int v = cmd.substring(8).toInt();
+        if (validTxPower(v))
+        {
+            bleGamepad.setTXPowerLevel((int8_t)v);
+            NuSerial.println("ok txpower " + String(v));
+        }
+        else
+        {
+            NuSerial.println("err txpower must be one of -12 -9 -6 -3 0 3 6 9");
+        }
+        return;
+    }
+    if (cmd == "txpower?")
+    {
+        NuSerial.println("txpower " + String(bleGamepad.getTXPowerLevel()));
+        return;
+    }
+    if (cmd == "addr?")
+    {
+        NuSerial.println("addr " + bleGamepad.getStringAddress());
         return;
     }
     NuSerial.println("err unknown command - send 'help'");
