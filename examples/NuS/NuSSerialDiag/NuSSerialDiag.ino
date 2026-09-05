@@ -30,8 +30,16 @@
 
 #include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
+#if !__has_include("NuSerial.hpp")
+#error "Install NuS-NimBLE-Serial from the Arduino Library Manager (see docs/NuSCompatibility.md)"
+#endif
 #include <NuSerial.hpp> // https://github.com/afpineda/NuS-NimBLE-Serial
 #include <NimBLEDevice.h>
+
+// Machine-readable sketch identity for companion apps (see examples/NuS/README.md).
+// Greeted on subscribe, queryable via the 'proto?' command.
+#define NUS_PROFILE_ID "nus-diag"
+#define NUS_PROTO_VER 1
 
 #ifndef LED_BUILTIN
 #define LED_BUILTIN 2 // Fallback if the board package doesn't define one
@@ -140,8 +148,13 @@ void handleCommand(const String &received)
     {
         NuSerial.println("Available commands:");
         NuSerial.println("  help     - show this help message");
+        NuSerial.println("  proto?   - show sketch profile id and protocol version");
         NuSerial.println("  button4  - press BUTTON_4 for 5s (tests NUS input/output + gamepad HID)");
         NuSerial.println("Anything else is echoed straight back.");
+    }
+    else if (command == "proto?")
+    {
+        NuSerial.println("proto " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
     }
     else if (command == "button4")
     {
@@ -184,6 +197,7 @@ void loop()
     size_t subs = NuSerial.subscriberCount();
     if (subs > 0 && lastNusSubscribers == 0)
     {
+        NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
         NuSerial.println("[NUS] Subscribed. Send 'help' for a list of commands.");
         Serial.printf("[NUS] subscriber appeared (free_heap=%u)\n", ESP.getFreeHeap());
     }

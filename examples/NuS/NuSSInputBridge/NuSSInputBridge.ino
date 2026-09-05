@@ -25,8 +25,16 @@
 
 #include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
+#if !__has_include("NuSerial.hpp")
+#error "Install NuS-NimBLE-Serial from the Arduino Library Manager (see docs/NuSCompatibility.md)"
+#endif
 #include <NuSerial.hpp> // https://github.com/afpineda/NuS-NimBLE-Serial
 #include <NimBLEDevice.h>
+
+// Machine-readable sketch identity for companion apps (see examples/NuS/README.md).
+// Greeted on subscribe, queryable via the 'proto?' command.
+#define NUS_PROFILE_ID "nus-bridge/sinput"
+#define NUS_PROTO_VER 1
 
 #define STATE_INTERVAL_MS 3000 // How often to push a state summary to subscribers
 
@@ -75,6 +83,7 @@ void printHelp()
 {
     NuSerial.println("Commands:");
     NuSerial.println("  help                    - show this message");
+    NuSerial.println("  proto?                  - show sketch profile id and protocol version");
     NuSerial.println("  press <1..25>           - press a button");
     NuSerial.println("  release <1..25>         - release a button");
     NuSerial.println("  stick left <x> <y>      - left stick, each -32767..32767");
@@ -138,6 +147,7 @@ void handleCommand(String cmd)
     cmd.toLowerCase();
 
     if (cmd == "help") { printHelp(); return; }
+    if (cmd == "proto?") { NuSerial.println("proto " NUS_PROFILE_ID " " + String(NUS_PROTO_VER)); return; }
     if (cmd == "status") { pushState(); return; }
     if (cmd == "led?") { pushLed(); return; }
     if (cmd == "rumble?") { pushRumble(); return; }
@@ -458,6 +468,7 @@ void loop()
     size_t subs = NuSerial.subscriberCount();
     if (subs > 0 && lastNusSubscribers == 0)
     {
+        NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
         NuSerial.println("[NuS] SInput bridge ready. Send 'help'.");
     }
     lastNusSubscribers = subs;

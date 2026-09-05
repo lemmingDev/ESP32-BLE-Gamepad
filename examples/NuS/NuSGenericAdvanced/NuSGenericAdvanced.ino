@@ -24,8 +24,16 @@
 
 #include <Arduino.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
+#if !__has_include("NuSerial.hpp")
+#error "Install NuS-NimBLE-Serial from the Arduino Library Manager (see docs/NuSCompatibility.md)"
+#endif
 #include <NuSerial.hpp> // https://github.com/afpineda/NuS-NimBLE-Serial
 #include <NimBLEDevice.h>
+
+// Machine-readable sketch identity for companion apps (see examples/NuS/README.md).
+// Greeted on subscribe, queryable via the 'proto?' command.
+#define NUS_PROFILE_ID "nus-bridge/generic-advanced"
+#define NUS_PROTO_VER 1
 
 #define STATE_INTERVAL_MS 3000 // How often to push a state summary to subscribers
 #define REPORT_LEN 64          // Must match the output/feature report lengths in setup()
@@ -80,6 +88,7 @@ void printHelp()
 {
     NuSerial.println("Commands (16 buttons, 8 axes, 1 hat + start/select + reports):");
     NuSerial.println("  help                 - show this message");
+    NuSerial.println("  proto?               - show sketch profile id and protocol version");
     NuSerial.println("  press <1..16>        - press a button");
     NuSerial.println("  release <1..16>      - release a button");
     NuSerial.println("  special <start|select> <on|off>");
@@ -173,6 +182,7 @@ void handleCommand(String cmd)
     cmd.toLowerCase();
 
     if (cmd == "help") { printHelp(); return; }
+    if (cmd == "proto?") { NuSerial.println("proto " NUS_PROFILE_ID " " + String(NUS_PROTO_VER)); return; }
     if (cmd == "status") { pushState(); return; }
     if (cmd == "output?")
     {
@@ -444,6 +454,7 @@ void loop()
     size_t subs = NuSerial.subscriberCount();
     if (subs > 0 && lastNusSubscribers == 0)
     {
+        NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
         NuSerial.println("[NuS] Advanced Generic bridge ready. Send 'help'.");
     }
     lastNusSubscribers = subs;

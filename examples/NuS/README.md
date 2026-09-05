@@ -29,7 +29,33 @@ report) to unlock `special`, `output?`, and `feature get`/`set`. Pick strict
 if you want the smallest descriptor and a guaranteed-default device; pick
 advanced if you need specials or host-to-device HID reports.
 
-## Shared pattern (all four sketches)
+## Wire contract for companion apps
+
+Every sketch here identifies itself the same machine-readable way, so a
+companion app (e.g. `NuS-Gamepad-Companion`) can auto-select the right
+command profile instead of asking the user:
+
+- On NUS subscribe, each sketch pushes `hello <profile-id> <proto-ver>`
+  (currently `1`) before the human-readable greeting.
+- The `proto?` command returns `proto <profile-id> <proto-ver>` on demand.
+- Line vocabulary is shared: `ok` / `err` replies, `event <name> …` pushes,
+  periodic `state …` lines, everything else informational.
+
+Profile IDs (v1):
+
+| Sketch | `hello` / `proto?` identity |
+|--------|------------------------------|
+| NuSSerialDiag | `nus-diag` |
+| NuSGenericBridge | `nus-bridge/generic-strict` |
+| NuSGenericAdvanced | `nus-bridge/generic-advanced` |
+| NuSSInputBridge | `nus-bridge/sinput` |
+| NuSXInputBridge | `nus-bridge/xinput` |
+
+Bump `NUS_PROTO_VER` (and document the delta here) if the vocabulary ever
+changes incompatibly. Sketches for other firmware (e.g. CompositeHID bridges)
+should mint their own `nus-bridge/<name>` IDs under the same scheme.
+
+## Shared pattern (all sketches)
 
 ```cpp
 BleGamepad bleGamepad("...", "Espressif", 100, true); // delayAdvertising = true
