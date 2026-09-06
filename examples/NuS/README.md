@@ -35,8 +35,10 @@ Every sketch here identifies itself the same machine-readable way, so a
 companion app (e.g. `NuS-Gamepad-Companion`) can auto-select the right
 command profile instead of asking the user:
 
-- On NUS subscribe, each sketch pushes `hello <profile-id> <proto-ver>`
-  (currently `1`) before the human-readable greeting.
+- ~500ms after ANY subscriber-count increase, each sketch pushes
+  `hello <profile-id> <proto-ver>` (currently `1`) before the human-readable
+  greeting — so second and later subscribers are greeted too, and the delay
+  lets the new subscriber's notify handler attach first (CCCD race).
 - The `proto?` command returns `proto <profile-id> <proto-ver>` on demand.
 - Line vocabulary is shared: `ok` / `err` replies, `event <name> …` pushes,
   periodic `state …` lines, everything else informational.

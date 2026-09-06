@@ -393,10 +393,11 @@ void loop()
     {
         nusGreetAt = 0;
     }
-    else if (lastNusSubscribers == 0)
+    else if (subs > lastNusSubscribers)
     {
-        // Hold the greeting 500ms so the subscriber's notify handler is
+        // New arrival(s): hold the greeting 500ms so the notify handler is
         // attached before we push (avoids losing hello to the CCCD race).
+        // Triggers on ANY increase so later subscribers are greeted too.
         nusGreetAt = millis() + 500;
     }
     else if (nusGreetAt != 0 && (long)(millis() - nusGreetAt) >= 0)

@@ -220,11 +220,13 @@ void loop()
         }
         nusGreetAt = 0;
     }
-    else if (lastNusSubscribers == 0)
+    else if (subs > lastNusSubscribers)
     {
-        // New subscriber: hold the greeting 500ms so its notify handler is
+        // New arrival(s): hold the greeting 500ms so the notify handler is
         // attached before we push (a notify sent during CCCD enable can be
         // lost in the race - the client can always ask again via 'proto?').
+        // Triggers on ANY increase, not just 0->1, so later subscribers are
+        // greeted too (one greeting covers simultaneous arrivals).
         nusGreetAt = millis() + 500;
         Serial.printf("[NUS] subscriber appeared (free_heap=%u)\n", ESP.getFreeHeap());
     }
