@@ -1,0 +1,117 @@
+---
+name: HIL
+
+# Compile-only CI (main.yml / platformio.yml) proves the library builds. This
+# workflow proves it still *behaves* on real hardware: it hands a library ref to
+# the hardware-in-the-loop rig -- LeeNX/ESP32-BLE-Gamepad-HIL -- which builds the
+# hil_runner firmware, flashes a physical ESP32, and runs the BLE-HID +
+# latency suite against a Linux host's evdev / GATT stack. See HilTesting.md.
+#
+# The rig, its Tailscale credentials and the tester SSH key live entirely in the
+# rig repo. Each repo that runs this workflow (upstream lemmingDev and the LeeNX
+# fork -- see the job's `if:`) needs one secret of its own:
+#
+#   HIL_DISPATCH_TOKEN   PAT for LeeNX/ESP32-BLE-Gamepad-HIL with
+#                        Contents: write  (to POST repository_dispatch)
+#                        Actions:  read   (to poll the triggered run)
+#                        Classic PAT equivalent: `repo` scope.
+#
+# The job dispatches, then blocks until the rig run finishes and takes on its
+# pass/fail. It is a thin waiter -- most of its wall-clock time is spent idle
+# waiting on the Pi.
+
+'on':
+  push:
+    branches:
+      - "master"
+  pull_request:
+    # HID report descriptor, button/axis/hat emission, DIS/PnP/battery,
+    # feature/output reports, connection handling -- the things the rig
+    # actually exercises. Doc- and example-only PRs skip it.
+    paths:
+      - "BleGamepad.cpp"
+      - "BleGamepad.h"
+      - "BleGamepadConfiguration.cpp"
+      - "BleGamepadConfiguration.h"
+      - "BleConnectionStatus.cpp"
+      - "BleConnectionStatus.h"
+      - "BleFeatureReport.cpp"
+      - "BleFeatureReport.h"
+      - "BleOutputReceiver.cpp"
+      - "BleOutputReceiver.h"
+      - "BleNUS.cpp"
+      - "BleNUS.h"
+      - ".github/workflows/hil.yml"
+      - ".github/scripts/hil_dispatch.sh"
+  workflow_dispatch:
+    inputs:
+      lib_ref:
+        description: >-
+          Library ref (branch / tag / SHA) to run the HIL suite against.
+          Blank = the branch this workflow is dispatched on.
+        required: false
+  schedule:
+    - cron: "45 3 * * 1"    # Mondays 03h45 UTC -- catch tester environment drift
+
+concurrency:
+  # One physical rig (the rig repo serialises too); never stack dispatches.
+  group: hil
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  hil:
+    # The rig + its Tailscale / tester secrets live in LeeNX/ESP32-BLE-Gamepad-HIL.
+    # Upstream and the LeeNX fork both drive it; each must set its own
+    # HIL_DISPATCH_TOKEN secret (a PAT scoped to the rig repo -- Contents: write +
+    # Actions: read). Any other fork skips the job cleanly.
+    if: >-
+      github.repository == 'lemmingDev/ESP32-BLE-Gamepad' ||
+      github.repository == 'LeeNX/ESP32-BLE-Gamepad'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Resolve library ref under test
+        id: ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REF: ${{ inputs.lib_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          case "$EVENT_NAME" in
+            pull_request)
+              # The rig clones the canonical repo by ref; it has no access to a
+              # contributor's fork, and fork PRs get no secrets anyway.
+              if [ "$PR_HEAD_REPO" != "${{ github.repository }}" ]; then
+                echo "::warning::HIL skipped: PR head is a fork ($PR_HEAD_REPO)."
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              lib_ref="$PR_HEAD_REF"
+              ;;
+            workflow_dispatch)
+              lib_ref="${INPUT_REF:-$REF_NAME}"
+              ;;
+            *)
+              lib_ref="$REF_NAME"
+              ;;
+          esac
+          echo "lib_ref=$lib_ref" >> "$GITHUB_OUTPUT"
+          echo "Library ref under test: $lib_ref"
+
+      - name: Trigger the HIL rig and wait for its result
+        if: steps.ref.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.HIL_DISPATCH_TOKEN }}
+          RIG_REPO: LeeNX/ESP32-BLE-Gamepad-HIL
+          RIG_WORKFLOW: hil.yml
+          LIB_REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          LIB_REF: ${{ steps.ref.outputs.lib_ref }}
+          SOURCE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/hil_dispatch.sh

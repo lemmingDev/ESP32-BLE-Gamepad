@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read  # download the test-firmware artifacts from the triggering run
 
     steps:
       - name: Checkout tag
@@ -72,6 +73,24 @@ jobs:
               --generate-notes \
               $prerelease_flag
           fi
+
+      - name: Download test firmware artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download "${{ github.event.workflow_run.id }}" \
+            --repo "${{ github.repository }}" \
+            --pattern 'test-firmware-*' \
+            --dir firmware
+
+      - name: Attach test firmware to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Artifacts download into per-artifact subdirs; upload every .bin.
+          find firmware -type f -name '*.bin' -exec \
+            gh release upload "${{ steps.version.outputs.tag }}" {} \
+              --repo "${{ github.repository }}" --clobber ';'
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -167,4 +186,75 @@ jobs:
           {
             echo "### PlatformIO package"
             echo "[$PACKAGE_OWNER/$PACKAGE_NAME]($PACKAGE_URL)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Attach the HIL firmware set to the release: the hil_runner firmware for every
+  # board x profile, built against this tag, so anyone can flash it and run the
+  # rig's pytest suite without PlatformIO. See HilTesting.md "Reproducing".
+  #
+  # Opt-in: skipped unless the repo variable HIL_RIG_REF is set to a rig ref
+  # (a tag from HIL_RIG_REPO, default LeeNX/ESP32-BLE-Gamepad-HIL). No secrets
+  # needed -- the rig is a public checkout, PlatformIO needs nothing, and the
+  # upload uses GITHUB_TOKEN.
+  hil-firmware:
+    needs: release
+    if: vars.HIL_RIG_REF != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the library at the tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: lib
+
+      - name: Checkout the HIL rig
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.HIL_RIG_REPO || 'LeeNX/ESP32-BLE-Gamepad-HIL' }}
+          ref: ${{ vars.HIL_RIG_REF }}
+          path: rig
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+
+      - name: Build the firmware matrix
+        working-directory: rig
+        run: |
+          printf '[rig]\nlib_dir = "%s/lib"\npio = "%s"\n' \
+            "$GITHUB_WORKSPACE" "$(command -v pio)" > hil_config.local.toml
+          ./builder/build.sh   # boards + profiles from the rig's hil_config.toml [builder]
+
+      - name: Package and attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.workflow_run.head_branch }}
+          RIG_REF: ${{ vars.HIL_RIG_REF }}
+          RIG_REPO: ${{ vars.HIL_RIG_REPO || 'LeeNX/ESP32-BLE-Gamepad-HIL' }}
+        run: |
+          out="esp32-ble-gamepad-hil-firmware-${TAG}.zip"
+          jq -n \
+            --arg library_tag "$TAG" \
+            --arg library_sha "$(git -C lib rev-parse HEAD)" \
+            --arg rig_repo "$RIG_REPO" \
+            --arg rig_ref "$RIG_REF" \
+            --arg rig_sha "$(git -C rig rev-parse HEAD)" \
+            --arg built_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '$ARGS.named' > rig/bundles/INDEX.json
+          ( cd rig
+            extra=()
+            [ -f REPRODUCE.md ] && extra=(REPRODUCE.md)
+            zip -qr "$GITHUB_WORKSPACE/$out" bundles firmware/golden "${extra[@]}" )
+          sha256sum "$out" | tee "$out.sha256"
+          gh release upload "$TAG" "$out" "$out.sha256" \
+            --repo "${{ github.repository }}" --clobber
+          {
+            echo "### HIL firmware set"
+            echo "\`$out\` — $(cd rig && git rev-parse --short HEAD) of \`$RIG_REPO\` @ \`$RIG_REF\`"
           } >> "$GITHUB_STEP_SUMMARY"

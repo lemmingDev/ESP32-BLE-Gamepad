@@ -11,7 +11,16 @@ name: ESP32-BLE-Gamepad platformio CI
       - "master"
       - "ci-builds-*"
   pull_request:
+  # Ad-hoc builds with no local toolchain: fork the repo (or use this one if you
+  # have write access), open the Actions tab, pick this workflow, "Run workflow",
+  # optionally enter a ref to build, then download the test-firmware-<board>
+  # artifact from the finished run. See test/ci_build/README.md.
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or SHA to build (blank = the branch you run this from; a PR is refs/pull/<number>/head)"
+        required: false
+        type: string
 
 concurrency:
   # https://docs.github.com/en/actions/examples/using-concurrency-expressions-and-a-test-matrix
@@ -31,10 +40,21 @@ jobs:
         # espidf). Re-enable once that lands; see the commented-out
         # [env:esp32c6] in test/ci_build/platformio.ini.
         board: [esp32dev, esp32s3, esp32c3]
+        include:
+          # `chip` is the name esptool expects when flashing the artifact.
+          - board: esp32dev
+            chip: esp32
+          - board: esp32s3
+            chip: esp32s3
+          - board: esp32c3
+            chip: esp32c3
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          # Empty for non-dispatch events, so checkout uses the triggering ref.
+          ref: ${{ inputs.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -46,8 +66,38 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Build Test firmware for ${{ matrix.board }}
+      - name: Build test firmware for ${{ matrix.board }}
         run: |
           # pio run -d examples/TestAll/TestAll.ino -e ${{ matrix.board }} -D BLE_GAMEPAD_DEBUG=1 --verbose
           cd test/ci_build
           pio run -e ${{ matrix.board }}
+
+      - name: Collect firmware binaries
+        run: |
+          cd test/ci_build
+          build_dir=".pio/build/${{ matrix.board }}"
+          mkdir -p dist
+          cp "$build_dir/firmware.bin" "dist/test-firmware-${{ matrix.board }}.bin"
+          cp "$build_dir/firmware-factory.bin" "dist/test-firmware-${{ matrix.board }}-factory.bin"
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-firmware-${{ matrix.board }}
+          path: test/ci_build/dist/*.bin
+
+      - name: Flashing instructions
+        run: |
+          {
+            echo "### Test firmware — ${{ matrix.board }}"
+            echo
+            echo "Download the \`test-firmware-${{ matrix.board }}\` artifact, then either:"
+            echo
+            echo '- Flash `test-firmware-'"${{ matrix.board }}"'-factory.bin` at offset `0x0`:'
+            echo
+            echo '  ```'
+            echo '  esptool.py --chip ${{ matrix.chip }} write_flash 0x0 test-firmware-${{ matrix.board }}-factory.bin'
+            echo '  ```'
+            echo
+            echo '- Or drag that `-factory.bin` onto <https://espressif.github.io/esptool-js/> (flash address `0x0`).'
+          } >> "$GITHUB_STEP_SUMMARY"
