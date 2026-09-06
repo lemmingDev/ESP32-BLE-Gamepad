@@ -146,6 +146,37 @@ After a disconnect, `advertiseOnDisconnect(true)` (set by this library)
 restarts advertising automatically with the same data, so both paths keep
 working across reconnections without further code.
 
+## Troubleshooting
+
+**Terminal can't find the NUS service, but the sketch is running it.**
+Windows caches the GATT database per bonded device and only refreshes it on
+a Service Changed indication or a fresh pairing. Reflashing the firmware does
+not invalidate that cache, so a scanner can show a stale service list (missing
+NUS, or missing characteristics inside it) while the service works fine for
+already-connected clients. Fix: Windows Settings → Bluetooth & devices →
+remove the gamepad, then pair again. This only bites during firmware
+development; end users flash once and bond once.
+
+**Board sits in `waiting for download` after flashing.**
+Some boards' auto-reset circuits leave the chip strapped into the ROM
+bootloader instead of rebooting into flash (esptool reports success and
+"Hard resetting" anyway). Fix: press EN/RST (or power-cycle). Firmware-side
+there is nothing to change.
+
+**No `hello` line after subscribing.**
+The greeting is best-effort: a notify sent while the central is still
+enabling notifications (CCCD race) can be lost, so the sketches hold it
+500ms — and always answer `proto?` on demand. If neither arrives, the link
+itself is suspect, not the greeting. Related: NuS only decrements its
+subscriber count on *explicit unsubscribe*, so clients that disconnect
+dirty leave a phantom subscriber until reboot (status pushes keep flowing
+to nobody). Tear down cleanly — unsubscribe before disconnecting.
+
+**`addServiceUUID()` reports false in the serial monitor.**
+The scan-response payload is full too (it holds the 128-bit NUS UUID plus
+whatever else overflowed there). Serial still works via GATT service
+discovery after connecting; only service-UUID scan filtering is lost.
+
 ## Client apps
 
 Any BLE terminal supporting the Nordic UART Service works. Known-good options
