@@ -41,6 +41,9 @@
 #define NUS_PROFILE_ID "nus-diag"
 #define NUS_PROTO_VER 1
 
+// Nordic UART Service UUID, advertised in the scan response (see setup()).
+#define NUS_ADV_UUID "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+
 #ifndef LED_BUILTIN
 #define LED_BUILTIN 2 // Fallback if the board package doesn't define one
 #endif
@@ -77,6 +80,7 @@ bool ledState = false;
 unsigned long lastLedToggleTime = 0;
 
 size_t lastNusSubscribers = 0;
+unsigned long nusGreetAt = 0; // millis() timestamp for the delayed greeting, 0 = none pending
 String nusLine; // Accumulates one incoming NUS line
 
 void setup()
@@ -106,8 +110,21 @@ void setup()
     // false = register the NuS service but leave advertising alone.
     NuSerial.start(false);
 
+    // Advertise the NuS service UUID in the scan response. The 31-byte adv
+    // packet is already full (flags + appearance + HID UUID + truncated
+    // name), so addServiceUUID overflows the 128-bit NUS UUID into the scan
+    // response payload automatically once scan responses are enabled. Active
+    // scanners then see NUS for service-UUID filtering; passive-scan bytes
+    // are unchanged from before.
+    NimBLEAdvertising *pAdvertising = NimBLEDevice::getServer()->getAdvertising();
+    pAdvertising->enableScanResponse(true);
+    if (!pAdvertising->addServiceUUID(NUS_ADV_UUID))
+    {
+        Serial.println("[Diagnostics] WARNING: NuS UUID did not fit advertising data.");
+    }
+
     // Advertise once for both services together.
-    NimBLEDevice::getServer()->getAdvertising()->start();
+    pAdvertising->start();
 
     bleGamepad.setBatteryLevel(batteryLevel);
 
@@ -195,15 +212,27 @@ void loop()
     // from the general BLE link (a central can be connected without ever
     // subscribing, in which case NUS pushes would silently go nowhere).
     size_t subs = NuSerial.subscriberCount();
-    if (subs > 0 && lastNusSubscribers == 0)
+    if (subs == 0)
     {
-        NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
-        NuSerial.println("[NUS] Subscribed. Send 'help' for a list of commands.");
+        if (lastNusSubscribers > 0)
+        {
+            Serial.println("[NUS] all subscribers gone");
+        }
+        nusGreetAt = 0;
+    }
+    else if (lastNusSubscribers == 0)
+    {
+        // New subscriber: hold the greeting 500ms so its notify handler is
+        // attached before we push (a notify sent during CCCD enable can be
+        // lost in the race - the client can always ask again via 'proto?').
+        nusGreetAt = millis() + 500;
         Serial.printf("[NUS] subscriber appeared (free_heap=%u)\n", ESP.getFreeHeap());
     }
-    else if (subs == 0 && lastNusSubscribers > 0)
+    else if (nusGreetAt != 0 && (long)(millis() - nusGreetAt) >= 0)
     {
-        Serial.println("[NUS] all subscribers gone");
+        nusGreetAt = 0;
+        NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
+        NuSerial.println("[NUS] Subscribed. Send 'help' for a list of commands.");
     }
     lastNusSubscribers = subs;
 

@@ -121,13 +121,26 @@ HID profile. Gate gamepad behavior on `bleGamepad.isConnected()` and serial
 pushes on `NuSerial.isConnected()` separately. (Writes with no subscriber are
 silently dropped, so the `isConnected()` guard just saves you work.)
 
-## Advertising caveat: the NuS UUID is not in the adv packet
+## Advertising: NuS UUID rides in the scan response
 
-The 31-byte BLE advertising packet is already full (flags + name + 16-bit HID
-UUID), and the 128-bit Nordic UART UUID (`6E400001-...`) does not fit. This is
-fine in practice: terminal apps (nRF Connect, Serial Bluetooth Terminal — see
-below) connect to the advertised gamepad and then find the NuS service via
-standard GATT service discovery. No extra configuration needed.
+The 31-byte BLE advertising packet is already full (flags + appearance +
+16-bit HID UUID + truncated name), and the 128-bit Nordic UART UUID
+(`6E400001-...`) does not fit there. The sketches therefore enable scan
+responses and add the NuS UUID via `addServiceUUID()`, which NimBLE
+automatically overflows into the scan-response payload:
+
+```cpp
+NimBLEAdvertising *pAdvertising = NimBLEDevice::getServer()->getAdvertising();
+pAdvertising->enableScanResponse(true);
+pAdvertising->addServiceUUID("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+```
+
+Verified live: the adv packet carries flags + HID UUID and the scan response
+carries the NUS UUID, so scanners doing active scans (nRF Connect, Serial
+Bluetooth Terminal, `bleak`) can filter by service UUID. Passive-scan bytes
+are unchanged. If `addServiceUUID()` ever reports false (payload full), the
+sketches print a warning and carry on — serial still works via GATT service
+discovery after connecting.
 
 After a disconnect, `advertiseOnDisconnect(true)` (set by this library)
 restarts advertising automatically with the same data, so both paths keep

@@ -36,6 +36,9 @@
 #define NUS_PROFILE_ID "nus-bridge/sinput"
 #define NUS_PROTO_VER 1
 
+// Nordic UART Service UUID, advertised in the scan response (see setup()).
+#define NUS_ADV_UUID "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+
 #define STATE_INTERVAL_MS 3000 // How often to push a state summary to subscribers
 
 // delayAdvertising=true: begin() builds the HID service and configures
@@ -45,6 +48,7 @@ BleGamepadConfiguration config;
 
 unsigned long lastStateTime = 0;
 size_t lastNusSubscribers = 0;
+unsigned long nusGreetAt = 0; // millis() timestamp for the delayed greeting, 0 = none pending
 String nusLine; // Accumulates one incoming NUS line
 
 void setup()
@@ -73,8 +77,21 @@ void setup()
     // false = register the NuS service but leave advertising alone.
     NuSerial.start(false);
 
+    // Advertise the NuS service UUID in the scan response. The 31-byte adv
+    // packet is already full (flags + appearance + HID UUID + truncated
+    // name), so addServiceUUID overflows the 128-bit NUS UUID into the scan
+    // response payload automatically once scan responses are enabled. Active
+    // scanners then see NUS for service-UUID filtering; passive-scan bytes
+    // are unchanged from before.
+    NimBLEAdvertising *pAdvertising = NimBLEDevice::getServer()->getAdvertising();
+    pAdvertising->enableScanResponse(true);
+    if (!pAdvertising->addServiceUUID(NUS_ADV_UUID))
+    {
+        Serial.println("[NuSSInputBridge] WARNING: NuS UUID did not fit advertising data.");
+    }
+
     // Advertise once for both services together.
-    NimBLEDevice::getServer()->getAdvertising()->start();
+    pAdvertising->start();
 
     Serial.println("[NuSSInputBridge] Ready. Connect a BLE terminal and send 'help'.");
 }
@@ -466,8 +483,19 @@ void loop()
     // Greet new subscribers (NuSerial is a singleton - no subscribe callback
     // to override, so poll the count).
     size_t subs = NuSerial.subscriberCount();
-    if (subs > 0 && lastNusSubscribers == 0)
+    if (subs == 0)
     {
+        nusGreetAt = 0;
+    }
+    else if (lastNusSubscribers == 0)
+    {
+        // Hold the greeting 500ms so the subscriber's notify handler is
+        // attached before we push (avoids losing hello to the CCCD race).
+        nusGreetAt = millis() + 500;
+    }
+    else if (nusGreetAt != 0 && (long)(millis() - nusGreetAt) >= 0)
+    {
+        nusGreetAt = 0;
         NuSerial.println("hello " NUS_PROFILE_ID " " + String(NUS_PROTO_VER));
         NuSerial.println("[NuS] SInput bridge ready. Send 'help'.");
     }

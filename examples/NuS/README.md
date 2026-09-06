@@ -71,8 +71,11 @@ NimBLEDevice::getServer()->getAdvertising()->start();  // advertise once, both s
   automatic advertising and stomps the HID advertising setup.
 - `NuSerial` is a singleton with no subscribe callback: poll
   `NuSerial.subscriberCount()` / `NuSerial.isConnected()`.
-- The NUS UUID is not in the 31-byte advertising packet (it is full);
-  terminal apps find NuS via GATT service discovery after connecting.
+- The 128-bit NUS UUID is advertised in the scan response (the 31-byte adv
+  packet itself is full), so active scanners can filter by service UUID.
+- The `hello` greeting is held 500ms after a new subscriber appears, so the
+  subscriber's notify handler is attached before the push (a notify sent
+  during CCCD enable can be lost). `proto?` re-queries the identity anytime.
 
 ## Which one do I want?
 
