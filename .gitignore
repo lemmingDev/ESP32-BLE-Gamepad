@@ -52,3 +52,8 @@ obj/
 __pycache__/
 *.pyc
 .venv/
+
+# ========================
+# hardware-in-the-loop run output pulled back by scripts/hil.sh
+# ========================
+hil-results/

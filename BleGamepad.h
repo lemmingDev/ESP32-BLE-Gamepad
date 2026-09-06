@@ -220,6 +220,17 @@ class BleGamepad
     NimBLEConnInfo getPeerInfo();
     String getDeviceName();
     String getDeviceManufacturer();
+    // Size (in bytes) of the HID input report and of the generated HID report
+    // descriptor. Both are (re)computed from scratch on every begin() call and
+    // read 0 before the first one. The descriptor is assembled into a fixed
+    // tempHidReportDescriptor[512] buffer, so getHidReportDescriptorSize()
+    // approaching 512 means the current configuration is close to overflowing it.
+    uint8_t getHidReportSize() const { return hidReportSize; }
+    int getHidReportDescriptorSize() const { return hidReportDescriptorSize; }
+    // The generated HID report descriptor bytes (length = getHidReportDescriptorSize()).
+    // Valid after begin(); points into the internal buffer. Handy for logging
+    // it (see BLE_GAMEPAD_DEBUG) or asserting it in a test harness.
+    const uint8_t *getHidReportDescriptor() const { return tempHidReportDescriptor; }
     void setGyroscope(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0);
     void setAccelerometer(int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);
     void setMotionControls(int16_t gX = 0, int16_t gY = 0, int16_t gZ = 0, int16_t aX = 0, int16_t aY = 0, int16_t aZ = 0);

@@ -801,6 +801,14 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   BleGamepadConfiguration defaultConfig;
   configuration = config ? *config : defaultConfig;
 
+  // begin() may be called again to re-apply a changed configuration. Reset the
+  // sizes so they are recomputed from scratch: hidReportDescriptorSize indexes
+  // tempHidReportDescriptor as the descriptor is assembled below, so a stale
+  // non-zero value would append past the previous descriptor and overflow the
+  // fixed buffer. (They start at 0 from the constructor on the first call.)
+  hidReportDescriptorSize = 0;
+  hidReportSize = 0;
+
   GamepadMode mode = configuration.getGamepadMode();
   if (mode == GamepadMode::SInput || mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
   {
@@ -912,6 +920,17 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
   {
     enableSInput = false;
     buildGenericDescriptor();
+  }
+
+  // tempHidReportDescriptor is a fixed buffer. A very large configuration (max
+  // buttons + every axis/simulation control + motion + hats + feature/output
+  // reports) can approach its capacity; if it is ever exceeded the writes above
+  // have already run past the end of the array, so fail loud here rather than
+  // ship a silently corrupt descriptor. getHidReportDescriptorSize() lets a
+  // caller watch the headroom.
+  if (hidReportDescriptorSize > (int)sizeof(tempHidReportDescriptor))
+  {
+    NIMBLE_LOGE(LOG_TAG, "HID report descriptor (%d bytes) overflowed its %u-byte buffer", hidReportDescriptorSize, (unsigned)sizeof(tempHidReportDescriptor));
   }
 
   // Set task priority from 5 to 1 in order to get ESP32-C3 working
