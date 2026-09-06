@@ -57,6 +57,33 @@ Bump `NUS_PROTO_VER` (and document the delta here) if the vocabulary ever
 changes incompatibly. Sketches for other firmware (e.g. CompositeHID bridges)
 should mint their own `nus-bridge/<name>` IDs under the same scheme.
 
+## Scan-response aliases
+
+The 128-bit NUS UUID lives in the scan response, and a scanner filtering by
+service UUID shows whatever name (if any) shares that packet — the full
+device name cannot fit there next to the UUID. Each sketch therefore also
+advertises a short `NuS-…` alias in the scan response (same string a filtered
+view displays). The GAP/GATT display name and pairing UX are unaffected.
+
+| Sketch | Full name (GAP display + pairing) | Scan-response alias |
+|--------|-----------------------------------|---------------------|
+| NuSSerialDiag | ESP32 BLE Gamepad Diag | `ESP32-Diag` |
+| NuSGenericBridge | ESP32 Gamepad NuS Generic | `ESP32-Gen` |
+| NuSGenericAdvanced | ESP32 Gamepad NuS Adv | `ESP32-Adv` |
+| NuSSInputBridge | ESP32 Gamepad NuS SInput | `ESP32-SInput` |
+| NuSXInputBridge | Xbox Wireless Controller | `ESP32-Xbox` |
+
+Whether the full name also appears in the adv packet itself varies with
+length (the 25-char Xbox name demonstrably doesn't fit next to
+flags + appearance + HID UUID, and `setName()` fails silently) — the alias
+is the reliable scanner identity in every filtered view.
+
+Aliases deliberately echo the board family (`ESP32-…`, ≤11 chars so they
+share the scan response with the 128-bit NUS UUID): some stacks surface the
+scan-response name as *the* device name, so the alias must read as the same
+device, not a separate serial gadget. The GAP/pairing names above are
+untouched — Windows pairing display and the Xbox driver path don't change.
+
 ## Shared pattern (all sketches)
 
 ```cpp

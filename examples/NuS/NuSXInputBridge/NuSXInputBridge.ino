@@ -90,6 +90,16 @@ void setup()
     {
         Serial.println("[NuSXInputBridge] WARNING: NuS UUID did not fit advertising data.");
     }
+    // Short alias in the scan response so filtered scanner views (e.g. nRF
+    // Connect filtered by service UUID) show a name instead of N/A. The
+    // 25-char device name never fit the adv packet (setName failed silently
+    // there), so this stub is the only on-air name besides the GAP record -
+    // pairing display and the Xbox driver path are unaffected. With scan
+    // responses enabled, setName() targets the scan data only.
+    if (!pAdvertising->setName("ESP32-Xbox"))
+    {
+        Serial.println("[NuSXInputBridge] WARNING: NuS alias did not fit scan response.");
+    }
 
     // Advertise once for both services together.
     pAdvertising->start();
