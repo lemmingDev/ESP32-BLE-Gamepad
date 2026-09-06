@@ -122,6 +122,15 @@ void setup()
     {
         Serial.println("[Diagnostics] WARNING: NuS UUID did not fit advertising data.");
     }
+    // Short alias in the scan response so filtered scanner views (e.g. nRF
+    // Connect filtered by service UUID) show a name instead of N/A. The full
+    // device name cannot fit here alongside the 128-bit NUS UUID, so this
+    // stays a stub - the GAP/GATT display name is unaffected. With scan
+    // responses enabled, setName() targets the scan data only.
+    if (!pAdvertising->setName("NuS-Diag"))
+    {
+        Serial.println("[Diagnostics] WARNING: NuS alias did not fit scan response.");
+    }
 
     // Advertise once for both services together.
     pAdvertising->start();
