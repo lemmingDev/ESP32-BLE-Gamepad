@@ -2514,6 +2514,7 @@ void BleGamepad::taskServer(void *pvParameter)
   BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
 
   NimBLEDevice::init(BleGamepadInstance->deviceName);
+  NimBLEDevice::setPower(BleGamepadInstance->configuration.getTXPowerLevel()); // Set transmit power for advertising (Range: -12 to +9 dBm)
   NimBLEDevice::setDefaultPhy(BLE_GAP_LE_PHY_2M_MASK, BLE_GAP_LE_PHY_2M_MASK);
   NimBLEServer *pServer = NimBLEDevice::createServer();
   pServer->setCallbacks(BleGamepadInstance->connectionStatus);
