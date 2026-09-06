@@ -47,7 +47,7 @@ bin/
 obj/
 
 # ========================
-# Python (test scripts, e.g. examples/SInputPlayerLED)
+# Python (test scripts, e.g. examples/SInput/SInputPlayerLED)
 # ========================
 __pycache__/
 *.pyc

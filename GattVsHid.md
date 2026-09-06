@@ -136,7 +136,7 @@ Report `0x01` (mapped from the buttons/axes you already configure), a
 correct Features response on `0x02`, and Player LED handling on Output
 `0x03` — poll it with `bleGamepad.isPlayerLedReceived()` /
 `bleGamepad.getPlayerLedIndex()`, demonstrated in
-[examples/SInputPlayerLED](examples/SInputPlayerLED/SInputPlayerLED.ino).
+[examples/SInput/SInputPlayerLED](examples/SInput/SInputPlayerLED/SInputPlayerLED.ino).
 Haptics and RGB commands are accepted (the write succeeds) but not acted on
 — there's no rumble motor or RGB LED driven yet; see
 `BleSInputReceiver::onWrite()` for where to add one.
@@ -279,9 +279,9 @@ constraints.
 - [BleSInput.h](BleSInput.h)/[BleSInput.cpp](BleSInput.cpp) — this library's
   SInput implementation, with every report offset documented against the
   reference driver's (ID-prefixed) indices.
-- [examples/SInputPlayerLED](examples/SInputPlayerLED/SInputPlayerLED.ino) —
+- [examples/SInput/SInputPlayerLED](examples/SInput/SInputPlayerLED/SInputPlayerLED.ino) —
   a basic SInput sketch using the onboard LED to show the Player LED index,
   with a battery ramp to test against too.
-- [examples/SInputPlayerLED/host_test/SDL3Testing.md](examples/SInputPlayerLED/host_test/SDL3Testing.md) —
+- [examples/SInput/host_test/SDL3Testing.md](examples/SInput/host_test/SDL3Testing.md) —
   testing that sketch end-to-end against a real SDL3 app on Linux, including
   a ready-to-run test program.

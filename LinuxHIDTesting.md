@@ -282,7 +282,7 @@ which includes a `percentage:` line alongside `rechargeable`, `warning-level`,
 and `updated` (a timestamp confirming it's live, not a one-time cached read
 from pairing). To watch it change in the console as the firmware updates it
 — handy for confirming a battery-reporting sketch is actually working, e.g.
-[SInputPlayerLED.ino](examples/SInputPlayerLED/SInputPlayerLED.ino)'s ramp:
+[SInputPlayerLED.ino](examples/SInput/SInputPlayerLED/SInputPlayerLED.ino)'s ramp:
 
 ```bash
 watch -n1 "upower -i /org/freedesktop/UPower/devices/gaming_input_dev_14_2B_2F_EB_98_8A | grep percentage"
@@ -299,7 +299,7 @@ done
 
 This is independent of everything else in this doc — it works the same
 whether the device is running this library's classic configurable report or
-[SInput mode](examples/SInputPlayerLED/host_test/SDL3Testing.md), since both ride on
+[SInput mode](examples/SInput/host_test/SDL3Testing.md), since both ride on
 `setBatteryLevel()`/the same standard Battery Service, not a HID Report at
 all. See [GattVsHid.md](GattVsHid.md) for how that fits together with
 everything else this library exposes over BLE.

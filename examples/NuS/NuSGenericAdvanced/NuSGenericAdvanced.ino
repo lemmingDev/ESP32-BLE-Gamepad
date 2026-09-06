@@ -56,6 +56,12 @@ bool haveOutput = false;
 uint8_t lastFeature[REPORT_LEN];
 bool haveFeature = false;
 
+// Local mirrors of device state for the `status` readout (same pattern as NuSGenericBridge).
+int16_t stX = 0, stY = 0, stZ = 0, stRX = 0, stRY = 0, stRZ = 0, stS1 = 0, stS2 = 0;
+int stHat = 0;
+int stBattery = 100;
+int stPower[4] = {0, 0, 0, 0};
+
 void setup()
 {
     Serial.begin(115200);
@@ -174,14 +180,14 @@ int fromHex(const String &hex, uint8_t *buf, uint16_t maxLen)
 
 bool setAxisByName(const String &name, int16_t value)
 {
-    if (name == "x") { bleGamepad.setX(value); return true; }
-    if (name == "y") { bleGamepad.setY(value); return true; }
-    if (name == "z") { bleGamepad.setZ(value); return true; }
-    if (name == "rx") { bleGamepad.setRX(value); return true; }
-    if (name == "ry") { bleGamepad.setRY(value); return true; }
-    if (name == "rz") { bleGamepad.setRZ(value); return true; }
-    if (name == "s1") { bleGamepad.setSlider1(value); return true; }
-    if (name == "s2") { bleGamepad.setSlider2(value); return true; }
+    if (name == "x") { bleGamepad.setX(value); stX = value; return true; }
+    if (name == "y") { bleGamepad.setY(value); stY = value; return true; }
+    if (name == "z") { bleGamepad.setZ(value); stZ = value; return true; }
+    if (name == "rx") { bleGamepad.setRX(value); stRX = value; return true; }
+    if (name == "ry") { bleGamepad.setRY(value); stRY = value; return true; }
+    if (name == "rz") { bleGamepad.setRZ(value); stRZ = value; return true; }
+    if (name == "s1") { bleGamepad.setSlider1(value); stS1 = value; return true; }
+    if (name == "s2") { bleGamepad.setSlider2(value); stS2 = value; return true; }
     return false;
 }
 
@@ -200,6 +206,13 @@ void pushState()
     {
         s += bleGamepad.isPressed(b) ? "1" : "0";
     }
+    s += " axes=" + String(stX) + "," + String(stY) + "," + String(stZ) + "," +
+         String(stRX) + "," + String(stRY) + "," + String(stRZ) + "," +
+         String(stS1) + "," + String(stS2);
+    s += " hat=" + String(stHat);
+    s += " battery=" + String(stBattery);
+    s += " power=" + String(stPower[0]) + "," + String(stPower[1]) + "," +
+         String(stPower[2]) + "," + String(stPower[3]);
     NuSerial.println(s);
 }
 
@@ -302,6 +315,7 @@ void handleCommand(String cmd)
         if (h >= 0 && h <= 8)
         {
             bleGamepad.setHat1((signed char)h);
+            stHat = h;
             NuSerial.println("ok hat " + String(h));
         }
         else
@@ -316,6 +330,7 @@ void handleCommand(String cmd)
         if (lvl >= 0 && lvl <= 100)
         {
             bleGamepad.setBatteryLevel((uint8_t)lvl);
+            stBattery = lvl;
             NuSerial.println("ok battery " + String(lvl));
         }
         else
@@ -341,6 +356,7 @@ void handleCommand(String cmd)
         if (ok)
         {
             bleGamepad.setPowerStateAll((uint8_t)p[0], (uint8_t)p[1], (uint8_t)p[2], (uint8_t)p[3]);
+            stPower[0] = p[0]; stPower[1] = p[1]; stPower[2] = p[2]; stPower[3] = p[3];
             NuSerial.println("ok " + cmd);
         }
         else

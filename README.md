@@ -109,7 +109,7 @@ BleGamepad bleGamepad;
 BleGamepadConfiguration config;
 
 void setup() {
-  config.setGamepadMode(GamepadMode::XInputOneS);
+  config.setGamepadMode(GamepadMode::XInputSeriesX);
   bleGamepad.begin(&config);
 }
 

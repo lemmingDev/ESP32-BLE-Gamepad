@@ -55,6 +55,13 @@ size_t lastNusSubscribers = 0;
 unsigned long nusGreetAt = 0; // millis() timestamp for the delayed greeting, 0 = none pending
 String nusLine; // Accumulates one incoming NUS line
 
+// Local mirrors of device state for the `status` readout.
+int16_t stLX = 0, stLY = 0, stRX = 0, stRY = 0;
+int16_t stLT = 0, stRT = 0;
+int stHat = 0;
+int stBattery = 100;
+int stPower[4] = {0, 0, 0, 0};
+
 void setup()
 {
     Serial.begin(115200);
@@ -152,6 +159,12 @@ void pushState()
     {
         s += bleGamepad.isPressed(b) ? "1" : "0";
     }
+    s += " sticks=" + String(stLX) + "," + String(stLY) + "," + String(stRX) + "," + String(stRY);
+    s += " triggers=" + String(stLT) + "," + String(stRT);
+    s += " hat=" + String(stHat);
+    s += " battery=" + String(stBattery);
+    s += " power=" + String(stPower[0]) + "," + String(stPower[1]) + "," +
+         String(stPower[2]) + "," + String(stPower[3]);
     NuSerial.println(s);
 }
 
@@ -199,6 +212,7 @@ void handleCommand(String cmd)
         if (lvl >= 0 && lvl <= 100)
         {
             bleGamepad.setBatteryLevel((uint8_t)lvl);
+            stBattery = lvl;
             NuSerial.println("ok battery " + String(lvl));
         }
         else
@@ -224,6 +238,7 @@ void handleCommand(String cmd)
         if (ok)
         {
             bleGamepad.setPowerStateAll((uint8_t)p[0], (uint8_t)p[1], (uint8_t)p[2], (uint8_t)p[3]);
+            stPower[0] = p[0]; stPower[1] = p[1]; stPower[2] = p[2]; stPower[3] = p[3];
             NuSerial.println("ok " + cmd);
         }
         else
@@ -326,8 +341,8 @@ void handleCommand(String cmd)
             String which = cmd.substring(6, s1);
             int16_t x = (int16_t)cmd.substring(s1 + 1, s2).toInt();
             int16_t y = (int16_t)cmd.substring(s2 + 1).toInt();
-            if (which == "left") { bleGamepad.setLeftThumb(x, y); NuSerial.println("ok " + cmd); }
-            else if (which == "right") { bleGamepad.setRightThumb(x, y); NuSerial.println("ok " + cmd); }
+            if (which == "left") { bleGamepad.setLeftThumb(x, y); stLX = x; stLY = y; NuSerial.println("ok " + cmd); }
+            else if (which == "right") { bleGamepad.setRightThumb(x, y); stRX = x; stRY = y; NuSerial.println("ok " + cmd); }
             else { NuSerial.println("err usage: stick <left|right> <x> <y>"); }
         }
         else
@@ -345,6 +360,7 @@ void handleCommand(String cmd)
             int16_t l = (int16_t)cmd.substring(8, s1).toInt();
             int16_t r = (int16_t)cmd.substring(s1 + 1).toInt();
             bleGamepad.setTriggers(l, r);
+            stLT = l; stRT = r;
             NuSerial.println("ok " + cmd);
         }
         else
@@ -359,6 +375,7 @@ void handleCommand(String cmd)
         if (h >= 0 && h <= 8)
         {
             bleGamepad.setHat1((signed char)h);
+            stHat = h;
             NuSerial.println("ok hat " + String(h));
         }
         else
