@@ -67,16 +67,18 @@ view displays). The GAP/GATT display name and pairing UX are unaffected.
 
 | Sketch | Full name (GAP display + pairing) | Scan-response alias |
 |--------|-----------------------------------|---------------------|
-| NuSSerialDiag | ESP32 BLE Gamepad Diag | `ESP32-Diag` |
-| NuSGenericBridge | ESP32 Gamepad NuS Generic | `ESP32-Gen` |
-| NuSGenericAdvanced | ESP32 Gamepad NuS Adv | `ESP32-Adv` |
-| NuSSInputBridge | ESP32 Gamepad NuS SInput | `ESP32-SInput` |
-| NuSXInputBridge | Xbox Wireless Controller | `ESP32-Xbox` |
+| NuSSerialDiag | ESP32 BLE Gamepad Diag | `Diag-NuS` |
+| NuSGenericBridge | ESP32 Gamepad NuS Generic | `Generic-NuS` |
+| NuSGenericAdvanced | ESP32 Gamepad NuS Adv | `GenAdv-NuS` |
+| NuSSInputBridge | ESP32 Gamepad NuS SInput | `SInput-NuS` |
+| NuSXInputBridge | Xbox Wireless Controller | `XInput-NuS` |
 
-Whether the full name also appears in the adv packet itself varies with
-length (the 25-char Xbox name demonstrably doesn't fit next to
-flags + appearance + HID UUID, and `setName()` fails silently) — the alias
-is the reliable scanner identity in every filtered view.
+You'll usually see the alias, not the full name, in filtered scanner views —
+and it must stay ≤11 characters so it shares the scan response with the
+128-bit NUS UUID (18 + len + 2 ≤ 31). Whether the full name also appears in
+the adv packet itself varies with length (the 25-char Xbox name demonstrably
+doesn't fit next to flags + appearance + HID UUID, and `setName()` fails
+silently) — the alias is the reliable scanner identity in every view.
 
 Aliases deliberately echo the board family (`ESP32-…`, ≤11 chars so they
 share the scan response with the 128-bit NUS UUID): some stacks surface the

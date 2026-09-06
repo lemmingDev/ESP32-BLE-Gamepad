@@ -47,7 +47,7 @@
 // Note: begin() overrides the device name to "Xbox Wireless Controller" in
 // XInput modes (the Xbox driver matches on it), so the name below only
 // matters before begin() runs.
-BleGamepad bleGamepad("ESP32 Gamepad NuS XInput", "Espressif", 100, true);
+BleGamepad bleGamepad("Gamepad NuS XInput", "lemmingDev", 100, true);
 BleGamepadConfiguration config;
 
 unsigned long lastStateTime = 0;
@@ -90,13 +90,14 @@ void setup()
     {
         Serial.println("[NuSXInputBridge] WARNING: NuS UUID did not fit advertising data.");
     }
-    // Short alias in the scan response so filtered scanner views (e.g. nRF
-    // Connect filtered by service UUID) show a name instead of N/A. The
-    // 25-char device name never fit the adv packet (setName failed silently
-    // there), so this stub is the only on-air name besides the GAP record -
-    // pairing display and the Xbox driver path are unaffected. With scan
-    // responses enabled, setName() targets the scan data only.
-    if (!pAdvertising->setName("ESP32-Xbox"))
+    // Short alias in the scan response. You'll usually see THIS name, not the
+    // full device name, in filtered scanner views - and it MUST stay <= 11
+    // characters so it fits next to the 128-bit NUS UUID (18 + len + 2 <= 31).
+    // (The 25-char device name never fit the adv packet anyway, so this alias
+    // is the only on-air name besides the GAP record - pairing display and
+    // the Xbox driver path are unaffected.) With scan responses enabled,
+    // setName() targets the scan data only.
+    if (!pAdvertising->setName("XInput-NuS"))
     {
         Serial.println("[NuSXInputBridge] WARNING: NuS alias did not fit scan response.");
     }

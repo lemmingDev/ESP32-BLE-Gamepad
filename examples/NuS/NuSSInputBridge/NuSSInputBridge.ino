@@ -89,12 +89,12 @@ void setup()
     {
         Serial.println("[NuSSInputBridge] WARNING: NuS UUID did not fit advertising data.");
     }
-    // Short alias in the scan response so filtered scanner views (e.g. nRF
-    // Connect filtered by service UUID) show a name instead of N/A. The full
-    // device name cannot fit here alongside the 128-bit NUS UUID, so this
-    // stays a stub - the GAP/GATT display name is unaffected. With scan
-    // responses enabled, setName() targets the scan data only.
-    if (!pAdvertising->setName("ESP32-SInput"))
+    // Short alias in the scan response. You'll usually see THIS name, not the
+    // full device name, in filtered scanner views - and it MUST stay <= 11
+    // characters so it fits next to the 128-bit NUS UUID (18 + len + 2 <= 31).
+    // The GAP/GATT display name is unaffected. With scan responses enabled,
+    // setName() targets the scan data only.
+    if (!pAdvertising->setName("SInput-NuS"))
     {
         Serial.println("[NuSSInputBridge] WARNING: NuS alias did not fit scan response.");
     }
