@@ -8,15 +8,15 @@
  * terminal app (e.g. "Serial Bluetooth Terminal", nRF Connect) and type
  * "help" for the command list.
  *
- * This is the XInput-mode bridge (Xbox One S, VID 0x045E / PID 0x02FD):
+ * This is the XInput-mode bridge (Xbox Series X, VID 0x045E / PID 0x0B13):
  * drive A/B/X/Y/LB/RB/sticks/triggers/D-pad, special buttons (incl. Back for
  * Share), battery and bond/TX-power management from the terminal, and query
  * (or get pushed) the last rumble report the Xbox host sent via Output
- * Report 0x03 (strong/weak motors + trigger magnitudes). Change one line to
- * GamepadMode::XInputSeriesX for the Series X variant (PID 0x0B13, Share
- * button) - recommended for native XInput over BLE on Win11 22H2+. For the
- * Generic and SInput equivalents, see NuSGenericBridge and NuSSInputBridge
- * in this folder.
+ * Report 0x03 (strong/weak motors + trigger magnitudes). Series X is used
+ * for native XInput over BLE on Win11 22H2+; swap one line below to
+ * GamepadMode::XInputOneS for the One S variant (PID 0x02FD, broader
+ * xpad<6.5 compat). For the Generic and SInput equivalents, see
+ * NuSGenericBridge and NuSSInputBridge in this folder.
  *
  * Init order matters (see docs/NuSCompatibility.md): delayAdvertising=true,
  * wait for the NimBLE server, NuSerial.start(false), then start advertising
@@ -59,12 +59,12 @@ void setup()
 {
     Serial.begin(115200);
 
-    // XInput One S mode: 11 buttons (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home),
+    // XInput Series X mode: 11 buttons (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home),
     // Xbox VID/PID/serial. Do not override setVid()/setPid() - the host Xbox
     // driver recognises the device by that exact pair. Start/select/home/back
     // specials enabled so `special` drives the Xbox buttons (back = Share).
     // Note BUTTON_9/10/11 set the same Xbox bits as select/start/home.
-    config.setGamepadMode(GamepadMode::XInputOneS);
+    config.setGamepadMode(GamepadMode::XInputSeriesX);
     config.setWhichSpecialButtons(true, true, false, true, true, false, false, false);
     bleGamepad.begin(&config);
 
