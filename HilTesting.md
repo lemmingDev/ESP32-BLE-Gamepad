@@ -40,6 +40,7 @@ git clone https://github.com/LeeNX/ESP32-BLE-Gamepad-HIL ~/src/ESP32-BLE-Gamepad
 # from this repo, on whatever branch/working tree you want tested:
 HIL_SSH_HOST=<tester> HIL_SSH_USER=<user> scripts/hil.sh          # functional suite
 HIL_SSH_HOST=<tester> HIL_SSH_USER=<user> scripts/hil.sh --bench  # + latency benchmark
+scripts/hil.sh --by-board                                         # boards as parallel lanes (functional, ~3x)
 scripts/hil.sh --boards esp32dev --profiles "default maxbtn"
 scripts/hil.sh --profiles default -- -k buttons                   # args after -- go to pytest
 ```
@@ -51,8 +52,11 @@ scripts/hil.sh --profiles default -- -k buttons                   # args after -
 2. builds the `hil_runner` firmware bundles here;
 3. rsyncs the harness code **and** the bundles to the tester (its real
    serial-port config is preserved);
-4. ssh-runs `tester/test.sh` for each bundle — esptool flash, re-pair on any HID
-   descriptor change, pytest, and (with `--bench`) the benchmark sweep;
+4. ssh-runs `tester/test-all.sh` — which takes the **rig lock** (one physical
+   rig; blocks until any CI or other local run releases it), then for each
+   bundle: esptool flash, re-pair on any HID descriptor change, pytest, the
+   `--bench` sweep, one retry on failure. `--by-board` runs the boards as
+   parallel lanes (functional only — the latency sweep stays sequential);
 5. pulls `results/` back into `./hil-results/` (gitignored) and regenerates the
    distilled table + SVG charts.
 
@@ -67,7 +71,10 @@ from GitHub-hosted runners: it builds the firmware bundles, joins the tailnet as
 an ephemeral node (`tailscale/github-action`), and ssh-es to the tester by its
 MagicDNS name — no self-hosted runner, no inbound ports. It accepts a
 `repository_dispatch` of type `hil` with `client_payload.lib_repo` /
-`lib_ref`, so this library repo can hand it a ref to test.
+`lib_ref`, so this library repo can hand it a ref to test. A manual
+`workflow_dispatch` on the rig also takes `boards` / `profiles` / `test_filter`
+(a pytest `-k` expression) to narrow a run — handy for chasing one red test
+without the full ~80-minute sweep.
 
 This repo's `.github/workflows/hil.yml` is that trigger. It runs on push to
 `master`, on PRs that touch the HID/report/GATT source (path-filtered), weekly,
