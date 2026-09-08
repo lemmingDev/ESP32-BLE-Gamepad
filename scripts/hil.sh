@@ -11,8 +11,13 @@
 #
 #   scripts/hil.sh                                   # all boards + profiles, no bench
 #   scripts/hil.sh --bench                           # + latency/throughput benchmark
+#   scripts/hil.sh --by-board                        # boards as parallel lanes (functional only, ~3x)
 #   scripts/hil.sh --boards esp32dev --profiles "default maxbtn"
 #   scripts/hil.sh --profiles default -- -k buttons  # args after -- go to pytest
+#
+# On the tester it runs through tester/test-all.sh, which takes the rig lock
+# (waits out any CI or other local run) and retries a bundle once. --by-board
+# and --bench are mutually exclusive (the latency sweep must stay sequential).
 #
 # Env (HIL_SSH_HOST / HIL_SSH_USER are required -- set them or your ssh config):
 #   HIL_REPO      local ESP32-BLE-Gamepad-HIL checkout  (default: ~/src/ESP32-BLE-Gamepad-HIL)
@@ -34,16 +39,15 @@ REMOTE_DIR=ESP32-BLE-Gamepad-HIL          # harness checkout on the tester (see 
 SSH=(ssh -o BatchMode=yes); RSYNC_E=(ssh -o BatchMode=yes)
 if [[ -n ${HIL_SSH_KEY:-} ]]; then SSH+=(-i "$HIL_SSH_KEY"); RSYNC_E+=(-i "$HIL_SSH_KEY"); fi
 
-BOARDS=${HIL_BOARDS:-"esp32dev esp32c3"}
+BOARDS=${HIL_BOARDS:-"esp32dev esp32c3 esp32s3"}
 PROFILES=${HIL_PROFILES:-"default signed-axes specials minimal maxbtn reports"}
-BENCH=()
-PYTEST_ARGS=()
+TESTALL_ARGS=()   # passed to tester/test-all.sh (--bench / --by-board / pytest args)
 seen_ddash=0
 while [[ $# -gt 0 ]]; do
-  if [[ $seen_ddash == 1 ]]; then PYTEST_ARGS+=("$1"); shift; continue; fi
+  if [[ $seen_ddash == 1 ]]; then TESTALL_ARGS+=("$1"); shift; continue; fi
   case "$1" in
     --) seen_ddash=1; shift ;;
-    --bench) BENCH=(--bench); shift ;;
+    --bench | --by-board) TESTALL_ARGS+=("$1"); shift ;;
     --boards) BOARDS=$2; shift 2 ;;
     --profiles) PROFILES=$2; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
@@ -94,25 +98,19 @@ rsync -a --delete -e "${RSYNC_E[*]}" \
 rsync -a --delete -e "${RSYNC_E[*]}" "$HIL_REPO"/bundles/ "$PI:hil-bundles/"
 
 # --- 4. flash + test each bundle on the Pi ------------------------------
-# extra args are appended straight to pytest (our --bench flag + anything the
-# caller put after --, e.g. -k buttons). Per-bundle output streams live; each
-# bundle prints its own phase banners + one-line verdict (tester/test.sh).
+# tester/test-all.sh loops ~/hil-bundles, retries a bundle once, and takes the
+# rig lock (blocks until any CI / other local run releases it). Extra args
+# (--bench / --by-board / anything after --) pass straight through.
 rc=0
-"${SSH[@]}" "$PI" "bash -s --" "$REMOTE_DIR" "${BENCH[@]}" "${PYTEST_ARGS[@]}" <<'REMOTE' || rc=$?
+"${SSH[@]}" "$PI" "bash -s --" "$REMOTE_DIR" "${TESTALL_ARGS[@]}" <<'REMOTE' || rc=$?
 set -e
 REMOTE_DIR="$1"; shift
 cd ~/"$REMOTE_DIR"
 rm -rf results && mkdir results
-total=$(ls -d ~/hil-bundles/*/ | wc -l)
-echo "== $total bundle(s) to flash + test on $(hostname)"
-rc=0; i=0
-for b in ~/hil-bundles/*/; do
-  i=$((i+1))
-  echo; echo "########## [$i/$total] $(basename "$b")  $(date +%H:%M:%S)"
-  ./tester/test.sh "$b" "$@" || rc=$?
-done
+trc=0
+./tester/test-all.sh "$@" || trc=$?
 echo; echo '########## verdicts'; cat results/run-verdicts.md 2>/dev/null || true
-exit $rc
+exit $trc
 REMOTE
 
 # --- 5. pull results + regenerate the distilled table/charts -----------
