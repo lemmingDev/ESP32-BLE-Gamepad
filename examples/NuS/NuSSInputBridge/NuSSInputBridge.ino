@@ -41,6 +41,11 @@
 
 #define STATE_INTERVAL_MS 3000 // How often to push a state summary to subscribers
 
+// Onboard player-LED output (mirrors the stock SInputPlayerLED example).
+#ifndef LED_BUILTIN
+#define LED_BUILTIN 2 // Fallback if the board package doesn't define one
+#endif
+
 // delayAdvertising=true: begin() builds the HID service and configures
 // advertising but does not start it - NuS registers first (see setup()).
 BleGamepad bleGamepad("ESP32 Gamepad NuS SInput", "Espressif", 100, true);
@@ -61,6 +66,8 @@ int stPower[4] = {0, 0, 0, 0};
 void setup()
 {
     Serial.begin(115200);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
 
     // SInput mode: fixed 25 buttons, VID 0x2E8A / PID 0x10C6, SInput report
     // layout. Do not override setVid()/setPid() - SDL recognises the device
@@ -487,6 +494,9 @@ void pollSInputHostReports()
     {
         pushLed();
         Serial.println("[SInput] player LED " + String(bleGamepad.getPlayerLedIndex()));
+        // Mirror the stock SInputPlayerLED example: onboard LED (usually
+        // GPIO 2) lights for Player 1, off otherwise.
+        digitalWrite(LED_BUILTIN, bleGamepad.getPlayerLedIndex() == 1 ? HIGH : LOW);
     }
     if (bleGamepad.isRumbleReceived())
     {
