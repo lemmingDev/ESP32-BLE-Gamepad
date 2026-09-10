@@ -222,6 +222,10 @@ differ:
   `touch`, start/select/home specials, and `led?` / `rumble?` / `rgb?`
   queries that surface the last SInput Output Report (`0x03`) state the host
   sent. IMU + RGB capability flags are enabled so SDL advertises full caps.
+  Verified live: a WebHID host (e.g. joypad.ai) drives player-LED, rumble,
+  and RGB end to end — including lighting the onboard LED for Player 1.
+  Note `rumble?` reports the *last* frame, so query mid-pulse; stop-frames
+  read back as zero, and non-`0x02`/short haptic frames are ignored.
 - **XInput** (`NuSXInputBridge`): same gamepad control, plus start/select/
   home/back specials (back = Share), `battery`, and `rumble?` surfacing
   strong/weak motors and trigger magnitudes from the Xbox Output Report
