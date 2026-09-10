@@ -13,8 +13,20 @@ void BleConnectionStatus::onConnect(NimBLEServer *pServer, NimBLEConnInfo& connI
     NIMBLE_LOGD(LOG_TAG, "onConnect - Connected Address: %s", std::string(connInfo.getAddress()).c_str());
     pServer->updateConnParams(connInfo.getConnHandle(), 6, 7, 0, 600);
 
-    // Keep advertising so additional centrals (e.g. a diagnostics client on the
-    // NUS service) can connect alongside whichever peer is already connected.
+    // A bonded central that reconnects may never fire onAuthenticationComplete
+    // (no new pairing ceremony: the link just re-encrypts with stored keys).
+    // Without this latch, `connected` stays false forever after any reboot and
+    // sendReport() silently drops every HID report while the serial side keeps
+    // replying `ok` - exactly the failure that looks like "joy.cpl is dead".
+    if (connInfo.isEncrypted() || connInfo.isBonded())
+    {
+        NIMBLE_LOGD(LOG_TAG, "onConnect - bonded/encrypted link, marking connected");
+        this->authenticatedConnHandles.insert(connInfo.getConnHandle());
+        this->connected = true;
+    }
+
+    // Keep advertising so additional centrals can connect alongside whichever
+    // peer is already connected.
     if (pServer->getConnectedCount() < CONFIG_BT_NIMBLE_MAX_CONNECTIONS)
     {
         NIMBLE_LOGD(LOG_TAG, "onConnect - Restarting advertising to allow additional connections");
