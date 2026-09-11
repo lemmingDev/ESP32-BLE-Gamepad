@@ -184,6 +184,7 @@ PlatformIO: add `h2zero/NimBLE-Arduino` to your `lib_deps` and `esp32:esp32` to 
 |---------|-------------|
 | [XInputOneS](examples/XInput/XInputOneS/XInputOneS.ino) | Xbox One S mode with rumble |
 | [XInputSeriesX](examples/XInput/XInputSeriesX/XInputSeriesX.ino) | Xbox Series X mode with Share button |
+| [XInputAllTest](examples/XInput/XInputAllTest/XInputAllTest.ino) | Cycles every Xbox input for 1:1 host comparison |
 
 ### NuS Examples (require [NuS-NimBLE-Serial](https://github.com/afpineda/NuS-NimBLE-Serial))
 | Example | Description |
@@ -255,15 +256,6 @@ If you prefer XInput mode, Steam Input maps Xbox controllers by default -- it wi
 - **[NuS Compatibility](docs/NuSCompatibility.md)** -- Using this library alongside NuS-NimBLE-Serial for a BLE serial side channel
 - **[Linux HID Testing](LinuxHIDTesting.md)** -- Testing with hidraw/hidapi on Linux
 - **[Troubleshooting Guide](TroubleshootingGuide.md)** -- Common issues and fixes
-
-## POSSIBLE BREAKING CHANGES - PLEASE READ
-
-A large code rebase (configuration class) along with some extra features (start, select, menu, home, back, volume up, volume down and volume mute buttons) has been committed thanks to @dexterdy
-
-Since version 5 of this library, the axes and simulation controls have configurable min and max values. The defaults were changed from -32767 to 0 in version 5, and restored to -32768 to 32767 in version 0.8.0. Existing sketches that relied on the 0-32767 range should explicitly set `config.setAxesMin(0)` / `config.setAxesMax(32767)` if needed.
-
-`setAxes` accepts axes in the order (x, y, z, rx, ry, rz, slider1, slider2)
-`setHIDAxes` accepts them in the order (x, y, z, rz, rx, ry, slider1, slider2)
 
 ## NimBLE
 
