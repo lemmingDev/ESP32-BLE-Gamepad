@@ -53,10 +53,10 @@ Buttons are reported as a bitmask. With 16 buttons, 2 bytes are used; with 128 b
 | Option | Default | Description |
 |--------|---------|-------------|
 | `setWhichAxes(x,y,z,rx,ry,rz,s1,s2)` | all true | Enable/disable individual axes |
-| `setAxesMin()` | 0x0000 | Minimum axis value |
+| `setAxesMin()` | 0x8000 (-32768) | Minimum axis value |
 | `setAxesMax()` | 0x7FFF (32767) | Maximum axis value |
 
-Default range is 0..32767 (unsigned-like). Set both to -32767..32767 for a full signed range (see `setAxesMin(-32767)`).
+Default range is -32768..32767 (signed). Call `setAxesMin(0)` for an unsigned-like 0..32767 range.
 
 **Axis mapping by OS:**
 
@@ -84,7 +84,7 @@ Each hat switch uses 4 bits. Values: `HAT_CENTERED`, `HAT_UP`, `HAT_UP_RIGHT`, `
 | Option | Default | Description |
 |--------|---------|-------------|
 | `setWhichAxes()` | slider1=false, slider2=false | Enable via axis flags |
-| `setSliderMin()`/`setSliderMax()` | 0/32767 | Slider range |
+| `setAxesMin()`/`setAxesMax()` | -32768/32767 | Sliders share the axes range (no separate slider min/max) |
 
 ### Simulation Controls
 
