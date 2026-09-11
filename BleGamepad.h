@@ -130,6 +130,14 @@ class BleGamepad
     void setHIDAxes(int16_t x = 0, int16_t y = 0, int16_t z = 0, int16_t rZ = 0, int16_t rX = 0, int16_t rY = 0, int16_t slider1 = 0, int16_t slider2 = 0);
     void press(uint8_t b = BUTTON_1);   // press BUTTON_1 by default
     void release(uint8_t b = BUTTON_1); // release BUTTON_1 by default
+    // 64-bit button mask: bit N drives button N+1 (buttons 1..64).
+    // Same layout as press()/release(). Buttons 65+ are left unchanged -
+    // call resetButtons() first for a clean slate. Narrower values convert
+    // implicitly, e.g. setButtonsFromMask(myUint8).
+    void setButtonsFromMask(uint64_t mask);
+    // Full 128-button state: bits[0] holds buttons 1..8, ... bits[15] holds
+    // buttons 121..128. Same layout as press()/release(); byte-to-byte copy.
+    void setAllButtons(const uint8_t bits[16]);
     void pressSpecialButton(uint8_t b);
     void releaseSpecialButton(uint8_t b);
     void pressStart();

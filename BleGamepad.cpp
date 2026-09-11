@@ -1481,6 +1481,31 @@ void BleGamepad::press(uint8_t b)
   }
 }
 
+void BleGamepad::setButtonsFromMask(uint64_t mask)
+{
+  // Shift/mask decomposition, not memcpy: identical bytes to the press()
+  // layout on every endianness (bit N of mask -> button N+1).
+  for (int i = 0; i < 8; i++)
+  {
+    _buttons[i] = (uint8_t)((mask >> (i * 8)) & 0xFF);
+  }
+
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
+void BleGamepad::setAllButtons(const uint8_t bits[16])
+{
+  memcpy(_buttons, bits, sizeof(_buttons));
+
+  if (configuration.getAutoReport())
+  {
+    sendReport();
+  }
+}
+
 void BleGamepad::release(uint8_t b)
 {
   uint8_t index = (b - 1) / 8;
@@ -1949,11 +1974,11 @@ void BleGamepad::setBatteryLevel(uint8_t level)
 
     this->hid->setBatteryLevel(this->batteryLevel, this->isConnected() ? true : false);
 
-    if (configuration.getAutoReport())
-    {
-      sendReport();
-    }
+  if (configuration.getAutoReport())
+  {
+    sendReport();
   }
+}
 }
 
 bool BleGamepad::isOutputReceived()

@@ -17,6 +17,8 @@ setAxes	KEYWORD2
 setHIDAxes	KEYWORD2
 press	KEYWORD2
 release	KEYWORD2
+setButtonsFromMask	KEYWORD2
+setAllButtons	KEYWORD2
 isPressed	KEYWORD2
 isConnected	KEYWORD2
 setLeftThumb	KEYWORD2
