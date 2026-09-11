@@ -281,6 +281,9 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _enableTouchpad = true;
         _touchpadCount = 1;
         _touchpadFingerCount = 2;
+        _whichSpecialButtons[START_BUTTON] = true;
+        _whichSpecialButtons[SELECT_BUTTON] = true;
+        _whichSpecialButtons[HOME_BUTTON] = true;
     }
     else if (mode == GamepadMode::XInputOneS || mode == GamepadMode::XInputSeriesX)
     {
@@ -301,6 +304,11 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _includeAccelerometer = false;
         _enableOutputReport = false;
         _enableFeatureReport = false;
+        _whichSpecialButtons[START_BUTTON] = true;
+        _whichSpecialButtons[SELECT_BUTTON] = true;
+        _whichSpecialButtons[HOME_BUTTON] = true;
+        // Series X hardware has a Share button; One S does not.
+        _whichSpecialButtons[BACK_BUTTON] = (mode == GamepadMode::XInputSeriesX);
     }
     else if (mode == GamepadMode::Generic)
     {

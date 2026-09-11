@@ -398,6 +398,10 @@ public:
     void setEnableSInput(bool value);
     void setEnableSInputIMU(bool value);
     void setEnableSInputRGB(bool value);
+    // Applies the mode preset: button count, hat count, VID/PID, axes,
+    // simulation controls, IMU/output/feature flags and special buttons.
+    // Call this FIRST - it overwrites anything set before it. Customize after.
+    // begin() re-enforces the button/hat/slider limits for SInput/XInput.
     void setGamepadMode(GamepadMode mode);
     void setOutputReportLength(uint16_t value);
     void setFeatureReportLength(uint16_t value);

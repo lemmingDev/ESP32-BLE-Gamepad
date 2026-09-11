@@ -68,11 +68,11 @@ void setup()
 
     // XInput Series X mode: 11 buttons (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home),
     // Xbox VID/PID/serial. Do not override setVid()/setPid() - the host Xbox
-    // driver recognises the device by that exact pair. Start/select/home/back
-    // specials enabled so `special` drives the Xbox buttons (back = Share).
+    // driver recognises the device by that exact pair. The mode preset enables
+    // start/select/home/back specials, so `special` drives the Xbox buttons
+    // (back = Share) with no extra config.
     // Note BUTTON_9/10/11 set the same Xbox bits as select/start/home.
     config.setGamepadMode(GamepadMode::XInputSeriesX);
-    config.setWhichSpecialButtons(true, true, false, true, true, false, false, false);
     bleGamepad.begin(&config);
 
     // begin() initialises NimBLE asynchronously on its own task. NuSerial

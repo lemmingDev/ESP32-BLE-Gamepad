@@ -74,11 +74,11 @@ void setup()
     // by that exact pair. IMU + RGB caps on so the `motion` command drives
     // visible fields and SDL advertises the full capability set; touchpad is
     // auto-enabled by SInput mode (1 pad, 2 fingers). Start/select/home
-    // specials enabled so `special` maps onto the SInput buttons_2 bits.
+    // specials come from the mode preset so `special` maps onto the SInput
+    // buttons_2 bits with no extra config.
     config.setGamepadMode(GamepadMode::SInput);
     config.setEnableSInputIMU(true);
     config.setEnableSInputRGB(true);
-    config.setWhichSpecialButtons(true, true, false, true, false, false, false, false);
     bleGamepad.begin(&config);
 
     // begin() initialises NimBLE asynchronously on its own task. NuSerial

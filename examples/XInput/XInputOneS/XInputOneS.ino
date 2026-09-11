@@ -82,10 +82,6 @@ void setup() {
   Serial.println("  linux<6.5 xpad 02FD XInput, 6.5+ 0B13 Share. Commands: a b h t s r ?");
 
   config.setGamepadMode(GamepadMode::XInputOneS);
-  config.setButtonCount(11);
-  config.setHatSwitchCount(1);
-  config.setWhichAxes(true, true, true, true, true, true, false, false);
-  config.setWhichSpecialButtons(true, true, false, true, false, false, false, false);
   config.setAutoReport(false); // robust manual sendReport at 100 Hz
   bleGamepad.begin(&config);
   Serial.println("XInput One S ready. Advertising as Xbox Wireless Controller — pair in Bluetooth. Waiting for connection...");

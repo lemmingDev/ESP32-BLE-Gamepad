@@ -11,10 +11,6 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting XInput All-Inputs Test...");
   config.setGamepadMode(GamepadMode::XInputOneS);
-  config.setButtonCount(11);
-  config.setHatSwitchCount(1);
-  config.setWhichAxes(true, true, true, true, true, true, false, false);
-  config.setWhichSpecialButtons(true, true, false, true, false, false, false, false);
   bleGamepad.begin(&config);
   Serial.println("Advertising as Xbox Wireless Controller — pair in Windows/Bluetooth");
 }

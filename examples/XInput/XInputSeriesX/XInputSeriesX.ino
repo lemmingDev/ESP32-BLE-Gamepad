@@ -34,21 +34,9 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting XInput Series X Gamepad...");
 
-  // Configure as Xbox Series X (PID 0x0B13)
+  // Configure as Xbox Series X (PID 0x0B13). The mode preset covers
+  // buttons, D-pad, axes and specials (incl. Share) - see setGamepadMode().
   config.setGamepadMode(GamepadMode::XInputSeriesX);
-
-  // 11 buttons: A, B, X, Y, LB, RB, LS, RS, Select, Start, Share
-  config.setButtonCount(11);
-
-  // 1 hat switch for the D-pad
-  config.setHatSwitchCount(1);
-
-  // Same axis mapping as Xbox One S:
-  //   X/Y = left stick, Z/Rz = right stick, Rx = left trigger, Ry = right trigger
-  config.setWhichAxes(true, true, true, true, true, true, false, false);
-
-  // Special buttons: Select (Back), Start, Home (Guide)
-  config.setWhichSpecialButtons(true, true, false, true, false, false, false, false);
 
   bleGamepad.begin(&config);
 
