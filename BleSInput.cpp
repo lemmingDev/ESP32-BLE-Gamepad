@@ -151,11 +151,15 @@ void BleSInputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECon
             break;
 
         case SINPUT_COMMAND_JOYSTICKRGB:
-            if (length >= 5)
+            // SDL/hidapi sends [0x03, 0x04, R, G, B, ...] (report ID + command
+            // + RGB). After stripReportIdIfPresent we see [0x04, R, G, B, ...>,
+            // so R is at data[1]. The previous code read R from data[2] and was
+            // off by one, which explains the garbled #E41EC0 -> #083000 report.
+            if (length >= 4)
             {
-                rgbRed = data[2];
-                rgbGreen = data[3];
-                rgbBlue = data[4];
+                rgbRed = data[1];
+                rgbGreen = data[2];
+                rgbBlue = data[3];
                 rgbFlag = true;
             }
             break;
