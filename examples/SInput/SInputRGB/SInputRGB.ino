@@ -51,6 +51,9 @@ void loop()
   if (bleGamepad.isConnected())
   {
     // Poll for RGB color commands from the host
+    // NOTE: SInput joystick RGB is 6-bit (0..63) on the wire. Host tools
+    // (SDL's SetJoystickLED, joypad.ai WebHID) send e.g. 64 for #FFFFFF
+    // (255/4). Scale to 8-bit for PWM/NeoPixels: e.g. r8 = (r6*255+31)/63.
     if (bleGamepad.isRgbReceived())
     {
       uint8_t r = bleGamepad.getRgbRed();

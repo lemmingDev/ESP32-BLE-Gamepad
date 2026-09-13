@@ -191,7 +191,8 @@ public:
     uint8_t rumbleLeftAmplitude = 0;   // weak motor, 0-255
     uint8_t rumbleRightAmplitude = 0;  // strong motor, 0-255
 
-    // RGB LED state (SInput JoystickRGB command)
+    // RGB LED state (SInput JoystickRGB command, 6-bit 0..63 on the wire;
+    // hosts send e.g. 64 for #FFFFFF — scale to 8-bit via (v*255+31)/63)
     bool rgbFlag = false;
     uint8_t rgbRed = 0;
     uint8_t rgbGreen = 0;
