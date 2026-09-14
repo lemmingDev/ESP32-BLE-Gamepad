@@ -6,6 +6,7 @@ BleFeatureReceiver::BleFeatureReceiver(uint16_t featureReportLength, BleGamepadC
     this->configuration = configuration;
     featureBuffer = new uint8_t[featureReportLength];
     memset(featureBuffer, 0, featureReportLength);
+    buildFeatureReport(); // seed the buffer with the capability defaults, once
 }
 
 BleFeatureReceiver::~BleFeatureReceiver()
@@ -17,7 +18,11 @@ BleFeatureReceiver::~BleFeatureReceiver()
     }
 }
 
-// Builds a capability report modeled on the SInput "Features 0x02" report:
+// Seeds featureBuffer[0..3] with a capability report modeled on the SInput
+// "Features 0x02" layout. Called once at construction so a host that reads the
+// Feature Report without anything having written it still sees sane defaults.
+// It is NOT re-run on every read -- that would clobber whatever the sketch put
+// there with setFeatureBuffer() (the bidirectional buffer in GattVsHid.md B).
 // https://docs.handheldlegend.com/s/sinput/doc/features-response-bytes-1lMp7WL7bq
 void BleFeatureReceiver::buildFeatureReport()
 {
@@ -40,9 +45,8 @@ void BleFeatureReceiver::buildFeatureReport()
 
 void BleFeatureReceiver::onRead(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo& connInfo)
 {
-    buildFeatureReport();
-
-    // Set data for the host
+    // Serve whatever is in the buffer -- the capability defaults from the
+    // constructor, or whatever setFeatureBuffer() / a host onWrite last stored.
     pCharacteristic->setValue(featureBuffer, featureReportLength);
 }
 
