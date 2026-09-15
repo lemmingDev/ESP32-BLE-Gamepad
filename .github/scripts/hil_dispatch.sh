@@ -78,6 +78,24 @@ done
   echo "| Result | \`${conclusion:-timeout}\` |"
 } >> "$summary"
 
+# --- inline the rig's own board x profile summary --------------------------
+# The rig run renders a much richer summary (summarize.py) into its own job
+# summary and results/ artifact; without this, ours only ever links out to
+# it. Best-effort: a run that never got as far as uploading hil-results
+# (crashed before that step, or the artifact expired) just gets the link
+# above and a warning, not a hard failure -- the pass/fail verdict below is
+# what actually gates the job.
+if [ "$status" = "completed" ]; then
+  work="$(mktemp -d)"
+  if gh run download "$run_id" -R "$RIG_REPO" -n hil-results -D "$work" 2>/dev/null \
+     && [ -s "$work/summary.md" ]; then
+    { echo; cat "$work/summary.md"; echo; } >> "$summary"
+  else
+    echo "::warning::couldn't fetch hil-results/summary.md from $run_url for inline summary"
+  fi
+  rm -rf "$work"
+fi
+
 if [ "$status" != "completed" ]; then
   echo "::error::HIL rig run did not finish within 2.5h: $run_url"
   exit 1
