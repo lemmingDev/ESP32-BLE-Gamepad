@@ -117,7 +117,7 @@ Custom VID/PID values affect how the OS identifies the device. Some games use VI
 | `setModelNumber()` | "1.0.0" | Device Information model |
 | `setSoftwareRevision()` | "1.0.0" | Device Information software |
 | `setSerialNumber()` | "0123456789" | Device Information serial |
-| `setFirmwareRevision()` | "0.7.4" | Device Information firmware |
+| `setFirmwareRevision()` | "0.8.0" | Device Information firmware |
 | `setHardwareRevision()` | "1.0.0" | Device Information hardware |
 
 ### Report Options

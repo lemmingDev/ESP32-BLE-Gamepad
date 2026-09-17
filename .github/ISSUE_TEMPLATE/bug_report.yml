@@ -63,7 +63,7 @@ body:
     attributes:
       label: ESP32-BLE-Gamepad version
       description: Release version, or commit hash if built from source.
-      placeholder: e.g. 0.7.4
+      placeholder: e.g. 0.8.0
 
   - type: input
     id: nimble-version
