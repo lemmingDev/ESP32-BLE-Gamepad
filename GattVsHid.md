@@ -166,13 +166,15 @@ If you're not targeting SInput specifically, the library's older, more
 generic mechanism still exists independently of SInput mode: add bytes to
 the configurable Output Report (host → device) and/or Feature Report
 (bidirectional) via `setEnableOutputReport()`/`setEnableFeatureReport()`.
-`BleFeatureReceiver::buildFeatureReport()` in
-[BleFeatureReport.cpp](BleFeatureReport.cpp) already does this for a
-capability bitmask happening to reuse SInput's bit layout — but to be clear,
-**this is a different, non-SInput mechanism**: it rides on the GATT Feature
-Report characteristic, which SDL's SInput driver never reads (see the note
-above). It's still useful for a custom app that talks `hidraw`/`hidapi`
-directly against its own protocol, just not for SDL's SInput recognition.
+The Feature Report buffer starts seeded with a small capability bitmask
+(`BleFeatureReceiver::buildFeatureReport()` in
+[BleFeatureReport.cpp](BleFeatureReport.cpp), a layout that happens to reuse
+SInput's bits); firmware overwrites it with `setFeatureBuffer()` and the host
+reads back exactly what was stored. To be clear, **this is a different,
+non-SInput mechanism**: it rides on the GATT Feature Report characteristic,
+which SDL's SInput driver never reads (see the note above). It's still useful
+for a custom app that talks `hidraw`/`hidapi` directly against its own
+protocol, just not for SDL's SInput recognition.
 
 - Reachable from: any app already reading this device's Input Report via
   `hidraw`/`hidapi` — i.e. exactly the kind of code a game or a custom
