@@ -68,10 +68,9 @@ void setup()
 
     // XInput Series X mode: 11 buttons (A/B/X/Y/LB/RB/LS/RS/Select/Start/Home),
     // Xbox VID/PID/serial. Do not override setVid()/setPid() - the host Xbox
-    // driver recognises the device by that exact pair. The mode preset enables
-    // start/select/home/back specials, so `special` drives the Xbox buttons
-    // (back = Share) with no extra config.
-    // Note BUTTON_9/10/11 set the same Xbox bits as select/start/home.
+    // driver recognises the device by that exact pair. Matches Mystfit layout:
+    // BUTTON_9/10/11 drive Select/Start/Guide in the buttons field, BACK
+    // drives the share byte (Record on 1914, AC Back on 1708).
     config.setGamepadMode(GamepadMode::XInputSeriesX);
     bleGamepad.begin(&config);
 
@@ -178,21 +177,33 @@ void handleCommand(String cmd)
     if (cmd == "rumble?") { pushRumble(); return; }
     if (cmd.startsWith("special "))
     {
-        // special <start|select|home|back> <on|off> (back = Share button)
+        // special <start|select|home|back> <on|off> (back = Share byte).
+        // XInput report has a single mapping: BUTTON_10/9/11 drive
+        // Start/Select/Guide (Mystfit layout), BACK drives share.
         int sp = cmd.indexOf(' ', 8);
         if (sp > 0)
         {
             String which = cmd.substring(8, sp);
             String onoff = cmd.substring(sp + 1);
-            uint8_t btn = 255;
-            if (which == "start") btn = START_BUTTON;
-            else if (which == "select") btn = SELECT_BUTTON;
-            else if (which == "home") btn = HOME_BUTTON;
-            else if (which == "back") btn = BACK_BUTTON;
-            if (btn != 255 && (onoff == "on" || onoff == "off"))
+            int button = -1;
+            bool isBack = false;
+            if (which == "start") button = 10;
+            else if (which == "select") button = 9;
+            else if (which == "home") button = 11;
+            else if (which == "back") isBack = true;
+            if ((button > 0 || isBack) && (onoff == "on" || onoff == "off"))
             {
-                if (onoff == "on") { bleGamepad.pressSpecialButton(btn); }
-                else { bleGamepad.releaseSpecialButton(btn); }
+                bool on = (onoff == "on");
+                if (isBack)
+                {
+                    if (on) { bleGamepad.pressSpecialButton(BACK_BUTTON); }
+                    else { bleGamepad.releaseSpecialButton(BACK_BUTTON); }
+                }
+                else
+                {
+                    if (on) { bleGamepad.press(button); }
+                    else { bleGamepad.release(button); }
+                }
                 NuSerial.println("ok " + cmd);
             }
             else

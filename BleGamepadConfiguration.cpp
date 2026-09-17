@@ -307,8 +307,11 @@ void BleGamepadConfiguration::setGamepadMode(GamepadMode mode)
         _whichSpecialButtons[START_BUTTON] = true;
         _whichSpecialButtons[SELECT_BUTTON] = true;
         _whichSpecialButtons[HOME_BUTTON] = true;
-        // Series X hardware has a Share button; One S does not.
-        _whichSpecialButtons[BACK_BUTTON] = (mode == GamepadMode::XInputSeriesX);
+        // Both variants have a share byte in the main input report:
+        // Series X = Record (Share), One S 1708 = AC Back. BACK must stay
+        // enabled or report.share can never be set (matches Mystfit, whose
+        // pressShare() works on both variants).
+        _whichSpecialButtons[BACK_BUTTON] = true;
     }
     else if (mode == GamepadMode::Generic)
     {

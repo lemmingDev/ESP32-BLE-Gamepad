@@ -1275,7 +1275,7 @@ void BleGamepad::sendXInputReport()
     report.accelerator = (uint16_t)((uint32_t)_rY * XBOX_TRIGGER_MAX / 32767);
   }
 
-  // Hat switch: HAT_* → Xbox 4-bit encoding
+  // Hat switch: HAT_* → Xbox 4-bit encoding (separate hat field)
   if (configuration.getHatSwitchCount() >= 1)
   {
     switch (_hat1)
@@ -1292,7 +1292,9 @@ void BleGamepad::sendXInputReport()
     }
   }
 
-  // Buttons: map BUTTON_1..15 to Xbox bitmask
+  // Buttons: map BUTTON_1..11 to Xbox One (Series X) bitmask
+  // Matches Mystfit/ESP32-BLE-CompositeHID layout exactly.
+  // DPAD is in the hat field only (not mirrored into buttons).
   uint16_t btns = 0;
   if (configuration.getButtonCount() >= 1  && isPressed(BUTTON_1))  btns |= XBOX_BUTTON_A;
   if (configuration.getButtonCount() >= 2  && isPressed(BUTTON_2))  btns |= XBOX_BUTTON_B;
@@ -1304,24 +1306,8 @@ void BleGamepad::sendXInputReport()
   if (configuration.getButtonCount() >= 8  && isPressed(BUTTON_8))  btns |= XBOX_BUTTON_RS;
   if (configuration.getButtonCount() >= 9  && isPressed(BUTTON_9))  btns |= XBOX_BUTTON_SELECT;
   if (configuration.getButtonCount() >= 10 && isPressed(BUTTON_10)) btns |= XBOX_BUTTON_START;
-  if (configuration.getButtonCount() >= 11 && isPressed(BUTTON_11)) btns |= XBOX_BUTTON_HOME;
+  if (configuration.getButtonCount() >= 11 && isPressed(BUTTON_11)) btns |= XBOX_BUTTON_GUIDE;
 
-  // Map special buttons to Xbox buttons
-  if (configuration.getIncludeStart())
-  {
-    uint8_t bit = specialButtonBitPosition(START_BUTTON);
-    if (_specialButtons & (1 << bit)) btns |= XBOX_BUTTON_START;
-  }
-  if (configuration.getIncludeSelect())
-  {
-    uint8_t bit = specialButtonBitPosition(SELECT_BUTTON);
-    if (_specialButtons & (1 << bit)) btns |= XBOX_BUTTON_SELECT;
-  }
-  if (configuration.getIncludeHome())
-  {
-    uint8_t bit = specialButtonBitPosition(HOME_BUTTON);
-    if (_specialButtons & (1 << bit)) btns |= XBOX_BUTTON_HOME;
-  }
   report.buttons = btns;
 
   // Share button (separate byte)

@@ -18,6 +18,7 @@ The serial channel itself works identically in all modes.
 | [NuSGenericAdvanced](NuSGenericAdvanced/NuSGenericAdvanced.ino) | Generic (+ start/select, output/feature reports) | Everything in `NuSGenericBridge`, plus `special`, `output?`, `feature get`/`set` | `ok`/`err` replies, `event output`/`event feature` pushes, periodic `state` |
 | [NuSSInputBridge](NuSSInputBridge/NuSSInputBridge.ino) | SInput (IMU + RGB caps) | `press`/`release` 1–25, `stick`, `trigger`, `hat`, `motion`, `touch`, `special` (start/select/home), `battery`, `power`, `status`, `pair`, `unpair`, `txpower`, `addr?` | `ok`/`err` replies, `event led/rumble/rgb` pushed as SInput Output Reports arrive, plus `led?`/`rumble?`/`rgb?` queries |
 | [NuSXInputBridge](NuSXInputBridge/NuSXInputBridge.ino) | XInput One S | `press`/`release` 1–11 (A…Home), `stick`, `trigger`, `hat`, `special` (start/select/home/back=Share), `battery`, `power`, `status`, `pair`, `unpair`, `txpower`, `addr?` | `ok`/`err` replies, `event rumble` (strong/weak + trigger magnitudes) pushed as Xbox Output Reports arrive, plus `rumble?` query |
+| [NuSSendReceive](NuSSendReceive/NuSSendReceive.ino) | Generic data demo (tutorial) | `echo`, `millis?`, `heap?`, `led`, `status` — freeform data, nothing gamepad-specific | `ok`/`err` replies, `hello` greeting, unprompted `data` telemetry lines |
 
 ## Strict vs advanced Generic bridge
 
@@ -52,6 +53,7 @@ Profile IDs (v1):
 | NuSGenericAdvanced | `nus-bridge/generic-advanced` |
 | NuSSInputBridge | `nus-bridge/sinput` |
 | NuSXInputBridge | `nus-bridge/xinput` |
+| NuSSendReceive | `nus-send-receive` |
 
 Bump `NUS_PROTO_VER` (and document the delta here) if the vocabulary ever
 changes incompatibly. Sketches for other firmware (e.g. CompositeHID bridges)
@@ -72,6 +74,7 @@ view displays). The GAP/GATT display name and pairing UX are unaffected.
 | NuSGenericAdvanced | ESP32 Gamepad NuS Adv | `GenAdv-NuS` |
 | NuSSInputBridge | ESP32 Gamepad NuS SInput | `SInput-NuS` |
 | NuSXInputBridge | Xbox Wireless Controller | `XInput-NuS` |
+| NuSSendReceive | Gamepad NuS SendReceive | `SendRx-NuS` |
 
 You'll usually see the alias, not the full name, in filtered scanner views —
 and it must stay ≤11 characters so it shares the scan response with the

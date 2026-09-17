@@ -20,21 +20,24 @@
 // XInput output report size (8 bytes on wire, excluding Report ID)
 #define XINPUT_REPORT_LEN_OUTPUT 8
 
-// Xbox button bitmasks (15-bit button field in input report)
-#define XBOX_BUTTON_A      0x0001
-#define XBOX_BUTTON_B      0x0002
-#define XBOX_BUTTON_X      0x0008
-#define XBOX_BUTTON_Y      0x0010
-#define XBOX_BUTTON_LB     0x0040
-#define XBOX_BUTTON_RB     0x0080
-#define XBOX_BUTTON_SELECT 0x0400
-#define XBOX_BUTTON_START  0x0800
-#define XBOX_BUTTON_HOME   0x1000
-#define XBOX_BUTTON_LS     0x2000
-#define XBOX_BUTTON_RS     0x4000
+// Xbox button bitmasks — Xbox One (Series X) layout, matches Mystfit's captured
+// descriptors exactly. DPAD is in the hat field only; NOT mirrored into buttons.
+#define XBOX_BUTTON_A             0x0001
+#define XBOX_BUTTON_B             0x0002
+#define XBOX_BUTTON_X             0x0008
+#define XBOX_BUTTON_Y             0x0010
+#define XBOX_BUTTON_LB            0x0040
+#define XBOX_BUTTON_RB            0x0080
+#define XBOX_BUTTON_SELECT        0x0400
+#define XBOX_BUTTON_START         0x0800
+#define XBOX_BUTTON_GUIDE         0x1000
+#define XBOX_BUTTON_LS            0x2000
+#define XBOX_BUTTON_RS            0x4000
+#define XBOX_BUTTON_SHARE         0x01  // in separate report.share byte
 
-// Share button (separate byte)
-#define XBOX_BUTTON_SHARE  0x01
+// Legacy aliases (for sketches using old names)
+#define XBOX_BUTTON_HOME          XBOX_BUTTON_GUIDE
+#define XBOX_BUTTON_BACK          XBOX_BUTTON_SELECT
 
 // D-pad hat values (4-bit, 1-8 range, 0 = released)
 #define XBOX_DPAD_NONE      0
