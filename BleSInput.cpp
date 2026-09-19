@@ -148,6 +148,21 @@ void BleSInputReceiver::onWrite(NimBLECharacteristic *pCharacteristic, NimBLECon
                 rumbleRightAmplitude = data[4];  // right motor (strong)
                 rumbleFlag = true;
             }
+            else if (length >= 18 && data[1] == 0x01) // type 1 = dual 16-bit amplitudes
+            {
+                // GP2040-CE mapping: each side takes the max of its two
+                // LE16 amplitudes (left at offsets 4/8, right at 12/16);
+                // values > 255 are full 16-bit, scaled down to a byte.
+                uint16_t leftA = (uint16_t)data[4] | ((uint16_t)data[5] << 8);
+                uint16_t leftB = (uint16_t)data[8] | ((uint16_t)data[9] << 8);
+                uint16_t rightA = (uint16_t)data[12] | ((uint16_t)data[13] << 8);
+                uint16_t rightB = (uint16_t)data[16] | ((uint16_t)data[17] << 8);
+                uint16_t left = (leftA > leftB) ? leftA : leftB;
+                uint16_t right = (rightA > rightB) ? rightA : rightB;
+                rumbleLeftAmplitude = (left > 255) ? (uint8_t)(left >> 8) : (uint8_t)left;
+                rumbleRightAmplitude = (right > 255) ? (uint8_t)(right >> 8) : (uint8_t)right;
+                rumbleFlag = true;
+            }
             break;
 
         case SINPUT_COMMAND_JOYSTICKRGB:

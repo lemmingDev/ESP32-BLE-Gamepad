@@ -213,6 +213,25 @@ Sent in response to a "get features" command (0x02 on Output Report 0x03). Descr
 | 4 | uint8 | Right motor amplitude (0-255) |
 | 5 | uint8 | Right motor brake (0/1) |
 
+### Haptic Command (Type 1 = Dual 16-bit Amplitudes)
+
+Same command ID (`0x01`), alternate payload shape (mirrors GP2040-CE).
+Each side takes the max of two LE16 amplitudes; values above 255 are
+full 16-bit and scaled down (`>> 8`) to a byte.
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | uint8 | Command ID (0x01) |
+| 1 | uint8 | Type (0x01) |
+| 2 | uint8 | (reserved/pad) |
+| 3-4 | uint16 LE | Left amplitude A |
+| 5-6 | uint8[2] | (reserved/pad) |
+| 7-8 | uint16 LE | Left amplitude B (left = max(A, B)) |
+| 9-10 | uint8[2] | (reserved/pad) |
+| 11-12 | uint16 LE | Right amplitude A |
+| 13-14 | uint8[2] | (reserved/pad) |
+| 15-16 | uint16 LE | Right amplitude B (right = max(A, B)) |
+
 ## Configuration
 
 ### Enabling SInput Mode
