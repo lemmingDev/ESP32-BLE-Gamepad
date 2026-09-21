@@ -35,6 +35,11 @@
 #include <Arduino.h>
 #include <math.h>
 #include <BleGamepad.h> // https://github.com/lemmingDev/ESP32-BLE-Gamepad
+#include <NuSerial.hpp> // https://github.com/afpineda/NuS-NimBLE-Serial (external, see docs/NuSCompatibility.md)
+#include <NimBLEDevice.h>
+
+// Nordic UART Service UUID, advertised in the scan response (see setup()).
+#define NUS_ADV_UUID "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 
 // Set by inject_version.py at build time, e.g. "ESP32-BLE-Gamepad 0.7.5-rc0+g05599be"
 // and "2026-08-27T14:32:10Z". BLE_GAMEPAD_BUILD_TIME changes every build, so the
@@ -73,7 +78,10 @@
 
 #define NUS_STATUS_INTERVAL_MS 3000
 
-BleGamepad bleGamepad("ESP32 BLE Gamepad Test", "lemmingDev", 100);
+// delayAdvertising=true: begin() builds the HID service but does not start
+// advertising — NuS registers first, then advertising starts once for both
+// services together (see setup(), docs/NuSCompatibility.md).
+BleGamepad bleGamepad("ESP32 BLE Gamepad Test", "lemmingDev", 100, true);
 BleGamepadConfiguration bleGamepadConfig;
 
 static uint8_t currentButton = FIRST_TEST_BUTTON;
@@ -81,7 +89,8 @@ static float axisAngle = 0.0f;
 static int batteryLevel = BATTERY_MAX;
 static int batteryStep = -BATTERY_STEP; // start by draining
 static bool wasConnected = false;
-static bool nusSubscribed = false;
+static size_t lastNusSubscribers = 0;
+static unsigned long nusGreetAt = 0; // millis() timestamp for the delayed greeting, 0 = none pending
 static unsigned long lastButtonStep = 0;
 static unsigned long lastAxisStep = 0;
 static unsigned long lastBatteryStep = 0;
@@ -96,21 +105,30 @@ String statusLine()
            " free_heap=" + ESP.getFreeHeap();
 }
 
-// A central can subscribe to NUS without bonding, so this is a separate signal
-// from the gamepad HID link (bleGamepad.isConnected()).
-void onNusSubscribeChanged(bool subscribed, const std::string &address)
+// NuSerial is a singleton with no subscribe callback, so subscriber arrivals
+// are polled in loop() instead. A central can subscribe to NUS without
+// bonding, so this is a separate signal from the gamepad HID link
+// (bleGamepad.isConnected()).
+void pollNusSubscribers()
 {
-    Serial.printf("NUS %s %s\n", address.c_str(), subscribed ? "subscribed" : "unsubscribed");
-    nusSubscribed = subscribed;
-
-    if (subscribed)
+    size_t subs = NuSerial.subscriberCount();
+    if (subs == 0)
     {
-        BleNUS *nus = bleGamepad.getNUS();
-        if (nus)
-        {
-            nus->println("ESP32-BLE-Gamepad test firmware. Commands: help, status.");
-        }
+        nusGreetAt = 0;
     }
+    else if (subs > lastNusSubscribers)
+    {
+        // New arrival(s): hold the greeting 500ms so the notify handler is
+        // attached before we push (avoids losing hello to the CCCD race).
+        nusGreetAt = millis() + 500;
+    }
+    else if (nusGreetAt != 0 && (long)(millis() - nusGreetAt) >= 0)
+    {
+        nusGreetAt = 0;
+        Serial.printf("NUS subscriber, greeting %u total\n", (unsigned)subs);
+        NuSerial.println("ESP32-BLE-Gamepad test firmware. Commands: help, status.");
+    }
+    lastNusSubscribers = subs;
 }
 
 void setup()
@@ -142,8 +160,23 @@ void setup()
     bleGamepadConfig.setHardwareRevision("1.7");
 
     bleGamepad.begin(&bleGamepadConfig);
-    bleGamepad.beginNUS(); // Nordic UART Service alongside the gamepad HID service
-    bleGamepad.getNUS()->setSubscribeCallback(onNusSubscribeChanged);
+
+    // begin() initialises NimBLE asynchronously on its own task. NuSerial
+    // needs the stack up first, so wait for the server to exist.
+    while (NimBLEDevice::getServer() == nullptr)
+    {
+        delay(10);
+    }
+
+    // false = register the NuS service but leave advertising alone.
+    NuSerial.start(false);
+
+    // Advertise the NuS service UUID in the scan response (the 31-byte adv
+    // packet is already full), then advertise once for both services together.
+    NimBLEAdvertising *pAdvertising = NimBLEDevice::getServer()->getAdvertising();
+    pAdvertising->enableScanResponse(true);
+    pAdvertising->addServiceUUID(NUS_ADV_UUID);
+    pAdvertising->start();
 }
 
 // Press then release the next button, cycling FIRST_TEST_BUTTON..LAST_TEST_BUTTON.
@@ -219,18 +252,12 @@ void stepBattery()
 // subscribed while bleGamepad.isConnected() is still false.
 void serviceNus()
 {
-    BleNUS *nus = bleGamepad.getNUS();
-    if (!nus)
-    {
-        return;
-    }
-
-    if (nus->available())
+    if (NuSerial.available())
     {
         String received;
-        while (nus->available())
+        while (NuSerial.available())
         {
-            received += (char)nus->read();
+            received += (char)NuSerial.read();
         }
 
         String command = received;
@@ -239,15 +266,15 @@ void serviceNus()
 
         if (command == "help")
         {
-            nus->println("Commands: help, status. Anything else is echoed back.");
+            NuSerial.println("Commands: help, status. Anything else is echoed back.");
         }
         else if (command == "status")
         {
-            nus->println(statusLine());
+            NuSerial.println(statusLine());
         }
         else
         {
-            nus->println("Echo: " + received);
+            NuSerial.println("Echo: " + received);
         }
     }
 
@@ -256,9 +283,9 @@ void serviceNus()
         lastNusStatus = millis();
         String line = statusLine();
         Serial.println(line);
-        if (nusSubscribed) // don't spray TX at nobody
+        if (NuSerial.subscriberCount() > 0) // don't spray TX at nobody
         {
-            nus->println(line);
+            NuSerial.println(line);
         }
     }
 }
@@ -311,6 +338,7 @@ void loop()
         }
     }
 
+    pollNusSubscribers();
     serviceNus();
     delay(10);
 }
