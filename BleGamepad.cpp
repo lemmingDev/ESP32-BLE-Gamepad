@@ -2635,6 +2635,16 @@ void BleGamepad::taskServer(void *pvParameter)
       );
   pCharacteristic_Hardware_Revision->setValue(std::string(BleGamepadInstance->configuration.getHardwareRevision()));
 
+  // Battery Power State (0x2A1A) on the Battery Service, driven by setPowerStateAll() and the per-field setters.
+  // Seeded with whatever was set before begin() (all Unknown by default) -- setValue only, nobody to notify yet.
+  BleGamepadInstance->pCharacteristic_Power_State = BleGamepadInstance->hid->getBatteryService()->createCharacteristic(
+        CHARACTERISTIC_UUID_BATTERY_POWER_STATE,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+      );
+  uint8_t powerStateBits = (BleGamepadInstance->_batteryPowerInformation << 0) | (BleGamepadInstance->_dischargingState << 2) |
+                           (BleGamepadInstance->_chargingState << 4) | (BleGamepadInstance->_powerLevel << 6);
+  BleGamepadInstance->pCharacteristic_Power_State->setValue(&powerStateBits, 1);
+
   // VID Source 0x02 = USB (required for Windows Xbox driver matching; Mystfit uses this)
   uint8_t vidSource = (BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputOneS ||
                        BleGamepadInstance->configuration.getGamepadMode() == GamepadMode::XInputSeriesX) ? 0x02 : 0x01;
